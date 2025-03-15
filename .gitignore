@@ -11,3 +11,7 @@ vendor/
 # IDE-specific files
 .idea/
 .vscode/
+
+# Temp files
+*.srt
+*.vtt
