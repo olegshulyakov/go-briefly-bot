@@ -9,6 +9,7 @@ import (
 	"youtube-retell-bot/services"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 var Bot *tgbotapi.BotAPI
@@ -58,16 +59,25 @@ func sendMessage(chatId int64, text string) {
 		config.Logger.Warnf("Attempt %d: Failed to send message: %v", i+1, err)
 	}
 
-	Bot.Send(tgbotapi.NewMessage(chatId, "Sorry, I couldn't summarize the transcript."))
+	//TODO Send fail message
 
 	config.Logger.Errorf("Failed to send message after %d attempts: %v", maxRetries, err)
 }
 
 func HandleMessage(message *tgbotapi.Message) {
+	// Determine the user's language (default to English)
+	userLanguage := message.From.LanguageCode
+	if userLanguage == "" {
+		userLanguage = "en"
+	}
+
+	// Create a localizer for the user's language
+	localizer := config.Localizer
+
 	if message.IsCommand() {
 		switch message.Command() {
 		case "start":
-			sendMessage(message.Chat.ID, "Welcome! Send me a YouTube link, and I'll summarize it for you.")
+			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "welcome.message"}))
 		}
 		return
 	}
@@ -81,7 +91,7 @@ func HandleMessage(message *tgbotapi.Message) {
 		transcript, err := services.GetTranscript(videoURL)
 		if err != nil {
 			config.Logger.Errorf("Failed to get transcript: %v", err)
-			sendMessage(message.Chat.ID, "Sorry, I couldn't fetch the transcript for this video.")
+			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "errors.transcript_failed"}))
 			return
 		}
 
@@ -89,11 +99,16 @@ func HandleMessage(message *tgbotapi.Message) {
 		summary, err := services.Summarize(transcript)
 		if err != nil {
 			config.Logger.Errorf("Failed to summarize transcript: %v", err)
-			sendMessage(message.Chat.ID, "Sorry, I couldn't summarize the transcript.")
+			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "errors.summary_failed"}))
 			return
 		}
 
 		// Send summary to user
-		sendMessage(message.Chat.ID, summary)
+		sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: "result.summary",
+			TemplateData: map[string]interface{}{
+				"Summary": summary,
+			},
+		}))
 	}
 }
