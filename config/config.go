@@ -39,7 +39,7 @@ func LoadConfig() (*Config, error) {
 
 func SetupLogger() {
 	Logger = logrus.New()
-	Logger.SetFormatter(&logrus.JSONFormatter{})
+	Logger.SetFormatter(&logrus.TextFormatter{})
 	Logger.SetOutput(os.Stdout)
 	Logger.SetLevel(logrus.InfoLevel)
 }
