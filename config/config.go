@@ -5,7 +5,10 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
+
+var Logger *logrus.Logger
 
 type Config struct {
     TelegramToken string
@@ -32,4 +35,11 @@ func LoadConfig() (*Config, error) {
     }
 
 	return c, nil
+}
+
+func SetupLogger() {
+	Logger = logrus.New()
+	Logger.SetFormatter(&logrus.JSONFormatter{})
+	Logger.SetOutput(os.Stdout)
+	Logger.SetLevel(logrus.InfoLevel)
 }
