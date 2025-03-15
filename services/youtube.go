@@ -24,6 +24,11 @@ func GetTranscript(videoURL string) (string, error) {
 		return "", fmt.Errorf("failed to read transcript file: %v", err)
 	}
 
+	err = os.Remove("transcript.ru.srt")
+	if err != nil {
+		return "", fmt.Errorf("failed to delete transcript file: %v", err)
+	}
+
 	config.Logger.Debugf("Transcript extracted: %v", videoURL)
 
 	return string(transcript), nil
