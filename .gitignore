@@ -1,0 +1,13 @@
+# Binaries
+youtube-retell-bot
+
+# Environment files
+.env
+.env*
+
+# Dependency directories
+vendor/
+
+# IDE-specific files
+.idea/
+.vscode/
