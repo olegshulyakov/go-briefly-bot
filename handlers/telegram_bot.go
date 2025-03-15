@@ -44,6 +44,7 @@ func StartBot(token string) {
 
 // sendMessage sends a message using the bot and logs any errors.
 func sendMessage(msg tgbotapi.MessageConfig) {
+	msg.ParseMode = "Markdown"
 	const maxRetries = 3
 	var err error
 
