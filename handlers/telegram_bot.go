@@ -43,8 +43,10 @@ func StartBot(token string) {
 }
 
 // sendMessage sends a message using the bot and logs any errors.
-func sendMessage(msg tgbotapi.MessageConfig) {
+func sendMessage(chatId int64, text string) {
+	msg := tgbotapi.NewMessage(chatId, text)
 	msg.ParseMode = "Markdown"
+
 	const maxRetries = 3
 	var err error
 
@@ -56,6 +58,8 @@ func sendMessage(msg tgbotapi.MessageConfig) {
 		config.Logger.Warnf("Attempt %d: Failed to send message: %v", i+1, err)
 	}
 
+	Bot.Send(tgbotapi.NewMessage(chatId, "Sorry, I couldn't summarize the transcript."))
+
 	config.Logger.Errorf("Failed to send message after %d attempts: %v", maxRetries, err)
 }
 
@@ -63,8 +67,7 @@ func HandleMessage(message *tgbotapi.Message) {
 	if message.IsCommand() {
 		switch message.Command() {
 		case "start":
-			msg := tgbotapi.NewMessage(message.Chat.ID, "Welcome! Send me a YouTube link, and I'll summarize it for you.")
-			sendMessage(msg)
+			sendMessage(message.Chat.ID, "Welcome! Send me a YouTube link, and I'll summarize it for you.")
 		}
 		return
 	}
@@ -78,8 +81,7 @@ func HandleMessage(message *tgbotapi.Message) {
 		transcript, err := services.GetTranscript(videoURL)
 		if err != nil {
 			config.Logger.Errorf("Failed to get transcript: %v", err)
-			msg := tgbotapi.NewMessage(message.Chat.ID, "Sorry, I couldn't fetch the transcript for this video.")
-			sendMessage(msg)
+			sendMessage(message.Chat.ID, "Sorry, I couldn't fetch the transcript for this video.")
 			return
 		}
 
@@ -87,13 +89,11 @@ func HandleMessage(message *tgbotapi.Message) {
 		summary, err := services.Summarize(transcript)
 		if err != nil {
 			config.Logger.Errorf("Failed to summarize transcript: %v", err)
-			msg := tgbotapi.NewMessage(message.Chat.ID, "Sorry, I couldn't summarize the transcript.")
-			sendMessage(msg)
+			sendMessage(message.Chat.ID, "Sorry, I couldn't summarize the transcript.")
 			return
 		}
 
 		// Send summary to user
-		msg := tgbotapi.NewMessage(message.Chat.ID, summary)
-		sendMessage(msg)
+		sendMessage(message.Chat.ID, summary)
 	}
 }
