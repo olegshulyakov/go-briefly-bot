@@ -16,10 +16,10 @@ func Summarize(text string) (string, error) {
 	}
 
 	payload := map[string]interface{}{
-		"model": "huggingface/gpt-3.5-turbo", // Example model
+		"model": "mistralai/mistral-nemo:free",
 		"messages": []map[string]string{
-			{"role": "system", "content": "You are a helpful assistant that summarizes text."},
-			{"role": "user", "content": "Summarize the following text: " + text},
+			{"role": "system", "content": "You are a helpful assistant that retells text."},
+			{"role": "user", "content": "Summarize the retell text: " + text},
 		},
 	}
 
