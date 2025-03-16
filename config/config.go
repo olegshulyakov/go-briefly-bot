@@ -109,5 +109,5 @@ func SetupLogger() {
 	Logger = logrus.New()
 	Logger.SetFormatter(&logrus.TextFormatter{})
 	Logger.SetOutput(os.Stdout)
-	Logger.SetLevel(logrus.InfoLevel)
+	Logger.SetLevel(logrus.DebugLevel)
 }
