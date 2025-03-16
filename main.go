@@ -19,5 +19,5 @@ func main() {
 	}
 
 	// Start the Telegram bot
-	handlers.StartBot(cfg.TelegramToken)
+	handlers.StartTelegramBot(cfg.TelegramToken)
 }

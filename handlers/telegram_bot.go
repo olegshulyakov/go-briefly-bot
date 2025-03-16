@@ -14,7 +14,7 @@ import (
 
 var Bot *tgbotapi.BotAPI
 
-func StartBot(token string) {
+func StartTelegramBot(token string) {
 	var err error
 	Bot, err = tgbotapi.NewBotAPI(token)
 	if err != nil {
@@ -32,7 +32,7 @@ func StartBot(token string) {
 	// Handle incoming updates
 	for update := range updates {
 		if update.Message != nil {
-			go HandleMessage(update.Message)
+			go handleTelegramMessage(update.Message)
 		}
 	}
 
@@ -64,7 +64,7 @@ func sendMessage(chatId int64, text string) {
 	config.Logger.Errorf("Failed to send message after %d attempts: %v", maxRetries, err)
 }
 
-func HandleMessage(message *tgbotapi.Message) {
+func handleTelegramMessage(message *tgbotapi.Message) {
 	// Determine the user's language (default to English)
 	userLanguage := message.From.LanguageCode
 	if userLanguage == "" {
