@@ -16,14 +16,11 @@ var Logger *logrus.Logger
 // Config represents the application configuration, including settings for Telegram,
 // language model providers (e.g., OpenAI, Ollama), and other environment variables.
 type Config struct {
-	TelegramToken   string // The token for the Telegram bot.
-	LlmProviderType string // The type of language model provider (e.g., "openai", "ollama").
-	OpenAiUrl       string // The URL for the OpenAI API.
-	OpenAiToken     string // The token for the OpenAI API.
-	OpenAiModel     string // The model to use for OpenAI.
-	OllamaUrl       string // The URL for the Ollama API.
-	OllamaToken     string // The token for the Ollama API.
-	OllamaModel     string // The model to use for Ollama.
+	TelegramToken      string // The token for the Telegram bot.
+	LlmProviderType    string // The type of language model provider (e.g., "openai", "ollama").
+	SummarizerApiUrl   string // The URL for the OpenAI API.
+	SummarizerApiToken string // The token for the OpenAI API.
+	SummarizerApiModel string // The model to use for OpenAI.
 }
 
 // LoadConfig loads the application configuration from environment variables.
@@ -46,18 +43,15 @@ func LoadConfig() (*Config, error) {
 	// Load .env file
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Printf("No .env file found, using environment variables.\n")
+		Logger.Warnf("No .env file found, using environment variables.")
 	}
 
 	c := &Config{
-		TelegramToken:   os.Getenv("TELEGRAM_BOT_TOKEN"),
-		LlmProviderType: os.Getenv("LLM_PROVIDER_TYPE"),
-		OpenAiUrl:       os.Getenv("OPEN_AI_API_URL"),
-		OpenAiToken:     os.Getenv("OPEN_AI_API_TOKEN"),
-		OpenAiModel:     os.Getenv("OPEN_AI_MODEL"),
-		OllamaUrl:       os.Getenv("OLLAMA_API_URL"),
-		OllamaToken:     os.Getenv("OLLAMA_API_TOKEN"),
-		OllamaModel:     os.Getenv("OLLAMA_MODEL"),
+		TelegramToken:      os.Getenv("TELEGRAM_BOT_TOKEN"),
+		LlmProviderType:    os.Getenv("LLM_PROVIDER_TYPE"),
+		SummarizerApiUrl:   os.Getenv("SUMMARIZER_API_URL"),
+		SummarizerApiToken: os.Getenv("SUMMARIZER_API_TOKEN"),
+		SummarizerApiModel: os.Getenv("SUMMARIZER_MODEL"),
 	}
 
 	// Validate required fields
@@ -65,33 +59,23 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("TELEGRAM_BOT_TOKEN not set")
 	}
 	if c.LlmProviderType == "" {
-		return nil, fmt.Errorf("LLM_PROVIDER_TYPE is not set")
+		Logger.Warnf("LLM_PROVIDER_TYPE is not set, setting default OpenAi\n")
+		c.LlmProviderType = "openai"
+	}
+
+	if c.LlmProviderType != "openai" && c.LlmProviderType != "ollama" {
+		return nil, fmt.Errorf("LLM_PROVIDER_TYPE is wrong: %v", c.LlmProviderType)
 	}
 
 	// Validate provider-specific fields
-	switch c.LlmProviderType {
-	case "openai":
-		if c.OpenAiUrl == "" {
-			return nil, fmt.Errorf("OPEN_AI_API_URL not set")
-		}
-		if c.OpenAiToken == "" {
-			return nil, fmt.Errorf("OPEN_AI_API_TOKEN not set")
-		}
-		if c.OpenAiModel == "" {
-			return nil, fmt.Errorf("OPEN_AI_MODEL not set")
-		}
-	case "ollama":
-		if c.OllamaUrl == "" {
-			return nil, fmt.Errorf("OLLAMA_API_URL not set")
-		}
-		if c.OllamaToken == "" {
-			return nil, fmt.Errorf("OLLAMA_API_TOKEN not set")
-		}
-		if c.OllamaModel == "" {
-			return nil, fmt.Errorf("OLLAMA_MODEL not set")
-		}
-	default:
-		return nil, fmt.Errorf("LLM_PROVIDER_TYPE is wrong: %v", c.LlmProviderType)
+	if c.SummarizerApiUrl == "" {
+		return nil, fmt.Errorf("SUMMARIZER_API_URL not set")
+	}
+	if c.SummarizerApiToken == "" {
+		return nil, fmt.Errorf("SUMMARIZER_API_TOKEN not set")
+	}
+	if c.SummarizerApiModel == "" {
+		return nil, fmt.Errorf("SUMMARIZER_MODEL not set")
 	}
 
 	return c, nil

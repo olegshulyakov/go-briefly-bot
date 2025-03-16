@@ -55,22 +55,17 @@ func SummarizeText(text string, lang string) (string, error) {
 	}
 
 	// Determine API URL, token, and model based on LLM provider
-	config.Logger.Debugf("Using LLM provider: %v", cfg.LlmProviderType)
-	var apiUrl, apiToken, model string
-
-	switch cfg.LlmProviderType {
-	case "openai":
-		apiUrl = cfg.OpenAiUrl
-		apiToken = cfg.OpenAiToken
-		model = cfg.OpenAiModel
-	case "ollama":
-		apiUrl = cfg.OllamaUrl
-		apiToken = cfg.OllamaToken
-		model = cfg.OllamaModel
-	default:
+	if cfg.LlmProviderType != "openai" && cfg.LlmProviderType != "ollama" {
 		config.Logger.Errorf("Unsupported LLM provider type: %v", cfg.LlmProviderType)
 		return "", fmt.Errorf("unsupported LLM provider type: %v", cfg.LlmProviderType)
 	}
+
+	config.Logger.Debugf("Using LLM provider: %v", cfg.LlmProviderType)
+
+	apiUrl := cfg.SummarizerApiUrl
+	apiToken := cfg.SummarizerApiToken
+	model := cfg.SummarizerApiModel
+
 	config.Logger.Debugf("API URL: %v, Model: %v", apiUrl, model)
 
 	// Localize system and user prompts
