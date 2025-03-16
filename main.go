@@ -6,18 +6,18 @@ import (
 )
 
 func main() {
-    // Set up logger
+	// Set up logger
 	config.SetupLogger()
 
-    // Set up localizer
+	// Set up localizer
 	config.SetupLocalizer()
 
 	// Load configuration
-    cfg, err := config.LoadConfig()
-    if err != nil {
-        config.Logger.Fatalf("Failed to load config: %v", err)
-    }
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		config.Logger.Fatalf("Failed to load config: %v", err)
+	}
 
-    // Start the Telegram bot
+	// Start the Telegram bot
 	handlers.StartBot(cfg.TelegramToken)
 }
