@@ -112,8 +112,18 @@ func sendMessage(userMessage *tgbotapi.Message, text string) (tgbotapi.Message, 
 //   - error: An error if the message fails to send.
 func sendMarkdownMessage(userMessage *tgbotapi.Message, markdownText string) (tgbotapi.Message, error) {
 	msg := tgbotapi.NewMessage(userMessage.Chat.ID, markdownText)
-	msg.ParseMode = "Markdown"
+	msg.ParseMode = "MarkdownV2"
 	return sendWithRetry(msg)
+}
+
+// escapeMarkdownV2 escapes special characters in a string for Telegram MarkdownV2 formatting.
+func escapeMarkdownV2(text string) string {
+	// List of characters that need escaping
+	charsToEscape := []string{"_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!"}
+	for _, char := range charsToEscape {
+		text = strings.ReplaceAll(text, char, "\\"+char)
+	}
+	return text
 }
 
 // editMessage updates an existing message with new text.
@@ -202,7 +212,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		}
 
 		// Fetch video info
-		processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_info"}))
+		processingMsg, err = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_info"}))
 		if err != nil {
 			config.Logger.Errorf("Failed to update progress message: %v", err)
 			return
@@ -247,8 +257,8 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		_, err = sendMarkdownMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{
 			MessageID: "telegram.result.summary",
 			TemplateData: map[string]interface{}{
-				"title": videoInfo.Title,
-				"text":  summary,
+				"title": escapeMarkdownV2(videoInfo.Title),
+				"text":  escapeMarkdownV2(summary),
 			},
 		}))
 		if err != nil {

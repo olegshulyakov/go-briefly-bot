@@ -6,7 +6,7 @@
         "progress": {
             "processing": "⏳ Processing your request...",
             "fetching_info": "🔍 Getting information about the video...",
-            "fetching_transcript": "📝 Getting a transcript...",
+            "fetching_transcript": "🎬 Getting a transcript...",
             "summarizing": "🤖 Summarizing..."
         },
         "errors": {
@@ -17,7 +17,7 @@
             "summary_failed": "❌ Sorry, I couldn't summarize the transcript."
         },
         "result": {
-            "summary": "📖 **{{.title}}**:\n\n{{.text}}"
+            "summary": "📖 **{{.title}}**\n\n{{.text}}"
         }
     },
     "llm": {
