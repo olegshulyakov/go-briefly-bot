@@ -88,7 +88,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		config.Logger.Infof("Processing YouTube video: %s", videoURL)
 
 		// Fetch transcript
-		transcript, err := services.GetTranscript(videoURL)
+		youTubeResult, err := services.GetTranscript(videoURL)
 		if err != nil {
 			config.Logger.Errorf("Failed to get transcript: %v", err)
 			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.transcript_failed"}))
@@ -96,7 +96,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		}
 
 		// Summarize transcript
-		summary, err := services.Summarize(transcript, userLanguage)
+		summary, err := services.Summarize(youTubeResult.Transcript, userLanguage)
 		if err != nil {
 			config.Logger.Errorf("Failed to summarize transcript: %v", err)
 			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.summary_failed"}))
@@ -107,7 +107,8 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{
 			MessageID: "telegram.result.summary",
 			TemplateData: map[string]interface{}{
-				"summary": summary,
+				"title": youTubeResult.Title,
+				"text":  summary,
 			},
 		}))
 	}

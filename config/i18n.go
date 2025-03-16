@@ -29,10 +29,9 @@ func SetupLocalizer() {
 		}
 	}
 
-
 }
 
-func GetLocalizer(lang string) (*i18n.Localizer){
+func GetLocalizer(lang string) *i18n.Localizer {
 	if lang == "" {
 		lang = language.English.String()
 	}

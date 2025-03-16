@@ -8,7 +8,7 @@
             "summary_failed": "Sorry, I couldn't summarize the transcript."
         },
         "result": {
-            "summary": "Summary:\n\n{{.summary}}"
+            "summary": "**{{.title}}**:\n\n{{.text}}"
         }
     },
     "llm": {

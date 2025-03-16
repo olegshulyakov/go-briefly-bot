@@ -8,7 +8,7 @@
             "summary_failed": "Извините, я не смог пересказать транскрипт."
         },
         "result": {
-            "summary": "Пересказ:\n\n{{.summary}}"
+            "summary": "**{{.title}}**:\n\n{{.text}}"
         }
     },
     "llm": {
