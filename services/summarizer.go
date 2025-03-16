@@ -174,7 +174,7 @@ func SummarizeText(text string, lang string) (string, error) {
 
 		message, ok := firstChoice["message"].(map[string]interface{})
 		if !ok {
-			config.Logger.Warn("Invalid message structure in API response, retrying...\n%v", firstChoice)
+			config.Logger.Warnf("Invalid message structure in API response, retrying...\n%v", firstChoice)
 			continue
 		}
 
