@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"youtube-retell-bot/config"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-func Summarize(text string) (string, error) {
+func Summarize(text string, lang string) (string, error) {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		return "", fmt.Errorf("failed to load config: %v", err)
@@ -29,11 +31,18 @@ func Summarize(text string) (string, error) {
 		return "", fmt.Errorf("unsupported LLM provider type: %v", cfg.LlmProviderType)
 	}
 
+	localizer := config.GetLocalizer(lang)
+
 	payload := map[string]interface{}{
 		"model": model,
 		"messages": []map[string]string{
-			{"role": "system", "content": "You are a helpful assistant that retells text."},
-			{"role": "user", "content": "Summarize the retell text: " + text},
+			{"role": "system", "content": localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "llm.system_prompt"})},
+			{"role": "user", "content": localizer.MustLocalize(&i18n.LocalizeConfig{
+				MessageID: "llm.user_prompt",
+				TemplateData: map[string]interface{}{
+					"text": text,
+				},
+			})},
 		},
 	}
 

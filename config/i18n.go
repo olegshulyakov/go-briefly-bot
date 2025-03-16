@@ -9,11 +9,11 @@ import (
 	"golang.org/x/text/language"
 )
 
-var Localizer *i18n.Localizer
+var bundle *i18n.Bundle
 
 func SetupLocalizer() {
 	// Create a new bundle with the default language (English)
-	bundle := i18n.NewBundle(language.English)
+	bundle = i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal) // Use json.Unmarshal for JSON files
 
 	// Load translations from the locales directory
@@ -29,6 +29,14 @@ func SetupLocalizer() {
 		}
 	}
 
-	// Create a localizer for the default language
-	Localizer = i18n.NewLocalizer(bundle, language.English.String())
+
+}
+
+func GetLocalizer(lang string) (*i18n.Localizer){
+	if lang == "" {
+		lang = language.English.String()
+	}
+
+	localizer := i18n.NewLocalizer(bundle, lang)
+	return localizer
 }

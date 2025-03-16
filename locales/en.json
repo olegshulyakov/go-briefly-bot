@@ -1,12 +1,18 @@
 {
-    "welcome": {
-        "message": "Welcome! Send me a YouTube link, and I'll summarize it for you."
+    "telegram": {
+        "welcome": {
+            "message": "Welcome! Send me a YouTube link, and I'll summarize it for you."
+        },
+        "errors": {
+            "transcript_failed": "Sorry, I couldn't fetch the transcript for this video.",
+            "summary_failed": "Sorry, I couldn't summarize the transcript."
+        },
+        "result": {
+            "summary": "Summary:\n\n{{.summary}}"
+        }
     },
-    "errors": {
-        "transcript_failed": "Sorry, I couldn't fetch the transcript for this video.",
-        "summary_failed": "Sorry, I couldn't summarize the transcript."
-    },
-    "result": {
-        "summary": "Summary:\n\n{{.Summary}}"
+    "llm": {
+        "system_prompt": "You are a helpful assistant that retells text.",
+        "user_prompt": "Retell the text:\n\n{{.text}}"
     }
 }

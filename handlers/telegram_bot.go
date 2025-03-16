@@ -21,7 +21,7 @@ func StartBot(token string) {
 		config.Logger.Fatalf("Failed to create bot: %v", err)
 	}
 
-	Bot.Debug = true
+	// Bot.Debug = true
 	config.Logger.Info("Bot started successfully")
 
 	u := tgbotapi.NewUpdate(0)
@@ -72,12 +72,12 @@ func HandleMessage(message *tgbotapi.Message) {
 	}
 
 	// Create a localizer for the user's language
-	localizer := config.Localizer
+	localizer := config.GetLocalizer(userLanguage)
 
 	if message.IsCommand() {
 		switch message.Command() {
 		case "start":
-			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "welcome.message"}))
+			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.welcome.message"}))
 		}
 		return
 	}
@@ -91,23 +91,23 @@ func HandleMessage(message *tgbotapi.Message) {
 		transcript, err := services.GetTranscript(videoURL)
 		if err != nil {
 			config.Logger.Errorf("Failed to get transcript: %v", err)
-			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "errors.transcript_failed"}))
+			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.transcript_failed"}))
 			return
 		}
 
 		// Summarize transcript
-		summary, err := services.Summarize(transcript)
+		summary, err := services.Summarize(transcript, userLanguage)
 		if err != nil {
 			config.Logger.Errorf("Failed to summarize transcript: %v", err)
-			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "errors.summary_failed"}))
+			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.summary_failed"}))
 			return
 		}
 
 		// Send summary to user
 		sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{
-			MessageID: "result.summary",
+			MessageID: "telegram.result.summary",
 			TemplateData: map[string]interface{}{
-				"Summary": summary,
+				"summary": summary,
 			},
 		}))
 	}
