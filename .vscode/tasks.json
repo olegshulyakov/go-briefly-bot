@@ -1,0 +1,89 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "go: build",
+      "type": "shell",
+      "command": "go",
+      "args": ["build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$go"],
+      "detail": "Build the Go application."
+    },
+    {
+      "label": "go: run",
+      "type": "shell",
+      "command": "go",
+      "args": ["run", "."],
+      "group": "none",
+      "problemMatcher": ["$go"],
+      "detail": "Run the Go application."
+    },
+    {
+      "label": "go: test",
+      "type": "shell",
+      "command": "go",
+      "args": ["test", "./..."],
+      "group": "test",
+      "problemMatcher": ["$go"],
+      "detail": "Run all Go tests in the project."
+    },
+    {
+      "label": "go: test (verbose)",
+      "type": "shell",
+      "command": "go",
+      "args": ["test", "-v", "./..."],
+      "group": "test",
+      "problemMatcher": ["$go"],
+      "detail": "Run all Go tests with verbose output."
+    },
+    {
+      "label": "go: clean",
+      "type": "shell",
+      "command": "go",
+      "args": ["clean"],
+      "group": "none",
+      "problemMatcher": [],
+      "detail": "Clean Go build files."
+    },
+    {
+      "label": "go: lint",
+      "type": "shell",
+      "command": "golangci-lint",
+      "args": ["run"],
+      "group": "none",
+      "problemMatcher": ["$golangci-lint"],
+      "detail": "Run golangci-lint for static code analysis."
+    },
+    {
+      "label": "go: fmt",
+      "type": "shell",
+      "command": "go",
+      "args": ["fmt", "./..."],
+      "group": "none",
+      "problemMatcher": [],
+      "detail": "Format Go code using go fmt."
+    },
+    {
+      "label": "go: generate",
+      "type": "shell",
+      "command": "go",
+      "args": ["generate", "./..."],
+      "group": "none",
+      "problemMatcher": ["$go"],
+      "detail": "Run go generate to generate code."
+    },
+    {
+      "label": "go: mod tidy",
+      "type": "shell",
+      "command": "go",
+      "args": ["mod", "tidy"],
+      "group": "none",
+      "problemMatcher": [],
+      "detail": "Run go mod tidy to clean up dependencies."
+    }
+  ]
+}
