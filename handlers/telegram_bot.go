@@ -44,9 +44,8 @@ func StartTelegramBot(token string) {
 }
 
 // sendMessage sends a message using the bot and logs any errors.
-func sendMessage(chatId int64, text string) {
+func sendMessage(chatId int64, text string) error {
 	msg := tgbotapi.NewMessage(chatId, text)
-	msg.ParseMode = "Markdown"
 
 	const maxRetries = 3
 	var err error
@@ -54,14 +53,19 @@ func sendMessage(chatId int64, text string) {
 	for i := 0; i < maxRetries; i++ {
 		_, err = Bot.Send(msg)
 		if err == nil {
-			return // Success
+			return nil // Success
 		}
 		config.Logger.Warnf("Attempt %d: Failed to send message: %v", i+1, err)
 	}
 
-	//TODO Send fail message
-
 	config.Logger.Errorf("Failed to send message after %d attempts: %v", maxRetries, err)
+
+	return err
+}
+
+func sendErrorMessage(chatId int64, text string) {
+	msg := tgbotapi.NewMessage(chatId, text)
+	Bot.Send(msg)
 }
 
 func handleTelegramMessage(message *tgbotapi.Message) {
@@ -91,7 +95,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		videoInfo, err := services.GetYoutubeVideoInfo(videoURL)
 		if err != nil {
 			config.Logger.Errorf("Failed to get video info: %v", err)
-			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.info_failed"}))
+			sendErrorMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.info_failed"}))
 			return
 		}
 
@@ -99,7 +103,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		transcript, err := services.GetYoutubeTranscript(videoURL)
 		if err != nil {
 			config.Logger.Errorf("Failed to get transcript: %v", err)
-			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.transcript_failed"}))
+			sendErrorMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.transcript_failed"}))
 			return
 		}
 
@@ -107,17 +111,20 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		summary, err := services.SummarizeText(transcript, userLanguage)
 		if err != nil {
 			config.Logger.Errorf("Failed to summarize transcript: %v", err)
-			sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.summary_failed"}))
+			sendErrorMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.summary_failed"}))
 			return
 		}
 
 		// Send summary to user
-		sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{
+		err = sendMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{
 			MessageID: "telegram.result.summary",
 			TemplateData: map[string]interface{}{
 				"title": videoInfo.Title,
 				"text":  summary,
 			},
 		}))
+		if err != nil {
+			sendErrorMessage(message.Chat.ID, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.general"}))
+		}
 	}
 }
