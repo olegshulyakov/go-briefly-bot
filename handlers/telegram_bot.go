@@ -74,6 +74,13 @@ func sendMessage(userMessage *tgbotapi.Message, text string) (tgbotapi.Message, 
 	return sendWithRetry(msg)
 }
 
+// sendMarkdownMessage sends a message with Markdown formatting.
+func sendMarkdownMessage(userMessage *tgbotapi.Message, markdownText string) (tgbotapi.Message, error) {
+    msg := tgbotapi.NewMessage(userMessage.Chat.ID, markdownText)
+    msg.ParseMode = "Markdown"
+    return sendWithRetry(msg)
+}
+
 // editMessage updates an existing message with new text.
 func editMessage(userMessage *tgbotapi.Message, messageToEdit tgbotapi.Message, text string) (tgbotapi.Message, error) {
 	editMsg := tgbotapi.NewEditMessageText(userMessage.Chat.ID, messageToEdit.MessageID, text)
@@ -180,7 +187,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		}
 
 		// Send summary to user
-		_, err = sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{
+		_, err = sendMarkdownMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{
 			MessageID: "telegram.result.summary",
 			TemplateData: map[string]interface{}{
 				"title": videoInfo.Title,
