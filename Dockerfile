@@ -28,5 +28,8 @@ WORKDIR /app
 # Copy the built binary from the builder stage
 COPY --from=builder /app/telegram-youtube-reteller .
 
+# Copy the locales directory
+COPY --from=builder /app/locales ./locales
+
 # Set the entrypoint to run the application
 ENTRYPOINT ["./telegram-youtube-reteller"]

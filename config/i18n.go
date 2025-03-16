@@ -31,7 +31,7 @@ func SetupLocalizer() {
 	localesDir := "locales"
 	files, err := os.ReadDir(localesDir)
 	if err != nil {
-		panic(err)
+		Logger.Fatalf("Failed to read locales directory: %v", err)
 	}
 
 	for _, file := range files {
