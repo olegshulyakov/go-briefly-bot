@@ -38,8 +38,22 @@ cd youtube-retell-bot
 Create a `.env` file in the root directory:
 
 ```env
+# Telegram
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-OPENROUTER_API_TOKEN=your_openrouter_api_token
+
+# Summarizer
+LLM_PROVIDER_TYPE=openai/ollama
+
+# OpenAI API
+OPEN_AI_API_URL=your_open_ai_provider_api_url
+OPEN_AI_API_TOKEN=your_open_ai_provider_api_token
+OPEN_AI_MODEL=your_open_ai_provider_model
+
+# Ollama API
+OLLAMA_API_URL=your_ollama_api_url
+OLLAMA_API_TOKEN=your_ollama_api_token
+OLLAMA_MODEL=your_ollama_model
+
 ```
 
 ### 3. Install Dependencies
