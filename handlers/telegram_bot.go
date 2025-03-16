@@ -1,3 +1,5 @@
+// Package handlers provides functionality to handle Telegram bot interactions,
+// including message processing, rate limiting, and YouTube video summarization.
 package handlers
 
 import (
@@ -15,11 +17,21 @@ import (
 )
 
 var (
-	Bot             *tgbotapi.BotAPI
-	userLastRequest = make(map[int64]time.Time) // Tracks the last request time for each user
-	userMutex       = sync.Mutex{}              // Mutex to protect userLastRequest map
+	// Bot is the global Telegram bot instance.
+	Bot *tgbotapi.BotAPI
+
+	// userLastRequest tracks the last request time for each user to enforce rate limiting.
+	userLastRequest = make(map[int64]time.Time)
+
+	// userMutex is a mutex to protect concurrent access to the userLastRequest map.
+	userMutex = sync.Mutex{}
 )
 
+// StartTelegramBot initializes and starts the Telegram bot with the provided token.
+// It handles incoming updates and gracefully shuts down on receiving termination signals.
+//
+// Parameters:
+//   - token: The Telegram bot token used for authentication.
 func StartTelegramBot(token string) {
 	var err error
 	Bot, err = tgbotapi.NewBotAPI(token)
@@ -49,7 +61,14 @@ func StartTelegramBot(token string) {
 	config.Logger.Info("Shutting down bot...")
 }
 
-// sendWithRetry sends a message with retries.
+// sendWithRetry sends a message with retries in case of failure.
+//
+// Parameters:
+//   - msg: The message to be sent.
+//
+// Returns:
+//   - tgbotapi.Message: The message that was sent.
+//   - error: An error if the message fails to send after retries.
 func sendWithRetry(msg tgbotapi.Chattable) (tgbotapi.Message, error) {
 	const maxRetries = 3
 	var err error
@@ -67,27 +86,56 @@ func sendWithRetry(msg tgbotapi.Chattable) (tgbotapi.Message, error) {
 	return tgbotapi.Message{}, err
 }
 
-// sendMessage sends a message using the bot and logs any errors.
+// sendMessage sends a message to the specified chat and logs any errors.
+//
+// Parameters:
+//   - userMessage: The original message to reply to.
+//   - text: The text of the message to send.
+//
+// Returns:
+//   - tgbotapi.Message: The message that was sent.
+//   - error: An error if the message fails to send.
 func sendMessage(userMessage *tgbotapi.Message, text string) (tgbotapi.Message, error) {
 	msg := tgbotapi.NewMessage(userMessage.Chat.ID, text)
 	msg.ReplyToMessageID = userMessage.MessageID
 	return sendWithRetry(msg)
 }
 
-// sendMarkdownMessage sends a message with Markdown formatting.
+// sendMarkdownMessage sends a message with Markdown formatting to the specified chat.
+//
+// Parameters:
+//   - userMessage: The original message to reply to.
+//   - markdownText: The message text formatted in Markdown.
+//
+// Returns:
+//   - tgbotapi.Message: The message that was sent.
+//   - error: An error if the message fails to send.
 func sendMarkdownMessage(userMessage *tgbotapi.Message, markdownText string) (tgbotapi.Message, error) {
-    msg := tgbotapi.NewMessage(userMessage.Chat.ID, markdownText)
-    msg.ParseMode = "Markdown"
-    return sendWithRetry(msg)
+	msg := tgbotapi.NewMessage(userMessage.Chat.ID, markdownText)
+	msg.ParseMode = "Markdown"
+	return sendWithRetry(msg)
 }
 
 // editMessage updates an existing message with new text.
+//
+// Parameters:
+//   - userMessage: The original message to reply to.
+//   - messageToEdit: The message to be edited.
+//   - text: The new text for the message.
+//
+// Returns:
+//   - tgbotapi.Message: The edited message.
+//   - error: An error if the message fails to update.
 func editMessage(userMessage *tgbotapi.Message, messageToEdit tgbotapi.Message, text string) (tgbotapi.Message, error) {
 	editMsg := tgbotapi.NewEditMessageText(userMessage.Chat.ID, messageToEdit.MessageID, text)
 	return sendWithRetry(editMsg)
 }
 
 // sendErrorMessage sends an error message to the user.
+//
+// Parameters:
+//   - userMessage: The original message to reply to.
+//   - text: The error message text.
 func sendErrorMessage(userMessage *tgbotapi.Message, text string) {
 	msg := tgbotapi.NewMessage(userMessage.Chat.ID, text)
 	msg.ReplyToMessageID = userMessage.MessageID
@@ -95,6 +143,12 @@ func sendErrorMessage(userMessage *tgbotapi.Message, text string) {
 }
 
 // isUserRateLimited checks if the user has made a request within the last 10 seconds.
+//
+// Parameters:
+//   - userId: The ID of the user to check.
+//
+// Returns:
+//   - bool: True if the user is rate-limited, false otherwise.
 func isUserRateLimited(userId int64) bool {
 	userMutex.Lock()
 	defer userMutex.Unlock()
@@ -108,7 +162,10 @@ func isUserRateLimited(userId int64) bool {
 	return false
 }
 
-// handleTelegramMessage processes incoming messages from users.
+// handleTelegramMessage processes incoming messages from users, including commands and YouTube links.
+//
+// Parameters:
+//   - message: The incoming message to process.
 func handleTelegramMessage(message *tgbotapi.Message) {
 	// Determine the user's language (default to English)
 	userLanguage := message.From.LanguageCode
