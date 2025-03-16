@@ -1,5 +1,5 @@
 # Stage 1: Build the Go application
-FROM golang:1.20-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -27,9 +27,6 @@ WORKDIR /app
 
 # Copy the built binary from the builder stage
 COPY --from=builder /app/telegram-youtube-reteller .
-
-# Copy the .env file (for local development)
-COPY .env .
 
 # Set the entrypoint to run the application
 ENTRYPOINT ["./telegram-youtube-reteller"]
