@@ -4,6 +4,7 @@
             "message": "Welcome! Send me a YouTube link, and I'll summarize it for you."
         },
         "errors": {
+            "info_failed": "Sorry, I couldn't fetch the information for this video.",
             "transcript_failed": "Sorry, I couldn't fetch the transcript for this video.",
             "summary_failed": "Sorry, I couldn't summarize the transcript."
         },
