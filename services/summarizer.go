@@ -110,8 +110,8 @@ func SummarizeText(text string, lang string) (string, error) {
 	}
 
 	// Retry mechanism
-	maxRetries := 10               // Maximum number of retries
-	retryDelay := 5 * time.Second // Delay between retries
+	maxRetries := 10              // Maximum number of retries
+	retryDelay := 2 * time.Second // Delay between retries
 
 	for retry := 0; retry < maxRetries; retry++ {
 		if retry > 1 {
