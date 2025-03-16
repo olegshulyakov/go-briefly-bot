@@ -14,8 +14,23 @@ func Summarize(text string) (string, error) {
 		return "", fmt.Errorf("failed to load config: %v", err)
 	}
 
+	var apiUrl, apiToken, model string
+
+	switch cfg.LlmProviderType {
+	case "openai":
+		apiUrl = cfg.OpenAiUrl
+		apiToken = cfg.OpenAiToken
+		model = cfg.OpenAiModel
+	case "ollama":
+		apiUrl = cfg.OllamaUrl
+		apiToken = cfg.OllamaToken
+		model = cfg.OllamaModel
+	default:
+		return "", fmt.Errorf("unsupported LLM provider type: %v", cfg.LlmProviderType)
+	}
+
 	payload := map[string]interface{}{
-		"model": cfg.OpenAiModel,
+		"model": model,
 		"messages": []map[string]string{
 			{"role": "system", "content": "You are a helpful assistant that retells text."},
 			{"role": "user", "content": "Summarize the retell text: " + text},
@@ -27,12 +42,19 @@ func Summarize(text string) (string, error) {
 		return "", fmt.Errorf("failed to marshal payload: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", cfg.OpenAiToken+"/chat/completions", bytes.NewBuffer(payloadBytes))
+	var endpoint string
+	if cfg.LlmProviderType == "openai" {
+		endpoint = "/chat/completions"
+	} else {
+		endpoint = "/api/chat"
+	}
+
+	req, err := http.NewRequest("POST", apiUrl+endpoint, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %v", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+cfg.OpenAiToken)
+	req.Header.Set("Authorization", "Bearer "+apiToken)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
