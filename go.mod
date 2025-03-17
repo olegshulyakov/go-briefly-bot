@@ -13,4 +13,7 @@ require (
 	golang.org/x/text v0.23.0
 )
 
-require golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+require (
+	github.com/PaulSonOfLars/gotg_md2html v0.0.0-20240605215313-a6fdd2445f54 // indirect
+	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+)

@@ -11,7 +11,9 @@ import (
 	"time"
 	"youtube-retell-bot/config"
 	"youtube-retell-bot/services"
+	"youtube-retell-bot/utils"
 
+	tg_md2html "github.com/PaulSonOfLars/gotg_md2html"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -110,20 +112,13 @@ func sendMessage(userMessage *tgbotapi.Message, text string) (tgbotapi.Message, 
 // Returns:
 //   - tgbotapi.Message: The message that was sent.
 //   - error: An error if the message fails to send.
-func sendMarkdownMessage(userMessage *tgbotapi.Message, markdownText string) (tgbotapi.Message, error) {
-	msg := tgbotapi.NewMessage(userMessage.Chat.ID, markdownText)
-	msg.ParseMode = "MarkdownV2"
-	return sendWithRetry(msg)
-}
+func sendMarkdownMessage(userMessage *tgbotapi.Message, text string) (tgbotapi.Message, error) {
+	escapedMessageText := tg_md2html.MD2HTMLV2(text)
 
-// escapeMarkdownV2 escapes special characters in a string for Telegram MarkdownV2 formatting.
-func escapeMarkdownV2(text string) string {
-	// List of characters that need escaping
-	charsToEscape := []string{"_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!"}
-	for _, char := range charsToEscape {
-		text = strings.ReplaceAll(text, char, "\\"+char)
-	}
-	return text
+	msg := tgbotapi.NewMessage(userMessage.Chat.ID, escapedMessageText)
+	msg.ParseMode = tgbotapi.ModeHTML
+	msg.DisableWebPagePreview = true
+	return sendWithRetry(msg)
 }
 
 // editMessage updates an existing message with new text.
@@ -254,15 +249,21 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		}
 
 		// Send summary to user
-		_, err = sendMarkdownMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{
-			MessageID: "telegram.result.summary",
-			TemplateData: map[string]interface{}{
-				"title": escapeMarkdownV2(videoInfo.Title),
-				"text":  escapeMarkdownV2(summary),
-			},
-		}))
-		if err != nil {
-			sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.general"}))
+		chunkSize := 4000 - len(videoInfo.Title)
+		chunks := utils.SplitStringIntoChunks(summary, chunkSize)
+		for i, chunk := range chunks {
+			config.Logger.Debugf("Attempt to send chunk #%d...", i+1)
+
+			_, err = sendMarkdownMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{
+				MessageID: "telegram.result.summary",
+				TemplateData: map[string]interface{}{
+					"title": videoInfo.Title,
+					"text":  chunk,
+				},
+			}))
+			if err != nil {
+				sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.general"}))
+			}
 		}
 
 		// Delete the "Processing" message
