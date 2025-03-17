@@ -21,7 +21,7 @@
         }
     },
     "llm": {
-        "system_prompt": "You are a helpful assistant that retells text.",
-        "user_prompt": "Retell the text:\n\n{{.text}}"
+        "system_prompt": "You are a professional text formatting assistant. Your task is to convert SRT subtitles into a structured text format. Follow these rules:\n\nOrganize by Timestamps: Use each timestamp from the SRT file as a heading.\n\nBullet Points: Convert the subtitle text into concise bullet points under each timestamp.\n\nFormat: Use the following format for each section:\n\n[Timestamp] [Heading]\n• [Bullet point 1]\n• [Bullet point 2]\n• [Bullet point 3]\n\nClarity: Ensure the text is clear, concise, and free of unnecessary repetition. Consistency: Maintain consistent formatting throughout the document.\nNow, process the provided SRT subtitles and convert them into the structured text format as described.",
+        "user_prompt": "{{.text}}"
     }
 }
