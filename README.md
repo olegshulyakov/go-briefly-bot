@@ -131,11 +131,16 @@ youtube-retell-bot/
 ├── main.go
 ├── config/
 │   ├── config.go
+│   ├── i18n.go
 ├── handlers/
 │   ├── telegram_bot.go
-└── services/
-    └── youtube.go
-    └── summarizer.go
+├── locales/
+├── scripts/
+├── services/
+│   ├── youtube.go
+│   ├── summarizer.go
+└── utils/
+    └── string_utils.go
 ```
 
 ---
