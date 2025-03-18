@@ -203,75 +203,75 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
-		config.Logger.Infof("Processing YouTube video: %s", videoURL)
+	config.Logger.Infof("Processing YouTube video: %s", videoURL)
 
-		processingMsg, err := sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.processing"}))
+	processingMsg, err := sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.processing"}))
+	if err != nil {
+		config.Logger.Errorf("Failed to send processing message: %v", err)
+		return
+	}
+
+	// Fetch video info
+	processingMsg, err = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_info"}))
+	if err != nil {
+		config.Logger.Errorf("Failed to update progress message: %v", err)
+		return
+	}
+
+	videoInfo, err := services.GetYoutubeVideoInfo(videoURL)
+	if err != nil {
+		config.Logger.Errorf("Failed to get video info: %v", err)
+		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.info_failed"}))
+		return
+	}
+
+	// Fetch transcript
+	processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_transcript"}))
+	if err != nil {
+		config.Logger.Errorf("Failed to update progress message: %v", err)
+		return
+	}
+
+	transcript, err := services.GetYoutubeTranscript(videoURL)
+	if err != nil {
+		config.Logger.Errorf("Failed to get transcript: %v", err)
+		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.transcript_failed"}))
+		return
+	}
+
+	// Summarize transcript
+	processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.summarizing"}))
+	if err != nil {
+		config.Logger.Errorf("Failed to update progress message: %v", err)
+		return
+	}
+
+	summary, err := services.SummarizeText(transcript, userLanguage)
+	if err != nil {
+		config.Logger.Errorf("Failed to summarize transcript: %v", err)
+		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.summary_failed"}))
+		return
+	}
+
+	// Send summary to user
+	chunkSize := 4000 - len(videoInfo.Title)
+	chunks := utils.SplitStringIntoChunks(summary, chunkSize)
+	for i, chunk := range chunks {
+		config.Logger.Debugf("Attempt to send chunk #%d...", i+1)
+
+		_, err = sendMarkdownMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: "telegram.result.summary",
+			TemplateData: map[string]interface{}{
+				"title": videoInfo.Title,
+				"text":  chunk,
+			},
+		}))
 		if err != nil {
-			config.Logger.Errorf("Failed to send processing message: %v", err)
-			return
+			sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.general"}))
 		}
+	}
 
-		// Fetch video info
-		processingMsg, err = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_info"}))
-		if err != nil {
-			config.Logger.Errorf("Failed to update progress message: %v", err)
-			return
-		}
-
-		videoInfo, err := services.GetYoutubeVideoInfo(videoURL)
-		if err != nil {
-			config.Logger.Errorf("Failed to get video info: %v", err)
-			editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.info_failed"}))
-			return
-		}
-
-		// Fetch transcript
-		processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_transcript"}))
-		if err != nil {
-			config.Logger.Errorf("Failed to update progress message: %v", err)
-			return
-		}
-
-		transcript, err := services.GetYoutubeTranscript(videoURL)
-		if err != nil {
-			config.Logger.Errorf("Failed to get transcript: %v", err)
-			editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.transcript_failed"}))
-			return
-		}
-
-		// Summarize transcript
-		processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.summarizing"}))
-		if err != nil {
-			config.Logger.Errorf("Failed to update progress message: %v", err)
-			return
-		}
-
-		summary, err := services.SummarizeText(transcript, userLanguage)
-		if err != nil {
-			config.Logger.Errorf("Failed to summarize transcript: %v", err)
-			editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.summary_failed"}))
-			return
-		}
-
-		// Send summary to user
-		chunkSize := 4000 - len(videoInfo.Title)
-		chunks := utils.SplitStringIntoChunks(summary, chunkSize)
-		for i, chunk := range chunks {
-			config.Logger.Debugf("Attempt to send chunk #%d...", i+1)
-
-			_, err = sendMarkdownMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{
-				MessageID: "telegram.result.summary",
-				TemplateData: map[string]interface{}{
-					"title": videoInfo.Title,
-					"text":  chunk,
-				},
-			}))
-			if err != nil {
-				sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.errors.general"}))
-			}
-		}
-
-		// Delete the "Processing" message
-		deleteMsg := tgbotapi.NewDeleteMessage(message.Chat.ID, processingMsg.MessageID)
-		Bot.Send(deleteMsg)
+	// Delete the "Processing" message
+	deleteMsg := tgbotapi.NewDeleteMessage(message.Chat.ID, processingMsg.MessageID)
+	Bot.Send(deleteMsg)
 }
