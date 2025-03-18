@@ -196,8 +196,10 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	}
 
 	// Check if the message contains a YouTube link
-	if strings.Contains(message.Text, "youtube.com") || strings.Contains(message.Text, "youtu.be") {
-		videoURL := message.Text
+	if !strings.Contains(videoURL, "youtube.com") && !strings.Contains(videoURL, "youtu.be") {
+		return
+	}
+
 		config.Logger.Infof("Processing YouTube video: %s", videoURL)
 
 		processingMsg, err := sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.processing"}))
@@ -269,5 +271,4 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		// Delete the "Processing" message
 		deleteMsg := tgbotapi.NewDeleteMessage(message.Chat.ID, processingMsg.MessageID)
 		Bot.Send(deleteMsg)
-	}
 }
