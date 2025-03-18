@@ -1,3 +1,10 @@
+## Disclaimer
+
+**Note:** This project is currently in its early stages and represents a quick prototype solution. It was developed as a proof of concept and may contain bugs, incomplete features, or lack sophisticated error handling. While it serves its intended purpose as a demonstration, it is not yet production-ready. If this project generates significant interest from the community, I am open to expanding it into a more comprehensive and robust application. Your feedback, bug reports, and contributions are highly welcome and encouraged!
+
+Please use this project with the understanding that it is a work in progress, and I appreciate your patience and support as it evolves.
+
+
 # Telegram YouTube Reteller Bot
 
 A Telegram bot written in Go that retells YouTube videos. It uses `yt-dlp` to fetch video transcripts and a Hugging Face model (or OpenRouter API) to summarize them. The bot is designed to be lightweight, easy to deploy, and extensible.
