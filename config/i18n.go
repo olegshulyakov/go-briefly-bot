@@ -13,7 +13,7 @@ import (
 // bundle is a global instance of the i18n bundle used for managing translations.
 var bundle *i18n.Bundle
 
-// SetupLocalizer initializes the localization bundle by loading translation files
+// setupLocalizer initializes the localization bundle by loading translation files
 // from the `locales` directory.
 //
 // The function registers JSON as the unmarshal function for translation files and
@@ -21,8 +21,8 @@ var bundle *i18n.Bundle
 //
 // Example:
 //
-//	SetupLocalizer()
-func SetupLocalizer() {
+//	setupLocalizer()
+func setupLocalizer() {
 	// Create a new bundle with the default language (English)
 	bundle = i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal) // Use json.Unmarshal for JSON files

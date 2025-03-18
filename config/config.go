@@ -23,6 +23,8 @@ type Config struct {
 	SummarizerApiModel string // The model to use for OpenAI.
 }
 
+var Configuration *Config
+
 // LoadConfig loads the application configuration from environment variables.
 //
 // The function reads the `.env` file and populates the Config struct with the values.
@@ -34,19 +36,19 @@ type Config struct {
 //
 // Example:
 //
-//	cfg, err := LoadConfig()
+//	cfg, err := loadConfig()
 //	if err != nil {
 //	    log.Fatalf("Failed to load config: %v", err)
 //	}
 //	fmt.Println("Telegram Token:", cfg.TelegramToken)
-func LoadConfig() (*Config, error) {
+func loadConfig() (*Config, error) {
 	// Load .env file
 	err := godotenv.Load()
 	if err != nil {
 		Logger.Warnf("No .env file found, using environment variables.")
 	}
 
-	c := &Config{
+	Configuration = &Config{
 		TelegramToken:      os.Getenv("TELEGRAM_BOT_TOKEN"),
 		LlmProviderType:    os.Getenv("LLM_PROVIDER_TYPE"),
 		SummarizerApiUrl:   os.Getenv("SUMMARIZER_API_URL"),
@@ -55,30 +57,30 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Validate required fields
-	if c.TelegramToken == "" {
+	if Configuration.TelegramToken == "" {
 		return nil, fmt.Errorf("TELEGRAM_BOT_TOKEN not set")
 	}
-	if c.LlmProviderType == "" {
+	if Configuration.LlmProviderType == "" {
 		Logger.Warnf("LLM_PROVIDER_TYPE is not set, setting default OpenAi\n")
-		c.LlmProviderType = "openai"
+		Configuration.LlmProviderType = "openai"
 	}
 
-	if c.LlmProviderType != "openai" && c.LlmProviderType != "ollama" {
-		return nil, fmt.Errorf("LLM_PROVIDER_TYPE is wrong: %v", c.LlmProviderType)
+	if Configuration.LlmProviderType != "openai" && Configuration.LlmProviderType != "ollama" {
+		return nil, fmt.Errorf("LLM_PROVIDER_TYPE is wrong: %v", Configuration.LlmProviderType)
 	}
 
 	// Validate provider-specific fields
-	if c.SummarizerApiUrl == "" {
+	if Configuration.SummarizerApiUrl == "" {
 		return nil, fmt.Errorf("SUMMARIZER_API_URL not set")
 	}
-	if c.SummarizerApiToken == "" {
+	if Configuration.SummarizerApiToken == "" {
 		return nil, fmt.Errorf("SUMMARIZER_API_TOKEN not set")
 	}
-	if c.SummarizerApiModel == "" {
+	if Configuration.SummarizerApiModel == "" {
 		return nil, fmt.Errorf("SUMMARIZER_MODEL not set")
 	}
 
-	return c, nil
+	return Configuration, nil
 }
 
 // SetupLogger initializes the global logger with a text formatter and sets the log level to Info.
@@ -87,9 +89,9 @@ func LoadConfig() (*Config, error) {
 //
 // Example:
 //
-//	SetupLogger()
+//	setupLogger()
 //	Logger.Info("Logger initialized successfully")
-func SetupLogger() {
+func setupLogger() {
 	Logger = logrus.New()
 	Logger.SetFormatter(&logrus.TextFormatter{})
 	Logger.SetOutput(os.Stdout)

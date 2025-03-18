@@ -36,14 +36,8 @@ import (
 //	    handlers.StartTelegramBot(cfg.TelegramToken)
 //	}
 func main() {
-	// Set up logger
-	config.SetupLogger()
-
-	// Set up localizer
-	config.SetupLocalizer()
-
 	// Load configuration
-	cfg, err := config.LoadConfig()
+	cfg, err := config.SetupConfig()
 	if err != nil {
 		config.Logger.Fatalf("Failed to load config: %v", err)
 	}

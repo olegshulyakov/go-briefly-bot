@@ -47,24 +47,17 @@ import (
 func SummarizeText(text string, lang string) (string, error) {
 	config.Logger.Debugf("SummarizeText start for language: %v", lang)
 
-	// Load configuration
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		config.Logger.Errorf("Failed to load config: %v", err)
-		return "", fmt.Errorf("failed to load config: %v", err)
-	}
-
 	// Determine API URL, token, and model based on LLM provider
-	if cfg.LlmProviderType != "openai" && cfg.LlmProviderType != "ollama" {
-		config.Logger.Errorf("Unsupported LLM provider type: %v", cfg.LlmProviderType)
-		return "", fmt.Errorf("unsupported LLM provider type: %v", cfg.LlmProviderType)
+	if config.Configuration.LlmProviderType != "openai" && config.Configuration.LlmProviderType != "ollama" {
+		config.Logger.Errorf("Unsupported LLM provider type: %v", config.Configuration.LlmProviderType)
+		return "", fmt.Errorf("unsupported LLM provider type: %v", config.Configuration.LlmProviderType)
 	}
 
-	config.Logger.Debugf("Using LLM provider: %v", cfg.LlmProviderType)
+	config.Logger.Debugf("Using LLM provider: %v", config.Configuration.LlmProviderType)
 
-	apiUrl := cfg.SummarizerApiUrl
-	apiToken := cfg.SummarizerApiToken
-	model := cfg.SummarizerApiModel
+	apiUrl := config.Configuration.SummarizerApiUrl
+	apiToken := config.Configuration.SummarizerApiToken
+	model := config.Configuration.SummarizerApiModel
 
 	config.Logger.Debugf("API URL: %v, Model: %v", apiUrl, model)
 
@@ -98,7 +91,7 @@ func SummarizeText(text string, lang string) (string, error) {
 
 	// Determine API endpoint
 	var endpoint string
-	if cfg.LlmProviderType == "openai" {
+	if config.Configuration.LlmProviderType == "openai" {
 		endpoint = "/chat/completions"
 	} else {
 		endpoint = "/api/chat"
