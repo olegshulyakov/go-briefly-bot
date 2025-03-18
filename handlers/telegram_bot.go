@@ -187,6 +187,9 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
+	videoURL := message.Text
+	config.Logger.Debugf("Request from userId=%v user=%s for: %s", message.From.ID, message.From, videoURL)
+
 	if message.IsCommand() {
 		switch message.Command() {
 		case "start":
