@@ -92,22 +92,35 @@ func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 //   - The transcript is extracted in Russian (`ru` and `ru_auto`) and saved as an SRT file.
 //   - The transcript file is deleted after reading to clean up temporary files.
 //   - Logging is performed using the `config.Logger` for debugging and error tracking.
-func GetYoutubeTranscript(videoURL string) (string, error) {
+func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) {
 	config.Logger.Debugf("Transcript extract: %v", videoURL)
 
-	cmd := exec.Command("yt-dlp", "--no-progress", "--skip-download", "--write-auto-sub", "--convert-subs", "srt", "--sub-langs", "ru,ru_auto,-live_chat", "--output", "transcript", videoURL)
-	err := cmd.Run()
+	cmd := exec.Command(
+		"yt-dlp",
+		"--no-progress",
+		"--skip-download",
+		"--write-subs",
+		"--write-auto-subs",
+		"--convert-subs", "srt",
+		"--sub-lang", fmt.Sprintf("%s,%s_auto,-live_chat", languageCode, languageCode),
+		"--output", fmt.Sprintf("subtitles_%s.%%(ext)s", videoURL[len(videoURL)-11:]),
+		videoURL,
+	)
+	output, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("failed to extract transcript: %v", err)
+		return "", fmt.Errorf("failed to extract transcript: %v\n%s", err, output)
 	}
 
+	// Generate the file name
+	fileName := fmt.Sprintf("subtitles_%s.%s.srt", videoURL[len(videoURL)-11:], languageCode)
+
 	// Read the transcript file
-	transcript, err := os.ReadFile("transcript.ru.srt")
+	transcript, err := os.ReadFile(fileName)
 	if err != nil {
 		return "", fmt.Errorf("No subtitles to found: %v", err)
 	}
 
-	err = os.Remove("transcript.ru.srt")
+	err = os.Remove(fileName)
 	if err != nil {
 		return "", fmt.Errorf("failed to delete transcript file: %v", err)
 	}
