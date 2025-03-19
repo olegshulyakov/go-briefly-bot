@@ -7,8 +7,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"youtube-retell-bot/config"
 )
+
+// Define the regex pattern for YouTube URLs
+var YoutubeUrlPattern = `(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})`
 
 // VideoInfo represents metadata about a YouTube video.
 type VideoInfo struct {
@@ -91,7 +95,7 @@ func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 func GetYoutubeTranscript(videoURL string) (string, error) {
 	config.Logger.Debugf("Transcript extract: %v", videoURL)
 
-	cmd := exec.Command("yt-dlp", "--skip-download", "--write-auto-sub", "--convert-subs", "srt", "--sub-langs", "ru,ru_auto,-live_chat", "--output", "transcript", videoURL)
+	cmd := exec.Command("yt-dlp", "--no-progress", "--skip-download", "--write-auto-sub", "--convert-subs", "srt", "--sub-langs", "ru,ru_auto,-live_chat", "--output", "transcript", videoURL)
 	err := cmd.Run()
 	if err != nil {
 		return "", fmt.Errorf("failed to extract transcript: %v", err)
@@ -100,7 +104,7 @@ func GetYoutubeTranscript(videoURL string) (string, error) {
 	// Read the transcript file
 	transcript, err := os.ReadFile("transcript.ru.srt")
 	if err != nil {
-		return "", fmt.Errorf("failed to read transcript file: %v", err)
+		return "", fmt.Errorf("No subtitles to found: %v", err)
 	}
 
 	err = os.Remove("transcript.ru.srt")
@@ -111,4 +115,56 @@ func GetYoutubeTranscript(videoURL string) (string, error) {
 	config.Logger.Debugf("Transcript extracted: %v", videoURL)
 
 	return string(transcript), nil
+}
+
+// IsValidYouTubeURL checks if the provided text contains a valid YouTube URL.
+//
+// It compiles a regular expression defined by YoutubeUrlPattern and uses it to
+// determine whether the input text contains a YouTube URL.
+//
+// Parameters:
+//   - text: The string to check for a YouTube URL.
+//
+// Returns:
+//   - true if the text contains a valid YouTube URL, false otherwise.
+func IsValidYouTubeURL(text string) bool {
+	// Compile the regex
+	re, err := regexp.Compile(YoutubeUrlPattern)
+	if err != nil {
+		return false
+	}
+
+	// Check if the text contains a YouTube URL
+	if !re.MatchString(text) {
+		return false
+	}
+	return true
+}
+
+// ExtractAllYouTubeURLs extracts all YouTube URLs from the given text.
+// It uses a regular expression to find all matching URLs.
+//
+// Parameters:
+//   - text: The string to extract YouTube URLs from.
+//
+// Returns:
+//   - A slice of strings containing all the YouTube URLs found in the text.
+//   - An error if there was an error compiling the regex.
+//
+// Example:
+//
+//	urls, err := ExtractAllYouTubeURLs("Check out this video: https://www.youtube.com/watch?v=dQw4w9WgXcQ and another one at https://youtu.be/abcdefg123")
+//	if err != nil {
+//	    log.Errorf("Error extracting URLs: %v", err)
+//	}
+//	fmt.Println("URLs:", urls)
+func ExtractAllYouTubeURLs(text string) ([]string, error) {
+	// Compile the regex
+	re, err := regexp.Compile(YoutubeUrlPattern)
+	if err != nil {
+		return nil, fmt.Errorf("Error compiling regex: %v", err)
+	}
+
+	// Find all YouTube URLs in text
+	return re.FindAllString(text, -1), nil
 }
