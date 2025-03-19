@@ -198,16 +198,11 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
-	// Check if the message contains a YouTube link
-	if !services.IsValidYouTubeURL(text) {
-		config.Logger.Errorf("Got invalid processing message: userId=%v, text=%v", message.From.ID, text)
-		return
-	}
-
-	// Extract URL
+	// Check if the message contains a YouTube link and extract URL
 	videoURLs, err := services.ExtractAllYouTubeURLs(text)
 	if err != nil {
 		config.Logger.Errorf("Got invalid processing message: userId=%v, text=%v", message.From.ID, text)
+		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.no_url_found"}))
 		return
 	}
 

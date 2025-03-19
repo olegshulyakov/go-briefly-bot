@@ -165,6 +165,11 @@ func ExtractAllYouTubeURLs(text string) ([]string, error) {
 		return nil, fmt.Errorf("Error compiling regex: %v", err)
 	}
 
+	// Check if the text contains a YouTube URL
+	if !re.MatchString(text) {
+		return nil, fmt.Errorf("No valid URL found")
+	}
+
 	// Find all YouTube URLs in text
 	return re.FindAllString(text, -1), nil
 }
