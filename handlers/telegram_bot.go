@@ -182,7 +182,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 
 	// Check if the user is rate-limited
 	if isUserRateLimited(message.From.ID) {
-		config.Logger.Warnf("Rate Limit exceeded: userId=%v", message.From.ID)
+		config.Logger.Warnf("Rate Limit exceeded: userId=%v, user='%v", message.From.ID, message.From)
 		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.rate_limited"}))
 		return
 	}
@@ -201,7 +201,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	// Check if the message contains a YouTube link and extract URL
 	videoURLs, err := services.ExtractAllYouTubeURLs(text)
 	if err != nil {
-		config.Logger.Errorf("Got invalid processing message: userId=%v, text=%v", message.From.ID, text)
+		config.Logger.Errorf("Got invalid processing message: userId=%v, user='%v, text=%v", message.From.ID, message.From, text)
 		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.no_url_found"}))
 		return
 	}
