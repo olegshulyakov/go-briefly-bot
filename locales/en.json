@@ -19,7 +19,8 @@
             "summary_failed": "❌ Sorry, I couldn't summarize the transcript."
         },
         "result": {
-            "summary": "📖 **{{.title}}**\n\n{{.text}}"
+            "first_message": "📖 **{{.title}}**\n\n{{.text}}",
+            "message": "{{.text}}"
         }
     },
     "llm": {

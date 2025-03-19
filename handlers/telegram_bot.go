@@ -268,13 +268,25 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	for i, chunk := range chunks {
 		config.Logger.Debugf("Attempt to send chunk #%d: userId=%v, videoURL=%v", i+1, message.From.ID, videoURL)
 
-		_, err = sendMarkdownMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{
-			MessageID: "telegram.result.summary",
-			TemplateData: map[string]interface{}{
-				"title": videoInfo.Title,
-				"text":  chunk,
-			},
-		}))
+		var msg string
+		if i == 0 {
+			msg = localizer.MustLocalize(&i18n.LocalizeConfig{
+				MessageID: "telegram.result.first_message",
+				TemplateData: map[string]interface{}{
+					"title": videoInfo.Title,
+					"text":  chunk,
+				},
+			})
+		} else {
+			msg = localizer.MustLocalize(&i18n.LocalizeConfig{
+				MessageID: "telegram.result.message",
+				TemplateData: map[string]interface{}{
+					"text": chunk,
+				},
+			})
+		}
+
+		_, err = sendMarkdownMessage(message, msg)
 		if err != nil {
 			sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.general"}))
 		}
