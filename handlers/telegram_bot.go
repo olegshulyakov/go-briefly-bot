@@ -171,24 +171,18 @@ func isUserRateLimited(userId int64) bool {
 // Parameters:
 //   - message: The incoming message to process.
 func handleTelegramMessage(message *tgbotapi.Message) {
-	// Determine the user's language (default to English)
-	userLanguage := message.From.LanguageCode
-	if userLanguage == "" {
-		userLanguage = "en"
-	}
-
 	// Create a localizer for the user's language
-	localizer := config.GetLocalizer(userLanguage)
+	localizer := config.GetLocalizer(message.From.LanguageCode)
 
 	// Check if the user is rate-limited
 	if isUserRateLimited(message.From.ID) {
-		config.Logger.Warnf("Rate Limit exceeded: userId=%v, user='%v", message.From.ID, message.From)
+		config.Logger.Warnf("Rate Limit exceeded: userId=%v, user='%v', bot=%v, language='%v'", message.From.ID, message.From, message.From.IsBot, message.From.LanguageCode)
 		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.rate_limited"}))
 		return
 	}
 
 	text := message.Text
-	config.Logger.Debugf("Request: userId=%v, user='%v', text=%s", message.From.ID, message.From, text)
+	config.Logger.Debugf("Request: userId=%v, user='%v', language='%v', text=%s", message.From.ID, message.From, message.From.LanguageCode, text)
 
 	if message.IsCommand() {
 		switch message.Command() {
@@ -241,7 +235,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
-	transcript, err := services.GetYoutubeTranscript(videoURL, userLanguage)
+	transcript, err := services.GetYoutubeTranscript(videoURL, message.From.LanguageCode)
 	if err != nil {
 		config.Logger.Errorf("Failed to get transcript: userId=%v, videoURL=%v, err=%v", message.From.ID, videoURL, err)
 		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.transcript_failed"}))
@@ -255,7 +249,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
-	summary, err := services.SummarizeText(transcript, userLanguage)
+	summary, err := services.SummarizeText(transcript, message.From.LanguageCode)
 	if err != nil {
 		config.Logger.Errorf("Failed to summarize transcript: userId=%v, videoURL=%v, err=%v", message.From.ID, videoURL, err)
 		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.summary_failed"}))
