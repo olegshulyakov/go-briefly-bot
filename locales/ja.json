@@ -1,0 +1,30 @@
+{
+    "telegram": {
+        "welcome": {
+            "message": "👋 ようこそ！YouTubeリンクを送ってください。要約します。📹✨"
+        },
+        "progress": {
+            "processing": "⏳ リクエストを処理中...",
+            "fetching_info": "🔍 動画情報を取得中...",
+            "fetching_transcript": "🎬 字幕を取得中...",
+            "summarizing": "🤖 要約中..."
+        },
+        "error": {
+            "general": "😔 申し訳ありません。お手伝いできませんでした。",
+            "rate_limited": "⏱️ 30秒待ってから再度リクエストしてください。",
+            "multiple_urls": "⚠️ 複数のURLが見つかりました。最初のURLのみを処理します。",
+            "no_url_fould": "❌ 動画URLが見つかりませんでした。",
+            "info_failed": "❌ 申し訳ありません。この動画の情報を取得できませんでした。",
+            "transcript_failed": "❌ 申し訳ありません。この動画の字幕を取得できませんでした。",
+            "summary_failed": "❌ 申し訳ありません。字幕を要約できませんでした。"
+        },
+        "result": {
+            "first_message": "📖 **{{.title}}**\n\n{{.text}}",
+            "message": "{{.text}}"
+        }
+    },
+    "llm": {
+        "system_prompt": "提供されたSRT字幕を簡潔なテキスト要約に変換し、重要なポイントに焦点を当ててタイムスタンプを省略してください。元の構造を維持し、各セクションの下に主要なアイデアを強調してください。",
+        "user_prompt": "{{.text}}"
+    }
+}
