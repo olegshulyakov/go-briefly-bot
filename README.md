@@ -44,12 +44,22 @@ cd youtube-retell-bot
 
 Create a `.env` file in the root directory:
 
+#### Telegram
+
+```env
+TELEGRAM_BOT_TOKEN=<your_telegram_bot_token>
+```
+
+#### yt-dlp options (optional)
+
+```env
+# yt-dlp options
+YT_DLP_PROXY=socks5://user:pass@127.0.0.1:1080/
+```
+
 #### OpenAI
 
 ```env
-# Telegram
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-
 # Summarizer
 SUMMARIZER_PROVIDER_TYPE=openai
 SUMMARIZER_API_URL=https://api.openai.com/v1
@@ -60,9 +70,6 @@ SUMMARIZER_MODEL=GPT-4o-mini
 #### LM Studio
 
 ```env
-# Telegram
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-
 # Summarizer
 SUMMARIZER_PROVIDER_TYPE=openai
 SUMMARIZER_API_URL=http://127.0.0.1:1234/v1
@@ -73,9 +80,6 @@ SUMMARIZER_MODEL=qwen2.5-3b-instruct
 #### Ollama
 
 ```env
-# Telegram
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-
 # Summarizer
 SUMMARIZER_PROVIDER_TYPE=ollama
 SUMMARIZER_API_URL=http://127.0.0.1:11434/

@@ -50,7 +50,21 @@ func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 
 	config.Logger.Debugf("VideoInfo download: %v", videoURL)
 
-	cmd := exec.Command("yt-dlp", "--dump-json", videoURL)
+	args := []string{
+		"--dump-json",
+	}
+
+	if config.Configuration.YtDlpProxy != "" {
+		args = append(args[:], "--proxy", config.Configuration.YtDlpProxy)
+	}
+
+	if videoURL != "" {
+		args = append(args[:], videoURL)
+	} else {
+		return videoInfo, fmt.Errorf("videoURL is empty")
+	}
+
+	cmd := exec.Command("yt-dlp", args...)
 
 	output, err := cmd.Output()
 	if err != nil {
@@ -95,17 +109,30 @@ func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) {
 	config.Logger.Debugf("Transcript extract: %v", videoURL)
 
-	cmd := exec.Command(
-		"yt-dlp",
+	args := []string{
 		"--no-progress",
 		"--skip-download",
 		"--write-subs",
 		"--write-auto-subs",
 		"--convert-subs", "srt",
-		"--sub-lang", fmt.Sprintf("%s,%s_auto,-live_chat", languageCode, languageCode),
-		"--output", fmt.Sprintf("subtitles_%s.%%(ext)s", videoURL[len(videoURL)-11:]),
-		videoURL,
-	)
+	}
+
+	if config.Configuration.YtDlpProxy != "" {
+		args = append(args[:], "--proxy", config.Configuration.YtDlpProxy)
+	}
+
+	if languageCode != "" {
+		args = append(args[:], "--sub-lang", fmt.Sprintf("%s,%s_auto,-live_chat", languageCode, languageCode))
+	}
+
+	if videoURL != "" {
+		args = append(args[:], "--output", fmt.Sprintf("subtitles_%s.%%(ext)s", videoURL[len(videoURL)-11:]), videoURL)
+	} else {
+		return "", fmt.Errorf("videoURL is empty")
+	}
+
+	cmd := exec.Command("yt-dlp", args...)
+
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to extract transcript: %v\n%s", err, output)

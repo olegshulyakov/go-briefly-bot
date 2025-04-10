@@ -17,6 +17,7 @@ var Logger *logrus.Logger
 // language model providers (e.g., OpenAI, Ollama), and other environment variables.
 type Config struct {
 	TelegramToken      string // The token for the Telegram bot.
+	YtDlpProxy         string // The proxy URL for yt-dlp.
 	LlmProviderType    string // The type of language model provider (e.g., "openai", "ollama").
 	SummarizerApiUrl   string // The URL for the OpenAI API.
 	SummarizerApiToken string // The token for the OpenAI API.
@@ -50,6 +51,7 @@ func loadConfig() (*Config, error) {
 
 	Configuration = &Config{
 		TelegramToken:      os.Getenv("TELEGRAM_BOT_TOKEN"),
+		YtDlpProxy:         os.Getenv("YT_DLP_PROXY"),
 		LlmProviderType:    os.Getenv("LLM_PROVIDER_TYPE"),
 		SummarizerApiUrl:   os.Getenv("SUMMARIZER_API_URL"),
 		SummarizerApiToken: os.Getenv("SUMMARIZER_API_TOKEN"),
