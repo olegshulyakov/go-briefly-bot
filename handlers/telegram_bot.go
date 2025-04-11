@@ -174,9 +174,15 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	// Create a localizer for the user's language
 	localizer := config.GetLocalizer(message.From.LanguageCode)
 
+	// Check if the user is bot
+	if message.From.IsBot {
+		config.Logger.Warnf("Got message from bot: userId=%v, user='%v', bot=%v, language='%v'", message.From.ID, message.From, message.From.IsBot, message.From.LanguageCode)
+		return
+	}
+
 	// Check if the user is rate-limited
 	if isUserRateLimited(message.From.ID) {
-		config.Logger.Warnf("Rate Limit exceeded: userId=%v, user='%v', bot=%v, language='%v'", message.From.ID, message.From, message.From.IsBot, message.From.LanguageCode)
+		config.Logger.Warnf("Rate Limit exceeded: userId=%v, user='%v', language='%v'", message.From.ID, message.From, message.From.LanguageCode)
 		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.rate_limited"}))
 		return
 	}
