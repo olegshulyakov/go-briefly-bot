@@ -13,7 +13,7 @@
             "general": "😔 Desculpe. Não consegui te ajudar com isso.",
             "rate_limited": "⏱️ Por favor, espere 30 segundos antes de fazer outra solicitação.",
             "multiple_urls": "⚠️ Encontrei vários URLs, processando apenas o primeiro.",
-            "no_url_fould": "❌ Nenhum URL de vídeo encontrado.",
+            "no_url_found": "❌ Nenhum URL de vídeo encontrado.",
             "info_failed": "❌ Desculpe, não consegui obter as informações para este vídeo.",
             "transcript_failed": "❌ Desculpe, não consegui obter a transcrição para este vídeo.",
             "summary_failed": "❌ Desculpe, não consegui resumir a transcrição."
