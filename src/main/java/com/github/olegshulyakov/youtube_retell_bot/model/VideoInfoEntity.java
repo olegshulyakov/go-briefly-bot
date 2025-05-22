@@ -1,5 +1,6 @@
 package com.github.olegshulyakov.youtube_retell_bot.model;
 
+import com.github.olegshulyakov.youtube_retell_bot.util.VideoUuidGenerator;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -31,7 +32,7 @@ public class VideoInfoEntity {
     }
 
     public VideoInfoEntity(VideoInfo videoInfo) {
-        this(getUuid(videoInfo.type(), videoInfo.id()), videoInfo.type(), videoInfo.id(), videoInfo.uploader(), videoInfo.title(), videoInfo.thumbnail());
+        this(VideoUuidGenerator.getUuid(videoInfo.type(), videoInfo.id()), videoInfo.type(), videoInfo.id(), videoInfo.uploader(), videoInfo.title(), videoInfo.thumbnail());
     }
 
     public VideoInfo toVideoInfo() {
