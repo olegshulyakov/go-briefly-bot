@@ -9,6 +9,8 @@ import com.github.olegshulyakov.youtube_retell_bot.service.YoutubeUrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,9 +32,11 @@ public class YtDlpController implements YoutubeUrlValidator {
     @Autowired
     private final VideoInfoEntityRepository videoInfoEntityRepository;
     private final ObjectMapper objectMapper;
+    private final String ytDlpProxy;
 
-    public YtDlpController(VideoInfoEntityRepository videoInfoEntityRepository) {
+    public YtDlpController(VideoInfoEntityRepository videoInfoEntityRepository, @Value("${YT_DLP_PROXY}") String ytDlpProxy) {
         this.videoInfoEntityRepository = videoInfoEntityRepository;
+        this.ytDlpProxy = ytDlpProxy;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -54,8 +58,10 @@ public class YtDlpController implements YoutubeUrlValidator {
 
         List<String> command = new ArrayList<>();
         command.add("yt-dlp");
-        command.add("--proxy");
-        command.add("socks5://192.168.1.11:1080");
+        if (StringUtils.hasText(ytDlpProxy)) {
+            command.add("--proxy");
+            command.add(ytDlpProxy);
+        }
         command.add("--dump-json");
         command.add(url);
 
