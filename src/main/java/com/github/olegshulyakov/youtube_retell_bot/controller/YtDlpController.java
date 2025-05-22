@@ -1,5 +1,6 @@
 package com.github.olegshulyakov.youtube_retell_bot.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.olegshulyakov.youtube_retell_bot.dao.VideoInfoEntityRepository;
 import com.github.olegshulyakov.youtube_retell_bot.exception.YtDlpException;
@@ -46,7 +47,7 @@ public class YtDlpController implements YoutubeUrlValidator {
 
         Optional<String> id = getYoutubeId(url);
         if (id.isEmpty()) {
-            return null; //TODO
+            throw new YtDlpException("Video Id not found");
         }
 
         String uuid = VideoInfoEntity.getUuid("youtube", id.get());
@@ -67,19 +68,19 @@ public class YtDlpController implements YoutubeUrlValidator {
 
         logger.debug("Executing command: {}", String.join(" ", command));
 
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-            Process process = processBuilder.start();
+        Process process;
+        StringBuilder output = new StringBuilder();
+        StringBuilder errorOutput = new StringBuilder();
 
-            StringBuilder output = new StringBuilder();
-            StringBuilder errorOutput = new StringBuilder();
+        try {
+            process = new ProcessBuilder(command).start();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                  BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n"); // Add newline for clarity
+                    output.append(line).append("\n");
                 }
 
                 String errorLine;
@@ -89,14 +90,20 @@ public class YtDlpController implements YoutubeUrlValidator {
             }
 
             process.waitFor(30, TimeUnit.SECONDS);
-            int exitCode = process.exitValue();
-            if (exitCode != 0) {
-                logger.warn("yt-dlp finished with exit code {}\n{}", exitCode, errorOutput);
-                throw new YtDlpException("yt-dlp command failed with exit code " + exitCode);
-            }
+        } catch (IOException | InterruptedException e) {
+            logger.error("Failed to read video info", e);
+            throw new YtDlpException("Failed to read video info", e);
+        }
 
-            logger.info("Video info: {}", output);
+        int exitCode = process.exitValue();
+        if (exitCode != 0) {
+            logger.warn("yt-dlp finished with exit code {}\n{}", exitCode, errorOutput);
+            throw new YtDlpException("yt-dlp command failed with exit code " + exitCode);
+        }
 
+        logger.debug("Got video info: {}", id);
+
+        try {
             @SuppressWarnings("unchecked")
             Map<String, Object> jsonMap = objectMapper.readValue(output.toString(), Map.class);
             VideoInfo videoInfo = new VideoInfo(
@@ -110,9 +117,8 @@ public class YtDlpController implements YoutubeUrlValidator {
             videoInfoEntityRepository.save(new VideoInfoEntity(videoInfo));
 
             return videoInfo;
-        } catch (IOException | InterruptedException e) {
-            logger.error("Failed to read video info", e);
-            throw new YtDlpException("Failed to read video info", e);
+        } catch (JsonProcessingException e) {
+            throw new YtDlpException("Failed to parse yt-dlp output", e);
         }
     }
 }
