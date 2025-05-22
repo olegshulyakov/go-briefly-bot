@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtube_retell_bot.service;
+package com.github.olegshulyakov.youtube_retell_bot.util;
 
 import java.util.Optional;
 import java.util.regex.Matcher;

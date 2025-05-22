@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtube_retell_bot.service;
+package com.github.olegshulyakov.youtube_retell_bot.util;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
