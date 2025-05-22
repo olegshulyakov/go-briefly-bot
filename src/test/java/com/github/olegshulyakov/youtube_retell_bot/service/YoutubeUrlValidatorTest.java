@@ -2,11 +2,13 @@ package com.github.olegshulyakov.youtube_retell_bot.service;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class YoutubeUrlValidatorTest {
 
     YoutubeUrlValidator validator = new YoutubeUrlValidator() {
