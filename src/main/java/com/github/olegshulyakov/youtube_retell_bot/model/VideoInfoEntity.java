@@ -10,12 +10,35 @@ import lombok.Data;
 @Table(name = "VideoInfo")
 @Data
 public class VideoInfoEntity {
+    /**
+     * Unique identifier for the video.
+     */
     @Id
     private String uuid;
+
+    /**
+     * Video type (e.g., "youtube").
+     */
     private String type;
+
+    /**
+     * Video unique ID from the YouTube API.
+     */
     private String id;
+
+    /**
+     * Uploader's username.
+     */
     private String uploader;
+
+    /**
+     * Video title.
+     */
     private String title;
+
+    /**
+     * Video thumbnail URL.
+     */
     private String thumbnail;
 
     // Required for JPA
@@ -38,8 +61,5 @@ public class VideoInfoEntity {
     public VideoInfo toVideoInfo() {
         return new VideoInfo(this.type, this.id, this.uploader, this.title, this.thumbnail);
     }
-
-    public static String getUuid(String type, String id) {
-        return type + "-" + id;
-    }
 }
+
