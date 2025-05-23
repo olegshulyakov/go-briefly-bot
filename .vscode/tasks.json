@@ -5,7 +5,7 @@
       "label": "mvn: build",
       "type": "shell",
       "command": "mvn",
-      "args": ["clean", "package"],
+      "args": ["package"],
       "group": {
         "kind": "build",
         "isDefault": true
@@ -28,7 +28,7 @@
       "label": "mvn: test",
       "type": "shell",
       "command": "mvn",
-      "args": ["clean", "test"],
+      "args": ["test"],
       "group": {
         "kind": "test",
         "isDefault": true
