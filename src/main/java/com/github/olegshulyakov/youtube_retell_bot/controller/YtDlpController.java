@@ -40,7 +40,7 @@ public class YtDlpController implements YoutubeUrlValidator {
     private final VideoTranscriptRepository videoTranscriptRepository;
     private final String ytDlpProxy;
 
-    public YtDlpController(VideoInfoRepository videoInfoRepository, VideoTranscriptRepository videoTranscriptRepository, @Value("${YT_DLP_PROXY}") String ytDlpProxy) {
+    public YtDlpController(VideoInfoRepository videoInfoRepository, VideoTranscriptRepository videoTranscriptRepository, @Value("${YT_DLP_PROXY:}") String ytDlpProxy) {
         this.videoInfoRepository = videoInfoRepository;
         this.videoTranscriptRepository = videoTranscriptRepository;
         this.ytDlpProxy = ytDlpProxy;
