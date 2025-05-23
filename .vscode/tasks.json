@@ -2,88 +2,52 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "go: build",
+      "label": "mvn: build",
       "type": "shell",
-      "command": "go",
-      "args": ["build"],
+      "command": "mvn",
+      "args": ["clean", "package"],
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": ["$go"],
-      "detail": "Build the Go application."
+      "problemMatcher": ["$mavenProblemMatcher"]
     },
     {
-      "label": "go: run",
+      "label": "mvn: run",
       "type": "shell",
-      "command": "go",
-      "args": ["run", "."],
-      "group": "none",
-      "problemMatcher": ["$go"],
-      "detail": "Run the Go application."
+      "command": "mvn",
+      "args": ["exec:java", "-Dexec.mainClass=\"com.example.Main\""],
+      "group": {
+        "kind": "run",
+        "isDefault": true
+      },
+      "problemMatcher": ["$mavenProblemMatcher"],
+      "dependsOn": ["Package Project"]
     },
     {
-      "label": "go: test",
+      "label": "mvn: test",
       "type": "shell",
-      "command": "go",
-      "args": ["test", "./..."],
-      "group": "test",
-      "problemMatcher": ["$go"],
-      "detail": "Run all Go tests in the project."
+      "command": "mvn",
+      "args": ["clean", "test"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": ["$mavenProblemMatcher"]
     },
     {
-      "label": "go: test (verbose)",
+      "label": "mvn: clean",
       "type": "shell",
-      "command": "go",
-      "args": ["test", "-v", "./..."],
-      "group": "test",
-      "problemMatcher": ["$go"],
-      "detail": "Run all Go tests with verbose output."
-    },
-    {
-      "label": "go: clean",
-      "type": "shell",
-      "command": "go",
+      "command": "mvn",
       "args": ["clean"],
-      "group": "none",
-      "problemMatcher": [],
-      "detail": "Clean Go build files."
-    },
-    {
-      "label": "go: lint",
-      "type": "shell",
-      "command": "golangci-lint",
-      "args": ["run"],
-      "group": "none",
-      "problemMatcher": ["$golangci-lint"],
-      "detail": "Run golangci-lint for static code analysis."
-    },
-    {
-      "label": "go: fmt",
-      "type": "shell",
-      "command": "go",
-      "args": ["fmt", "./..."],
-      "group": "none",
-      "problemMatcher": [],
-      "detail": "Format Go code using go fmt."
-    },
-    {
-      "label": "go: generate",
-      "type": "shell",
-      "command": "go",
-      "args": ["generate", "./..."],
-      "group": "none",
-      "problemMatcher": ["$go"],
-      "detail": "Run go generate to generate code."
-    },
-    {
-      "label": "go: mod tidy",
-      "type": "shell",
-      "command": "go",
-      "args": ["mod", "tidy"],
-      "group": "none",
-      "problemMatcher": [],
-      "detail": "Run go mod tidy to clean up dependencies."
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": ["$mavenProblemMatcher"],
+      "presentation": {
+        "reveal": "always"
+      }
     }
   ]
 }
