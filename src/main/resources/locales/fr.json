@@ -1,0 +1,30 @@
+{
+    "telegram": {
+        "welcome": {
+            "message": "👋 Bienvenue ! Envoie-moi un lien YouTube et je te le résumerai. 📹✨"
+        },
+        "progress": {
+            "processing": "⏳ Traitement de votre requête...",
+            "fetching_info": "🔍 Obtention des informations sur la vidéo...",
+            "fetching_transcript": "🎬 Obtention de la transcription...",
+            "summarizing": "🤖 Résumé en cours..."
+        },
+        "error": {
+            "general": "😔 Excusez-moi. Je n'ai pas pu vous aider cette fois.",
+            "rate_limited": "⏱️ Veuillez attendre 30 secondes avant de faire une autre requête.",
+            "multiple_urls": "⚠️ Plusieurs URL détectées, traitement de la première uniquement.",
+            "no_url_found": "❌ Aucun URL de vidéo trouvé.",
+            "info_failed": "❌ Désolé, je n'ai pas pu obtenir les informations pour cette vidéo.",
+            "transcript_failed": "❌ Désolé, je n'ai pas pu obtenir la transcription pour cette vidéo.",
+            "summary_failed": "❌ Désolé, je n'ai pas pu résumer la transcription."
+        },
+        "result": {
+            "first_message": "📖 **{{.title}}**\n\n{{.text}}",
+            "message": "{{.text}}"
+        }
+    },
+    "llm": {
+        "system_prompt": "Convertis les sous-titres SRT fournis en un résumé texte concis, en te concentrant sur les points clés et en omettant les horodatages. Maintiens la structure originale et mets en évidence les idées principales dans chaque section.",
+        "user_prompt": "{{.text}}"
+    }
+}
