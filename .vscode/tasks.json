@@ -5,7 +5,7 @@
       "label": "mvn: build",
       "type": "shell",
       "command": "mvn",
-      "args": ["package"],
+      "args": ["package", "-Dmaven.build.cache.enabled=false"],
       "group": {
         "kind": "build",
         "isDefault": true
