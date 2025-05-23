@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Optional: Add feedback messages
+echo "Running Maven clean test..."
+mvn clean test
+
+# Capture the exit code of the Maven command
+RESULT=$?
+
+# Abort the commit if tests fail
+if [ $RESULT -ne 0 ]; then
+  echo "❌ Tests failed. Commit aborted."
+  exit $RESULT
+else
+  echo "✅ Tests passed. Commit proceeding."
+  exit 0
+fi
+
