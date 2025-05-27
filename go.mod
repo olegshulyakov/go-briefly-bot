@@ -1,4 +1,4 @@
-module youtube-retell-bot
+module youtube-briefly-bot
 
 go 1.23.0
 

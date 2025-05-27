@@ -1,4 +1,4 @@
-# Telegram YouTube Reteller Bot
+# YouTube Briefly Bot
 
 A Telegram bot written in Go that retells YouTube videos. It uses `yt-dlp` to fetch video transcripts and a Hugging Face model (or OpenRouter API) to summarize them. The bot is designed to be lightweight, easy to deploy, and extensible.
 
@@ -29,8 +29,8 @@ A Telegram bot written in Go that retells YouTube videos. It uses `yt-dlp` to fe
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/olegshulyakov/youtube-retell-bot.git
-cd youtube-retell-bot
+git clone https://github.com/olegshulyakov/youtube-briefly-bot.git
+cd youtube-briefly-bot
 ```
 
 ### 2. Set Up Environment Variables
@@ -125,7 +125,7 @@ go run main.go
 ## Project Structure
 
 ```
-youtube-retell-bot/
+youtube-briefly-bot/
 ├── .env
 ├── .gitignore
 ├── .golangci.yml
@@ -188,4 +188,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Support
 
-If you encounter any issues or have questions, please [open an issue](https://github.com/olegshulyakov/youtube-retell-bot/issues).
+If you encounter any issues or have questions, please [open an issue](https://github.com/olegshulyakov/youtube-briefly-bot/issues).

@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux go build -o telegram-youtube-reteller .
+RUN CGO_ENABLED=0 GOOS=linux go build -o telegram-youtube-briefly .
 
 # Stage 2: Create a lightweight runtime image
 FROM alpine:latest
@@ -26,10 +26,10 @@ RUN apk add --no-cache yt-dlp
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /app/telegram-youtube-reteller .
+COPY --from=builder /app/telegram-youtube-briefly .
 
 # Copy the locales directory
 COPY --from=builder /app/locales ./locales
 
 # Set the entrypoint to run the application
-ENTRYPOINT ["./telegram-youtube-reteller"]
+ENTRYPOINT ["./telegram-youtube-briefly"]
