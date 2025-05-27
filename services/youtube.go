@@ -303,7 +303,7 @@ func cleanTranscript(text string) (string, error) {
 
 		// Write the line to output
 		seen[trimmed] = true
-		_, err := sb.WriteString(line + "\n")
+		_, err := sb.WriteString(line + " ")
 		if err != nil {
 			return "", err
 		}
