@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"youtube-retell-bot/config"
+	"youtube-briefly-bot/config"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )

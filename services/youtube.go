@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"youtube-retell-bot/config"
+	"youtube-briefly-bot/config"
 )
 
 // Define the regex pattern for YouTube URLs

@@ -5,8 +5,8 @@
 package main
 
 import (
-	"youtube-retell-bot/config"
-	"youtube-retell-bot/handlers"
+	"youtube-briefly-bot/config"
+	"youtube-briefly-bot/handlers"
 )
 
 // main is the entry point for the application.

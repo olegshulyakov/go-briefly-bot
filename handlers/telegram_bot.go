@@ -8,9 +8,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"youtube-retell-bot/config"
-	"youtube-retell-bot/services"
-	"youtube-retell-bot/utils"
+	"youtube-briefly-bot/config"
+	"youtube-briefly-bot/services"
+	"youtube-briefly-bot/utils"
 
 	tg_md2html "github.com/PaulSonOfLars/gotg_md2html"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
