@@ -5,10 +5,21 @@
       "label": "mvn: build",
       "type": "shell",
       "command": "mvn",
-      "args": ["package", "-Dmaven.build.cache.enabled=false"],
+      "args": ["package"],
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "problemMatcher": ["$mavenProblemMatcher"]
+    },
+    {
+      "label": "mvn: rebuild",
+      "type": "shell",
+      "command": "mvn",
+      "args": ["package", "-Dmaven.build.cache.enabled=false"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
       },
       "problemMatcher": ["$mavenProblemMatcher"]
     },
