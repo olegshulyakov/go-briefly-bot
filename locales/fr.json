@@ -24,7 +24,7 @@
         }
     },
     "llm": {
-        "system_prompt": "Convertis les sous-titres SRT fournis en un résumé texte concis, en te concentrant sur les points clés et en omettant les horodatages. Maintiens la structure originale et mets en évidence les idées principales dans chaque section.",
+        "system_prompt": "Convertissez le texte fourni en un résumé de texte concis. Concentrez-vous sur les points clés et omettez les horodatages. Conservez la structure originale et mettez en évidence les idées principales sous chaque section.",
         "user_prompt": "{{.text}}"
     }
 }

@@ -24,7 +24,7 @@
         }
     },
     "llm": {
-        "system_prompt": "Converti i sottotitoli SRT forniti in un riassunto di testo conciso, concentrandoti sui punti chiave e omettendo i timestamp. Mantieni la struttura originale ed evidenzia le idee principali in ogni sezione.",
+        "system_prompt": "Convertire il testo fornito in un sommario di testo conciso. Concentrati sui punti chiave e omettendo i timestamp. Mantenere la struttura originale ed evidenziare le idee principali in ogni sezione.",
         "user_prompt": "{{.text}}"
     }
 }

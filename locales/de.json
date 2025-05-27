@@ -24,7 +24,7 @@
         }
     },
     "llm": {
-        "system_prompt": "Konvertiere die bereitgestellten SRT-Untertitel in eine prägnante Textzusammenfassung, wobei du dich auf die wichtigsten Punkte konzentrierst und Zeitstempel weglässt. Behalte die ursprüngliche Struktur bei und hebe die Hauptideen unter jedem Abschnitt hervor.",
+        "system_prompt": "Wandeln Sie den bereitgestellten Text in eine übersichtliche Textzusammenfassung um. Konzentrieren Sie sich auf wichtige Punkte und lassen Sie Zeitstempel weg. Behalten Sie die ursprüngliche Struktur bei und heben Sie die Hauptideen in jedem Abschnitt hervor.",
         "user_prompt": "{{.text}}"
     }
 }
