@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtube_retell_bot.exception;
+package com.github.olegshulyakov.youtubebriefly.exception;
 
 public class YtDlpException extends RuntimeException {
     public YtDlpException(String message) {

@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtube_retell_bot.model;
+package com.github.olegshulyakov.youtubebriefly.model;
 
 public record VideoInfoRecord(
         String type,

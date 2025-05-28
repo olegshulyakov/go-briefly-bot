@@ -1,16 +1,16 @@
-package com.github.olegshulyakov.youtube_retell_bot.controller;
+package com.github.olegshulyakov.youtubebriefly.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.olegshulyakov.youtube_retell_bot.dao.VideoInfoRepository;
-import com.github.olegshulyakov.youtube_retell_bot.dao.VideoTranscriptRepository;
-import com.github.olegshulyakov.youtube_retell_bot.exception.YtDlpException;
-import com.github.olegshulyakov.youtube_retell_bot.model.VideoInfoRecord;
-import com.github.olegshulyakov.youtube_retell_bot.model.VideoInfo;
-import com.github.olegshulyakov.youtube_retell_bot.model.VideoTranscriptRecord;
-import com.github.olegshulyakov.youtube_retell_bot.model.VideoTranscript;
-import com.github.olegshulyakov.youtube_retell_bot.util.VideoUuidGenerator;
-import com.github.olegshulyakov.youtube_retell_bot.util.YoutubeUrlValidator;
+import com.github.olegshulyakov.youtubebriefly.dao.VideoInfoRepository;
+import com.github.olegshulyakov.youtubebriefly.dao.VideoTranscriptRepository;
+import com.github.olegshulyakov.youtubebriefly.exception.YtDlpException;
+import com.github.olegshulyakov.youtubebriefly.model.VideoInfoRecord;
+import com.github.olegshulyakov.youtubebriefly.model.VideoInfo;
+import com.github.olegshulyakov.youtubebriefly.model.VideoTranscriptRecord;
+import com.github.olegshulyakov.youtubebriefly.model.VideoTranscript;
+import com.github.olegshulyakov.youtubebriefly.util.VideoUuidGenerator;
+import com.github.olegshulyakov.youtubebriefly.util.YoutubeUrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

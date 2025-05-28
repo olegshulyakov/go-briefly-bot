@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtube_retell_bot;
+package com.github.olegshulyakov.youtubebriefly;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

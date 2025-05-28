@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtube_retell_bot;
+package com.github.olegshulyakov.youtubebriefly;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

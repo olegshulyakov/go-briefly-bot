@@ -26,10 +26,10 @@ RUN apk add --no-cache yt-dlp
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /app/target/*.jar youtube-reteller.jar
+COPY --from=builder /app/target/*.jar youtube-briefly.jar
 
 # Ports and volumes
 EXPOSE 8080
 
 # Set the entrypoint to run the application
-ENTRYPOINT ["java", "-jar", "youtube-reteller.jar"]
+ENTRYPOINT ["java", "-jar", "youtube-briefly.jar"]

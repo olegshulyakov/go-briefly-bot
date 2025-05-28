@@ -5,7 +5,7 @@
       "type": "java",
       "name": "Run",
       "request": "launch",
-      "mainClass": "com.github.olegshulyakov.youtube_retell_bot.Application",
+      "mainClass": "com.github.olegshulyakov.youtubebriefly.Application",
       "console": "integratedTerminal",
       "vmArgs": "-Djava.net.preferIPv4Stack=true",
       "env": {

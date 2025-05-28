@@ -1,6 +1,6 @@
-package com.github.olegshulyakov.youtube_retell_bot.model;
+package com.github.olegshulyakov.youtubebriefly.model;
 
-import com.github.olegshulyakov.youtube_retell_bot.util.VideoUuidGenerator;
+import com.github.olegshulyakov.youtubebriefly.util.VideoUuidGenerator;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;

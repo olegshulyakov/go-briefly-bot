@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtube_retell_bot.util;
+package com.github.olegshulyakov.youtubebriefly.util;
 
 public interface VideoUuidGenerator {
     /**

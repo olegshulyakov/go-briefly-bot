@@ -1,7 +1,7 @@
 #!/bin/bash
 
-image_name="telegram-youtube-reteller"
-container_name="telegram-youtube-reteller"
+image_name="telegram-youtube-briefly"
+container_name="telegram-youtube-briefly"
 
 docker build -t "$image_name" .
 docker stop "$container_name" &>/dev/null || true

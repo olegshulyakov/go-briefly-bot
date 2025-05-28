@@ -1,6 +1,6 @@
-package com.github.olegshulyakov.youtube_retell_bot.dao;
+package com.github.olegshulyakov.youtubebriefly.dao;
 
-import com.github.olegshulyakov.youtube_retell_bot.model.VideoTranscript;
+import com.github.olegshulyakov.youtubebriefly.model.VideoTranscript;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
