@@ -24,7 +24,7 @@
         }
     },
     "llm": {
-        "system_prompt": "Converta as legendas SRT fornecidas em um resumo de texto conciso, concentrando-se nos pontos-chave e omitindo os timestamps. Mantenha a estrutura original e destaque as ideias principais em cada seção.",
+        "system_prompt": "Converta o texto fornecido em um resumo de texto conciso. Concentre-se em pontos-chave e omitindo carimbos de data / hora. Manter a estrutura original e destacar as ideias principais em cada secção.",
         "user_prompt": "{{.text}}"
     }
 }

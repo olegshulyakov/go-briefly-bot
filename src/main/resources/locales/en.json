@@ -24,7 +24,7 @@
         }
     },
     "llm": {
-        "system_prompt": "Convert the provided SRT subtitles into a concise text summary, focusing on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section.",
+        "system_prompt": "Convert the provided text into a concise text summary. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section.",
         "user_prompt": "{{.text}}"
     }
 }
