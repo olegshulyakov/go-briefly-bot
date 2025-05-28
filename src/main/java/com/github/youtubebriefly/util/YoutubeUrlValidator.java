@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtubebriefly.util;
+package com.github.youtubebriefly.util;
 
 import java.util.Optional;
 import java.util.regex.Matcher;

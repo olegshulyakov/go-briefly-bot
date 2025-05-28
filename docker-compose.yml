@@ -1,8 +1,8 @@
 version: "3.4"
 services:
-  youtube-retell-bot:
-    image: ghcr.io/olegshulyakov/youtube-retell-bot:latest
-    container_name: youtube-retell-bot
+  youtube-briefly-bot:
+    image: ghcr.io/olegshulyakov/youtube-briefly-bot:latest
+    container_name: youtube-briefly-bot
     mem_limit: 256m
     environment:
       - TELEGRAM_BOT_TOKEN= # your_telegram_bot_token

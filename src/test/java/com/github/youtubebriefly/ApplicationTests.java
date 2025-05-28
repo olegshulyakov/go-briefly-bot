@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtubebriefly;
+package com.github.youtubebriefly;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

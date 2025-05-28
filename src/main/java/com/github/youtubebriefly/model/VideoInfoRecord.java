@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtubebriefly.model;
+package com.github.youtubebriefly.model;
 
 public record VideoInfoRecord(
         String type,

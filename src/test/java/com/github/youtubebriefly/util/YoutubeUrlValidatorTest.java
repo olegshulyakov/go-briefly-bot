@@ -1,5 +1,6 @@
-package com.github.olegshulyakov.youtubebriefly.util;
+package com.github.youtubebriefly.util;
 
+import com.github.youtubebriefly.util.YoutubeUrlValidator;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.boot.test.context.SpringBootTest;

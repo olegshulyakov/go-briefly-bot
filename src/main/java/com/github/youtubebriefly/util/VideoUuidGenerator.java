@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtubebriefly.util;
+package com.github.youtubebriefly.util;
 
 public interface VideoUuidGenerator {
     /**

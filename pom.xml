@@ -9,10 +9,10 @@
         <version>3.4.5</version>
     </parent>
 
-    <groupId>com.github.olegshulyakov</groupId>
-    <artifactId>youtube-retell-bot</artifactId>
+    <groupId>com.github.youtubebriefly</groupId>
+    <artifactId>youtube-briefly-bot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>youtube-retell-bot</name>
+    <name>youtube-briefly-bot</name>
     <description>A Telegram bot written in Go that retells YouTube videos.</description>
 
     <properties>

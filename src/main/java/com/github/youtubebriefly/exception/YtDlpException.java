@@ -1,4 +1,4 @@
-package com.github.olegshulyakov.youtubebriefly.exception;
+package com.github.youtubebriefly.exception;
 
 public class YtDlpException extends RuntimeException {
     public YtDlpException(String message) {

@@ -1,6 +1,6 @@
-package com.github.olegshulyakov.youtubebriefly.model;
+package com.github.youtubebriefly.model;
 
-import com.github.olegshulyakov.youtubebriefly.util.VideoUuidGenerator;
+import com.github.youtubebriefly.util.VideoUuidGenerator;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;

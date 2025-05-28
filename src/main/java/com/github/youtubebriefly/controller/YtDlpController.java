@@ -1,16 +1,16 @@
-package com.github.olegshulyakov.youtubebriefly.controller;
+package com.github.youtubebriefly.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.olegshulyakov.youtubebriefly.dao.VideoInfoRepository;
-import com.github.olegshulyakov.youtubebriefly.dao.VideoTranscriptRepository;
-import com.github.olegshulyakov.youtubebriefly.exception.YtDlpException;
-import com.github.olegshulyakov.youtubebriefly.model.VideoInfoRecord;
-import com.github.olegshulyakov.youtubebriefly.model.VideoInfo;
-import com.github.olegshulyakov.youtubebriefly.model.VideoTranscriptRecord;
-import com.github.olegshulyakov.youtubebriefly.model.VideoTranscript;
-import com.github.olegshulyakov.youtubebriefly.util.VideoUuidGenerator;
-import com.github.olegshulyakov.youtubebriefly.util.YoutubeUrlValidator;
+import com.github.youtubebriefly.dao.VideoInfoRepository;
+import com.github.youtubebriefly.dao.VideoTranscriptRepository;
+import com.github.youtubebriefly.exception.YtDlpException;
+import com.github.youtubebriefly.model.VideoInfoRecord;
+import com.github.youtubebriefly.model.VideoInfo;
+import com.github.youtubebriefly.model.VideoTranscriptRecord;
+import com.github.youtubebriefly.model.VideoTranscript;
+import com.github.youtubebriefly.util.VideoUuidGenerator;
+import com.github.youtubebriefly.util.YoutubeUrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
