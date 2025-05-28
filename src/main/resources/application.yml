@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: youtube-briefly
+
+  # Database
+  datasource:
+    url: jdbc:sqlite:./bot.sqlite
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate.ddl-auto: update
+
+logging:
+  level:
+    org:
+      springframework:
+        web:
+          DEBUG
+    com:
+      github:
+        youtubebriefly: DEBUG
