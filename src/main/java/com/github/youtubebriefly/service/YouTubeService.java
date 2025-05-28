@@ -11,8 +11,6 @@ import com.github.youtubebriefly.util.VideoUuidGenerator;
 import com.github.youtubebriefly.util.YoutubeUrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -28,13 +26,11 @@ import java.util.concurrent.TimeUnit;
 public class YouTubeService implements YoutubeUrlValidator {
     private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
-    @Autowired
     private final VideoInfoRepository videoInfoRepository;
-    @Autowired
     private final VideoTranscriptRepository videoTranscriptRepository;
     private final String ytDlpProxy;
 
-    public YouTubeService(VideoInfoRepository videoInfoRepository, VideoTranscriptRepository videoTranscriptRepository, @Value("${YT_DLP_PROXY:}") String ytDlpProxy) {
+    public YouTubeService(VideoInfoRepository videoInfoRepository, VideoTranscriptRepository videoTranscriptRepository, String ytDlpProxy) {
         this.videoInfoRepository = videoInfoRepository;
         this.videoTranscriptRepository = videoTranscriptRepository;
         this.ytDlpProxy = ytDlpProxy;

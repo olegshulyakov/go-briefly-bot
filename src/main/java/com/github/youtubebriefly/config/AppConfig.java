@@ -42,4 +42,9 @@ public class AppConfig {
                 ).build()
         );
     }
+
+    @Bean
+    public String getYtDlpProxy() {
+        return this.ytDlpProxy;
+    }
 }
