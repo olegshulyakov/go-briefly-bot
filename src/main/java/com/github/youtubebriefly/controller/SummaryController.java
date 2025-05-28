@@ -1,6 +1,5 @@
 package com.github.youtubebriefly.controller;
 
-
 import com.github.youtubebriefly.model.SummaryRequest;
 import com.github.youtubebriefly.model.SummaryResponse;
 import com.github.youtubebriefly.service.SummaryService;
@@ -20,7 +19,7 @@ public class SummaryController {
 
     @PostMapping("/summarize")
     public ResponseEntity<SummaryResponse> summarize(@RequestBody SummaryRequest request) {
-        String summary = summaryService.generateSummary(request.text());
-        return ResponseEntity.ok(new SummaryResponse(summary, request.language()));
+        String summary = summaryService.generateSummary(request.text(), request.languageCode());
+        return ResponseEntity.ok(new SummaryResponse(summary, request.languageCode()));
     }
 }

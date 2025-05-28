@@ -29,3 +29,4 @@ logging:
     ROOT: INFO
     com.github.youtubebriefly: DEBUG
     org.springframework.ai: DEBUG
+    org.springframework.web: DEBUG
