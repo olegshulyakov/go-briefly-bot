@@ -5,10 +5,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "VideoTranscript")
 @Data
+@NoArgsConstructor
 public class VideoTranscript {
     /**
      * Unique identifier for the video.
@@ -22,28 +24,16 @@ public class VideoTranscript {
     /**
      * Video unique ID from the YouTube API.
      */
-    private String id;
+    private String videoId;
     /**
      * Video title.
      */
     private String transcript;
 
-    // Required for JPA
-    public VideoTranscript() {
-    }
-
-    public VideoTranscript(String uuid, String type, String id, String transcript) {
-        this.uuid = uuid;
+    public VideoTranscript(String type, String videoId, String transcript) {
+        this.uuid = VideoUuidGenerator.getUuid(type, videoId);
         this.type = type;
-        this.id = id;
+        this.videoId = videoId;
         this.transcript = transcript;
-    }
-
-    public VideoTranscript(VideoTranscriptRecord videoTranscriptRecord) {
-        this(VideoUuidGenerator.getUuid(videoTranscriptRecord.type(), videoTranscriptRecord.id()), videoTranscriptRecord.type(), videoTranscriptRecord.id(), videoTranscriptRecord.transcript());
-    }
-
-    public VideoTranscriptRecord toVideoTranscript() {
-        return new VideoTranscriptRecord(this.type, this.id, this.transcript);
     }
 }

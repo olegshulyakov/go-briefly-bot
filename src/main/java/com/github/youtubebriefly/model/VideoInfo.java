@@ -5,10 +5,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "VideoInfo")
 @Data
+@NoArgsConstructor
 public class VideoInfo {
     /**
      * Unique identifier for the video.
@@ -24,7 +26,7 @@ public class VideoInfo {
     /**
      * Video unique ID from the YouTube API.
      */
-    private String id;
+    private String videoId;
 
     /**
      * Uploader's username.
@@ -41,25 +43,12 @@ public class VideoInfo {
      */
     private String thumbnail;
 
-    // Required for JPA
-    public VideoInfo() {
-    }
-
-    public VideoInfo(String uuid, String type, String id, String uploader, String title, String thumbnail) {
-        this.uuid = uuid;
+    public VideoInfo(String type, String videoId, String uploader, String title, String thumbnail) {
+        this.uuid = VideoUuidGenerator.getUuid(type, videoId);
         this.type = type;
-        this.id = id;
+        this.videoId = videoId;
         this.uploader = uploader;
         this.title = title;
         this.thumbnail = thumbnail;
     }
-
-    public VideoInfo(VideoInfoRecord videoInfoRecord) {
-        this(VideoUuidGenerator.getUuid(videoInfoRecord.type(), videoInfoRecord.id()), videoInfoRecord.type(), videoInfoRecord.id(), videoInfoRecord.uploader(), videoInfoRecord.title(), videoInfoRecord.thumbnail());
-    }
-
-    public VideoInfoRecord toVideoInfo() {
-        return new VideoInfoRecord(this.type, this.id, this.uploader, this.title, this.thumbnail);
-    }
 }
-
