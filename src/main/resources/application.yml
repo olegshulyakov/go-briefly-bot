@@ -1,4 +1,6 @@
 spring:
+
+  # Common
   application:
     name: youtube-briefly
 
@@ -10,10 +12,22 @@ spring:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     hibernate.ddl-auto: update
 
+  # Neural Networks
+  ai:
+    openai:
+      base-url: ${OPENAI_BASE_URL}
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_MODEL}
+
+# Logging
 logging:
   level:
     org:
       springframework:
+        ai:
+          DEBUG
         web:
           DEBUG
     com:

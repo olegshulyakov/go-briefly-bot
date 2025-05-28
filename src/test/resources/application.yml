@@ -1,4 +1,5 @@
 spring:
+
   # Database
   datasource:
     url: jdbc:h2:mem:testdb
@@ -8,3 +9,12 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate.ddl-auto: update
+
+  # Neural Networks
+  ai:
+    openai:
+      base-url: http://dummy.com
+      api-key: dummy-key
+      chat:
+        options:
+          model: dummy
