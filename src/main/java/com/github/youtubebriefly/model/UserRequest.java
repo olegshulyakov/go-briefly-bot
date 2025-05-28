@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class UserRequest {
     @Id
-    @GeneratedValue
     private Long id;
     private Long userId; // Telegram user ID
     private String videoId;

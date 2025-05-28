@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VideoInfoRepository extends JpaRepository<VideoInfo, String> {
-    boolean existsByUuid(String uuid);
+    boolean existsByTypeAndVideoId(String type, String videoId);
 
-    VideoInfo findByUuid(String uuid);
+    VideoInfo findByTypeAndVideoId(String type, String videoId);
 }

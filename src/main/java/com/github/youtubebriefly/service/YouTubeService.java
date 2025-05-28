@@ -7,7 +7,7 @@ import com.github.youtubebriefly.dao.VideoTranscriptRepository;
 import com.github.youtubebriefly.exception.YtDlpException;
 import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoTranscript;
-import com.github.youtubebriefly.util.VideoUuidGenerator;
+import com.github.youtubebriefly.util.TranscriptCleaner;
 import com.github.youtubebriefly.util.YoutubeUrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * Handles video info retrieval and transcript downloading using yt-dlp
  */
 @Service
-public class YouTubeService implements YoutubeUrlValidator {
+public class YouTubeService implements YoutubeUrlValidator, TranscriptCleaner {
     private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
     private final VideoInfoRepository videoInfoRepository;
@@ -51,16 +52,14 @@ public class YouTubeService implements YoutubeUrlValidator {
         }
         String videoId = oVideoId.get();
 
-        String uuid = VideoUuidGenerator.getUuid("youtube", videoId);
-        if (videoInfoRepository.existsByUuid(uuid)) {
-            logger.debug("Using video info from cache: {}", uuid);
-            VideoInfo videoInfo = videoInfoRepository.findByUuid(uuid);
-            return videoInfo;
+        if (videoInfoRepository.existsByTypeAndVideoId("youtube", videoId)) {
+            logger.debug("Using video info from cache: {}-{}", "youtube", videoId);
+            return videoInfoRepository.findByTypeAndVideoId("youtube", videoId);
         }
 
         List<String> args = Arrays.asList("--dump-json", url);
         String output = execYtDlpCommand(args);
-        logger.debug("Got video info: {}", uuid);
+        logger.debug("Got video info: {}-{}", "youtube", videoId);
 
         try {
             @SuppressWarnings("unchecked")
@@ -70,7 +69,8 @@ public class YouTubeService implements YoutubeUrlValidator {
                     videoId,
                     (String) jsonMap.get("uploader"),
                     (String) jsonMap.get("title"),
-                    (String) jsonMap.get("thumbnail")
+                    (String) jsonMap.get("thumbnail"),
+                    LocalDateTime.now()
             );
 
             videoInfoRepository.save(videoInfo);
@@ -97,10 +97,9 @@ public class YouTubeService implements YoutubeUrlValidator {
         }
         String videoId = oVideoId.get();
 
-        String uuid = VideoUuidGenerator.getUuid("youtube", videoId);
-        if (videoTranscriptRepository.existsByUuid(uuid)) {
-            logger.debug("Using video transcript from cache: {}", uuid);
-            return videoTranscriptRepository.findByUuid(uuid);
+        if (videoTranscriptRepository.existsByTypeAndVideoIdAndLanguageCode("youtube", videoId, languageCode)) {
+            logger.debug("Using video transcript from cache: {}-{}-{}", "youtube", videoId, languageCode);
+            return videoTranscriptRepository.findByTypeAndVideoIdAndLanguageCode("youtube", videoId, languageCode);
         }
 
         List<String> args = Arrays.asList(
@@ -113,11 +112,11 @@ public class YouTubeService implements YoutubeUrlValidator {
                 "--sub-lang",
                 String.format("%s,%s_auto,-live_chat", languageCode, languageCode),
                 "--output",
-                String.format("subtitles_%s.%%(ext)s", videoId),
+                String.format("subtitles_%s", videoId),
                 url
         );
         execYtDlpCommand(args);
-        logger.debug("Got video transcript: {}", uuid);
+        logger.debug("Got video transcript: {}-{}-{}", "youtube", videoId, languageCode);
 
         // Generate the file name
         String fileName = String.format("subtitles_%s.%s.srt", videoId, languageCode);
@@ -147,7 +146,7 @@ public class YouTubeService implements YoutubeUrlValidator {
             throw new YtDlpException("Cannot remove transcript file");
         }
 
-        VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, transcript.toString());
+        VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, languageCode, LocalDateTime.now(), cleanTranscript(transcript.toString()));
         videoTranscriptRepository.save(videoTranscript);
 
         return videoTranscript;

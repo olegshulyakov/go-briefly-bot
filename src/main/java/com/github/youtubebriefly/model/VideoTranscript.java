@@ -1,39 +1,46 @@
 package com.github.youtubebriefly.model;
 
-import com.github.youtubebriefly.util.VideoUuidGenerator;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
+@IdClass(VideoKey.class)
 @Table(name = "VideoTranscript")
 @Data
 @NoArgsConstructor
 public class VideoTranscript {
     /**
-     * Unique identifier for the video.
-     */
-    @Id
-    private String uuid;
-    /**
      * Video type (e.g., "youtube").
      */
+    @Id
     private String type;
     /**
      * Video unique ID from the YouTube API.
      */
+    @Id
     private String videoId;
     /**
-     * Video title.
+     * Video transcript language code.
      */
+    @Id
+    private String languageCode;
+    /**
+     * Video transcript.
+     */
+    @Column(nullable = false)
     private String transcript;
 
-    public VideoTranscript(String type, String videoId, String transcript) {
-        this.uuid = VideoUuidGenerator.getUuid(type, videoId);
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    public VideoTranscript(String type, String videoId, String languageCode, LocalDateTime createdAt, String transcript) {
         this.type = type;
         this.videoId = videoId;
+        this.languageCode = languageCode;
+        this.createdAt = createdAt;
         this.transcript = transcript;
     }
 }
