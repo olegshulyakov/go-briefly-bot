@@ -9,6 +9,7 @@ import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoTranscript;
 import com.github.youtubebriefly.util.TranscriptCleaner;
 import com.github.youtubebriefly.util.YoutubeUrlValidator;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,18 +25,13 @@ import java.util.concurrent.TimeUnit;
  * Handles video info retrieval and transcript downloading using yt-dlp
  */
 @Service
+@RequiredArgsConstructor
 public class YouTubeService implements YoutubeUrlValidator, TranscriptCleaner {
     private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
     private final VideoInfoRepository videoInfoRepository;
     private final VideoTranscriptRepository videoTranscriptRepository;
     private final String ytDlpProxy;
-
-    public YouTubeService(VideoInfoRepository videoInfoRepository, VideoTranscriptRepository videoTranscriptRepository, String ytDlpProxy) {
-        this.videoInfoRepository = videoInfoRepository;
-        this.videoTranscriptRepository = videoTranscriptRepository;
-        this.ytDlpProxy = ytDlpProxy;
-    }
 
     /**
      * Get video info by URL

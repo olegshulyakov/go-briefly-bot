@@ -23,13 +23,9 @@ spring:
 
 # Logging
 logging:
+  file:
+    name: youtube-briefly.log
   level:
-    org:
-      springframework:
-        ai:
-          DEBUG
-        web:
-          DEBUG
-    com:
-      github:
-        youtubebriefly: DEBUG
+    ROOT: INFO
+    com.github.youtubebriefly: DEBUG
+    org.springframework.ai: DEBUG
