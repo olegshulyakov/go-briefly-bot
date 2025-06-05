@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Configuration
-public class AppConfig {
+public class i18nConfig {
     @Bean(name = "yamlMessageSource")
     @Primary
     public MessageSource getYamlMessageSource() {
