@@ -46,8 +46,11 @@ TELEGRAM_BOT_TOKEN=<your_telegram_bot_token>
 #### yt-dlp options (optional)
 
 ```env
-# yt-dlp options
-YT_DLP_PROXY=socks5://user:pass@127.0.0.1:1080/
+# YouTube Socks5 Proxy
+YOUTUBE_PROXY_HOST=127.0.0.1
+YOUTUBE_PROXY_PORT=1080
+YOUTUBE_PROXY_USER=user
+YOUTUBE_PROXY_PASS=pass
 ```
 
 #### OpenAI
