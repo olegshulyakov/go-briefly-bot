@@ -2,10 +2,10 @@ package com.github.youtubebriefly.util;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public interface TranscriptCleaner {
+    Pattern NUMERIC_LINES_REGEX = Pattern.compile("^\\d+$");
     Pattern TIMELINE_REGEX = Pattern.compile("^\\d{2}:\\d{2}:\\d{2},\\d{3} --> \\d{2}:\\d{2}:\\d{2},\\d{3}$");
 
     default String cleanTranscript(String transcript) {
@@ -22,17 +22,13 @@ public interface TranscriptCleaner {
             }
 
             // Skip timeline lines
-            Matcher matcher = TIMELINE_REGEX.matcher(line);
-            if (matcher.matches()) {
+            if (TIMELINE_REGEX.matcher(line).matches()) {
                 continue;
             }
 
             // Skip numeric lines
-            try {
-                Integer.parseInt(line);
+            if (NUMERIC_LINES_REGEX.matcher(line).matches()) {
                 continue;
-            } catch (NumberFormatException e) {
-                // Not a number, continue
             }
 
 
