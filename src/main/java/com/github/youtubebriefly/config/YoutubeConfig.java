@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 @Configuration
-public class YoutubeProxyConfig {
+public class YoutubeConfig {
     @Value("${YOUTUBE_PROXY_HOST:}")
     private String youtubeProxyHost;
 

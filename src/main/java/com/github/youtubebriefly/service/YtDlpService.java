@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @RequiredArgsConstructor
-public class YouTubeService implements YoutubeUrlValidator, TranscriptCleaner {
-    private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
+public class YtDlpService implements YoutubeUrlValidator, TranscriptCleaner {
+    private static final Logger logger = LoggerFactory.getLogger(YtDlpService.class);
 
     private final VideoInfoRepository videoInfoRepository;
     private final VideoTranscriptRepository videoTranscriptRepository;
