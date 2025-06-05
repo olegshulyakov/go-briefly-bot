@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.youtubebriefly.dao.VideoInfoRepository;
 import com.github.youtubebriefly.dao.VideoTranscriptRepository;
-import com.github.youtubebriefly.exception.YtDlpException;
+import com.github.youtubebriefly.exception.YouTubeException;
 import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoTranscript;
 import com.github.youtubebriefly.util.TranscriptCleaner;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @RequiredArgsConstructor
-public class YtDlpService implements YoutubeUrlValidator, TranscriptCleaner {
+public class YtDlpService implements YouTubeService, YoutubeUrlValidator, TranscriptCleaner {
     private static final Logger logger = LoggerFactory.getLogger(YtDlpService.class);
 
     private final VideoInfoRepository videoInfoRepository;
@@ -34,17 +34,14 @@ public class YtDlpService implements YoutubeUrlValidator, TranscriptCleaner {
     private final String ytDlpProxy;
 
     /**
-     * Get video info by URL
-     *
-     * @param url The YouTube video URL
-     * @return VideoInfo object with video details
-     * @throws YtDlpException if video ID is not found
+     * {@inheritDoc}
      */
+    @Override
     public VideoInfo getVideoInfo(String url) {
         logger.info("Get video info: {}", url);
         Optional<String> oVideoId = getYoutubeId(url);
         if (oVideoId.isEmpty()) {
-            throw new YtDlpException("Video Id not found");
+            throw new YouTubeException("Video Id not found");
         }
         String videoId = oVideoId.get();
 
@@ -73,23 +70,19 @@ public class YtDlpService implements YoutubeUrlValidator, TranscriptCleaner {
 
             return videoInfo;
         } catch (JsonProcessingException e) {
-            throw new YtDlpException("Failed to parse yt-dlp output", e);
+            throw new YouTubeException("Failed to parse yt-dlp output", e);
         }
     }
 
     /**
-     * Get video transcript by URL and language code
-     *
-     * @param url          The YouTube video URL
-     * @param languageCode The language code to download transcript in
-     * @return VideoTranscript object with video transcript
-     * @throws YtDlpException if video ID is not found
+     * {@inheritDoc}
      */
+    @Override
     public VideoTranscript getTranscript(String url, String languageCode) {
         logger.info("Get video transcript: {}", url);
         Optional<String> oVideoId = getYoutubeId(url);
         if (oVideoId.isEmpty()) {
-            throw new YtDlpException("Video Id not found");
+            throw new YouTubeException("Video Id not found");
         }
         String videoId = oVideoId.get();
 
@@ -121,7 +114,7 @@ public class YtDlpService implements YoutubeUrlValidator, TranscriptCleaner {
         // Check if file has been created
         if (!transcriptFile.exists() || !transcriptFile.isFile()) {
             logger.error("Transcript file not found: {}", transcriptFile.getAbsolutePath());
-            throw new YtDlpException("Transcript file not found");
+            throw new YouTubeException("Transcript file not found");
         }
 
         // Read the transcript file
@@ -133,13 +126,13 @@ public class YtDlpService implements YoutubeUrlValidator, TranscriptCleaner {
             }
         } catch (IOException e) {
             logger.error("Failed to read transcript file", e);
-            throw new YtDlpException("Failed to read transcript file", e);
+            throw new YouTubeException("Failed to read transcript file", e);
         }
 
         // Cleanup file
         if (!transcriptFile.delete()) {
             logger.error("Cannot remove transcript file: {}", transcriptFile.getAbsolutePath());
-            throw new YtDlpException("Cannot remove transcript file");
+            throw new YouTubeException("Cannot remove transcript file");
         }
 
         VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, languageCode, LocalDateTime.now(), cleanTranscript(transcript.toString()));
@@ -153,7 +146,7 @@ public class YtDlpService implements YoutubeUrlValidator, TranscriptCleaner {
      *
      * @param args Command arguments
      * @return Output from yt-dlp command
-     * @throws YtDlpException if command fails
+     * @throws YouTubeException if command fails
      */
     private String execYtDlpCommand(List<String> args) {
         List<String> command = new ArrayList<>();
@@ -191,13 +184,13 @@ public class YtDlpService implements YoutubeUrlValidator, TranscriptCleaner {
             process.waitFor(30, TimeUnit.SECONDS);
         } catch (IOException | InterruptedException e) {
             logger.error("Failed to read video info", e);
-            throw new YtDlpException("Failed to read video info", e);
+            throw new YouTubeException("Failed to read video info", e);
         }
 
         int exitCode = process.exitValue();
         if (exitCode != 0) {
             logger.warn("yt-dlp finished with exit code {}\n{}", exitCode, errorOutput);
-            throw new YtDlpException("yt-dlp command failed with exit code " + exitCode);
+            throw new YouTubeException("yt-dlp command failed with exit code " + exitCode);
         }
         return output.toString();
     }
