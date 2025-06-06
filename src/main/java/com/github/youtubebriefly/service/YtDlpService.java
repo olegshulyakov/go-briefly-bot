@@ -8,16 +8,19 @@ import com.github.youtubebriefly.exception.YouTubeException;
 import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoTranscript;
 import com.github.youtubebriefly.util.TranscriptCleaner;
-import com.github.youtubebriefly.util.YoutubeUrlValidator;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,8 +29,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @RequiredArgsConstructor
-public class YtDlpService implements YouTubeService, YoutubeUrlValidator, TranscriptCleaner {
+public class YtDlpService implements YouTubeService, TranscriptCleaner {
     private static final Logger logger = LoggerFactory.getLogger(YtDlpService.class);
+    private static final String SUBTITLE_FORMAT = "srt";
 
     private final VideoInfoRepository videoInfoRepository;
     private final VideoTranscriptRepository videoTranscriptRepository;
@@ -37,13 +41,10 @@ public class YtDlpService implements YouTubeService, YoutubeUrlValidator, Transc
      * {@inheritDoc}
      */
     @Override
+    @Retryable(retryFor = YouTubeException.class, maxAttempts = 3)
     public VideoInfo getVideoInfo(String url) {
         logger.info("Get video info: {}", url);
-        Optional<String> oVideoId = getYoutubeId(url);
-        if (oVideoId.isEmpty()) {
-            throw new YouTubeException("Video Id not found");
-        }
-        String videoId = oVideoId.get();
+        String videoId = getVideoId(url);
 
         if (videoInfoRepository.existsByTypeAndVideoId("youtube", videoId)) {
             logger.debug("Using video info from cache: {}-{}", "youtube", videoId);
@@ -78,13 +79,10 @@ public class YtDlpService implements YouTubeService, YoutubeUrlValidator, Transc
      * {@inheritDoc}
      */
     @Override
+    @Retryable(retryFor = YouTubeException.class, maxAttempts = 3)
     public VideoTranscript getTranscript(String url, String languageCode) {
-        logger.info("Get video transcript: {}", url);
-        Optional<String> oVideoId = getYoutubeId(url);
-        if (oVideoId.isEmpty()) {
-            throw new YouTubeException("Video Id not found");
-        }
-        String videoId = oVideoId.get();
+        logger.info("Get video transcript: {}-{}", languageCode, url);
+        String videoId = getVideoId(url);
 
         if (videoTranscriptRepository.existsByTypeAndVideoIdAndLanguageCode("youtube", videoId, languageCode)) {
             logger.debug("Using video transcript from cache: {}-{}-{}", "youtube", videoId, languageCode);
@@ -97,7 +95,7 @@ public class YtDlpService implements YouTubeService, YoutubeUrlValidator, Transc
                 "--write-subs",
                 "--write-auto-subs",
                 "--convert-subs",
-                "srt",
+                SUBTITLE_FORMAT,
                 "--sub-lang",
                 String.format("%s,%s_auto,-live_chat", languageCode, languageCode),
                 "--output",
@@ -108,7 +106,7 @@ public class YtDlpService implements YouTubeService, YoutubeUrlValidator, Transc
         logger.debug("Got video transcript: {}-{}-{}", "youtube", videoId, languageCode);
 
         // Generate the file name
-        String fileName = String.format("subtitles_%s.%s.srt", videoId, languageCode);
+        String fileName = String.format("subtitles_%s.%s.%s", videoId, languageCode, SUBTITLE_FORMAT);
         File transcriptFile = new File(fileName);
 
         // Check if file has been created

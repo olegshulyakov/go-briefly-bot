@@ -1,21 +1,27 @@
-package com.github.youtubebriefly.util;
+package com.github.youtubebriefly.service;
 
+import com.github.youtubebriefly.exception.YouTubeException;
+import com.github.youtubebriefly.model.VideoInfo;
+import com.github.youtubebriefly.model.VideoTranscript;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class YoutubeUrlValidatorTest {
+class YouTubeServiceTest {
 
-    YoutubeUrlValidator validator = new YoutubeUrlValidator() {
+    YouTubeService service = new YouTubeService() {
         @Override
-        public boolean isValidYoutubeUrl(String url) {
-            return YoutubeUrlValidator.super.isValidYoutubeUrl(url);
+        public VideoInfo getVideoInfo(String url) {
+            return null;
+        }
+
+        @Override
+        public VideoTranscript getTranscript(String url, String languageCode) {
+            return null;
         }
     };
 
@@ -32,8 +38,8 @@ class YoutubeUrlValidatorTest {
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=somethingelse,false",
             "https://www.youtube.com/watch?v=,false"
     })
-    void isValidYoutubeUrl(String url, boolean expected) {
-        assertEquals(expected, validator.isValidYoutubeUrl(url), "Test failed for URL: " + url);
+    void isValidUrl(String url, boolean expected) {
+        assertEquals(expected, service.isValidUrl(url), "Test failed for URL: " + url);
     }
 
     @ParameterizedTest
@@ -49,12 +55,11 @@ class YoutubeUrlValidatorTest {
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=somethingelse,",
             "https://www.youtube.com/watch?v=,"
     })
-    void getYoutubeId(String url, String expected) {
-        Optional<String> id = validator.getYoutubeId(url);
-        if (id.isEmpty()) {
+    void getVideoId(String url, String expected) {
+        try {
+            assertEquals(expected, service.getVideoId(url), "Test failed for URL: " + url);
+        } catch (YouTubeException e) {
             assertNull(expected, "Test failed for URL: " + url);
-        } else {
-            assertEquals(expected, id.get(), "Test failed for URL: " + url);
         }
     }
 }

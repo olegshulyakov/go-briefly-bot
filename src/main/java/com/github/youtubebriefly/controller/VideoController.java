@@ -4,7 +4,7 @@ import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoInfoResponse;
 import com.github.youtubebriefly.model.VideoTranscript;
 import com.github.youtubebriefly.model.VideoTranscriptResponse;
-import com.github.youtubebriefly.service.YtDlpService;
+import com.github.youtubebriefly.service.YouTubeService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class VideoController {
     private static final Logger logger = LoggerFactory.getLogger(VideoController.class);
 
-    private final YtDlpService youTubeService;
+    private final YouTubeService youTubeService;
 
     @GetMapping("/info")
     public ResponseEntity<VideoInfoResponse> getVideoInfo(@RequestParam String url) {
