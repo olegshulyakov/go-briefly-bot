@@ -13,9 +13,11 @@
     <artifactId>youtube-briefly-bot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>youtube-briefly-bot</name>
-    <description>A Telegram bot written in Go that retells YouTube videos.</description>
+    <description>A Telegram bot written in Java that retells YouTube videos.</description>
 
     <properties>
+        <spring-boot.run.main-class>com.github.youtubebriefly.Application</spring-boot.run.main-class>
+
         <java.version>21</java.version>
         <sqlite.version>3.48.0.0</sqlite.version>
         <hibernate-dialects.version>6.6.15.Final</hibernate-dialects.version>
