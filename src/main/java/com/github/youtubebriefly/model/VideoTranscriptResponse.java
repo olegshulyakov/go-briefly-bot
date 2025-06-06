@@ -6,11 +6,11 @@ import java.time.ZoneOffset;
 public record VideoTranscriptResponse(
         String type,
         String videoId,
-        String languageCode,
+        String language,
         String transcript,
         Instant createdAt
 ) {
     public VideoTranscriptResponse(VideoTranscript videoTranscript) {
-        this(videoTranscript.getType(), videoTranscript.getVideoId(), videoTranscript.getLanguageCode(), videoTranscript.getTranscript(), videoTranscript.getCreatedAt().toInstant(ZoneOffset.UTC));
+        this(videoTranscript.getType(), videoTranscript.getVideoId(), videoTranscript.getLanguage(), videoTranscript.getTranscript(), videoTranscript.getCreatedAt().toInstant(ZoneOffset.UTC));
     }
 }

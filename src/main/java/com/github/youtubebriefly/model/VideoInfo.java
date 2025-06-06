@@ -29,7 +29,7 @@ public class VideoInfo {
      * Language code.
      */
     @Id
-    private String languageCode = "";
+    private String language = "";
 
     /**
      * Uploader's username.
@@ -52,8 +52,9 @@ public class VideoInfo {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public VideoInfo(String type, String videoId, String uploader, String title, String thumbnail, LocalDateTime createdAt) {
+    public VideoInfo(String type, String videoId, String language, String uploader, String title, String thumbnail, LocalDateTime createdAt) {
         this.type = type;
+        this.language = language;
         this.videoId = videoId;
         this.uploader = uploader;
         this.title = title;

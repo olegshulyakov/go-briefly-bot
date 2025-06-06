@@ -26,7 +26,7 @@ public class VideoSummary {
      * Summary language code.
      */
     @Id
-    private String languageCode;
+    private String language;
 
     @Column(nullable = false)
     private String title;
@@ -37,10 +37,10 @@ public class VideoSummary {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public VideoSummary(String type, String videoId, String title, String summary, String languageCode, LocalDateTime createdAt) {
+    public VideoSummary(String type, String videoId, String title, String summary, String language, LocalDateTime createdAt) {
         this.type = type;
         this.videoId = videoId;
-        this.languageCode = languageCode;
+        this.language = language;
         this.title = title;
         this.summary = summary;
         this.createdAt = createdAt;

@@ -61,6 +61,7 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
             VideoInfo videoInfo = new VideoInfo(
                     "youtube",
                     videoId,
+                    (String) jsonMap.get("language"),
                     (String) jsonMap.get("uploader"),
                     (String) jsonMap.get("title"),
                     (String) jsonMap.get("thumbnail"),
@@ -80,13 +81,13 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
      */
     @Override
     @Retryable(retryFor = YouTubeException.class, maxAttempts = 3)
-    public VideoTranscript getTranscript(String url, String languageCode) {
-        logger.info("Get video transcript: {}-{}", languageCode, url);
+    public VideoTranscript getTranscript(String url, String language) {
+        logger.info("Get video transcript: {}-{}", language, url);
         String videoId = getVideoId(url);
 
-        if (videoTranscriptRepository.existsByTypeAndVideoIdAndLanguageCode("youtube", videoId, languageCode)) {
-            logger.debug("Using video transcript from cache: {}-{}-{}", "youtube", videoId, languageCode);
-            return videoTranscriptRepository.findByTypeAndVideoIdAndLanguageCode("youtube", videoId, languageCode);
+        if (videoTranscriptRepository.existsByTypeAndVideoIdAndLanguage("youtube", videoId, language)) {
+            logger.debug("Using video transcript from cache: {}-{}-{}", "youtube", videoId, language);
+            return videoTranscriptRepository.findByTypeAndVideoIdAndLanguage("youtube", videoId, language);
         }
 
         List<String> args = Arrays.asList(
@@ -97,16 +98,16 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
                 "--convert-subs",
                 SUBTITLE_FORMAT,
                 "--sub-lang",
-                String.format("%s,%s_auto,-live_chat", languageCode, languageCode),
+                String.format("%s,%s_auto,-live_chat", language, language),
                 "--output",
                 String.format("subtitles_%s", videoId),
                 url
         );
         execYtDlpCommand(args);
-        logger.debug("Got video transcript: {}-{}-{}", "youtube", videoId, languageCode);
+        logger.debug("Got video transcript: {}-{}-{}", "youtube", videoId, language);
 
         // Generate the file name
-        String fileName = String.format("subtitles_%s.%s.%s", videoId, languageCode, SUBTITLE_FORMAT);
+        String fileName = String.format("subtitles_%s.%s.%s", videoId, language, SUBTITLE_FORMAT);
         File transcriptFile = new File(fileName);
 
         // Check if file has been created
@@ -133,7 +134,7 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
             throw new YouTubeException("Cannot remove transcript file");
         }
 
-        VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, languageCode, LocalDateTime.now(), cleanTranscript(transcript.toString()));
+        VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, language, LocalDateTime.now(), cleanTranscript(transcript.toString()));
         videoTranscriptRepository.save(videoTranscript);
 
         return videoTranscript;
@@ -147,7 +148,7 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
      * @throws YouTubeException if command fails
      */
     private String execYtDlpCommand(List<String> args) {
-        List<String> command = new ArrayList<>();
+        List<String> command = new ArrayList<>(args.size() + 3);
         command.add("yt-dlp");
 
         if (StringUtils.hasText(ytDlpProxy)) {

@@ -26,7 +26,7 @@ public class VideoTranscript {
      * Video transcript language code.
      */
     @Id
-    private String languageCode;
+    private String language;
     /**
      * Video transcript.
      */
@@ -36,10 +36,10 @@ public class VideoTranscript {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public VideoTranscript(String type, String videoId, String languageCode, LocalDateTime createdAt, String transcript) {
+    public VideoTranscript(String type, String videoId, String language, LocalDateTime createdAt, String transcript) {
         this.type = type;
         this.videoId = videoId;
-        this.languageCode = languageCode;
+        this.language = language;
         this.createdAt = createdAt;
         this.transcript = transcript;
     }
