@@ -2,6 +2,7 @@ package com.github.youtubebriefly.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.youtubebriefly.config.YouTubeConfig;
 import com.github.youtubebriefly.dao.VideoInfoRepository;
 import com.github.youtubebriefly.dao.VideoTranscriptRepository;
 import com.github.youtubebriefly.exception.YouTubeException;
@@ -24,8 +25,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Controller for YouTube Service
- * Handles video info retrieval and transcript downloading using yt-dlp
+ * Service handles video info retrieval and transcript downloading using yt-dlp
  */
 @Service
 @RequiredArgsConstructor
@@ -35,7 +35,7 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
 
     private final VideoInfoRepository videoInfoRepository;
     private final VideoTranscriptRepository videoTranscriptRepository;
-    private final String ytDlpProxy;
+    private final YouTubeConfig youtubeConfig;
 
     /**
      * {@inheritDoc}
@@ -151,9 +151,9 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
         List<String> command = new ArrayList<>(args.size() + 3);
         command.add("yt-dlp");
 
-        if (StringUtils.hasText(ytDlpProxy)) {
+        if (StringUtils.hasText(youtubeConfig.getYtDlpProxy())) {
             command.add("--proxy");
-            command.add(ytDlpProxy);
+            command.add(youtubeConfig.getYtDlpProxy());
         }
         command.addAll(args);
 

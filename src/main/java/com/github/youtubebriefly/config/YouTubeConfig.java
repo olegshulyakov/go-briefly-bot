@@ -1,12 +1,16 @@
 package com.github.youtubebriefly.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
+/**
+ * Configuration class for YouTube-related proxy settings.
+ * This class reads proxy configuration from application properties and constructs
+ * a proxy string suitable for yt-dlp or similar tools.
+ */
 @Configuration
-public class YoutubeConfig {
+public class YouTubeConfig {
     @Value("${YOUTUBE_PROXY_HOST:}")
     private String youtubeProxyHost;
 
@@ -19,7 +23,12 @@ public class YoutubeConfig {
     @Value("${YOUTUBE_PROXY_PASS:}")
     private String youtubeProxyPass;
 
-    @Bean
+    /**
+     * Constructs the yt-dlp proxy string based on the configured properties.
+     *
+     * @return The proxy string (e.g., "socks5://user:pass@host:port") if configured,
+     *         or an empty string if no proxy is configured, or null if configuration is incomplete.
+     */
     public String getYtDlpProxy() {
         if (StringUtils.hasText(this.youtubeProxyHost)
                 && StringUtils.hasText(this.youtubeProxyPort)
@@ -32,6 +41,6 @@ public class YoutubeConfig {
         ) {
             return String.format("socks5://%s:%s", this.youtubeProxyHost, this.youtubeProxyPort);
         }
-        return "";
+        return null;
     }
 }

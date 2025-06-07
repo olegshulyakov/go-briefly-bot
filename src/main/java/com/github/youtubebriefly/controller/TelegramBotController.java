@@ -3,7 +3,7 @@ package com.github.youtubebriefly.controller;
 import com.github.youtubebriefly.config.TelegramConfig;
 import com.github.youtubebriefly.exception.YouTubeException;
 import com.github.youtubebriefly.model.VideoSummary;
-import com.github.youtubebriefly.service.I18nService;
+import com.github.youtubebriefly.service.i18nService;
 import com.github.youtubebriefly.service.YouTubeService;
 import com.github.youtubebriefly.service.YouTubeSummaryService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A Telegram bot controller that handles incoming updates and interacts with the Telegram API.
+ * It extracts YouTube video URLs from messages, summarizes the videos using a separate service,
+ * and sends the summaries back to the user in chunks.  It includes rate limiting and error handling.
+ */
 @Component
 @RequiredArgsConstructor
 public class TelegramBotController extends TelegramLongPollingBot {
@@ -35,9 +40,13 @@ public class TelegramBotController extends TelegramLongPollingBot {
     private static final int RATE_LIMIT_SECONDS = 30;
     private static final int MESSAGE_CHUNK_SIZE = 4000;
 
+    /**
+     * Stores the last request timestamp for each user to enforce rate limiting.
+     * Key: User ID, Value: Last request timestamp.
+     */
     private final Map<Long, LocalDateTime> userLastRequest = new HashMap<>();
     private final TelegramConfig config;
-    private final I18nService i18nService;
+    private final i18nService i18nService;
     private final YouTubeSummaryService youTubeSummaryService;
 
     /**
@@ -54,14 +63,6 @@ public class TelegramBotController extends TelegramLongPollingBot {
     @Override
     public String getBotToken() {
         return config.getBotToken();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onRegister() {
-        logger.info("Bot started successfully");
     }
 
     /**
@@ -85,7 +86,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
         // Check rate limiting
         if (isUserRateLimited(user.getId())) {
             logger.warn("Rate Limit exceeded: userId={}, user='{}', language='{}'", user.getId(), user, user.getLanguageCode());
-            sendErrorMessage(message, "telegram.error.rate_limited");
+            sendMessageByKey(message, "telegram.error.rate_limited");
             return;
         }
 
@@ -99,17 +100,27 @@ public class TelegramBotController extends TelegramLongPollingBot {
         handleMessage(message);
     }
 
+    /**
+     * Handles incoming command messages.
+     * Currently supports the "start" command.
+     *
+     * @param message The incoming message.
+     */
     private void handleCommand(Message message) {
-        User user = message.getFrom();
-        String language = user.getLanguageCode();
         String command = message.getText().split(" ")[0].substring(1); // Remove '/'
         if (command.equals("start")) {
-            sendMessage(message, i18nService.getMessage("telegram.welcome.message", language));
+            sendMessageByKey(message, "telegram.welcome.message");
         } else {
-            sendErrorMessage(message, "telegram.error.unknown_command");
+            sendMessageByKey(message, "telegram.error.unknown_command");
         }
     }
 
+    /**
+     * Handles incoming regular messages (non-command messages).
+     * Extracts YouTube video URLs, summarizes the videos, and sends the summaries back to the user.
+     *
+     * @param message The incoming message.
+     */
     private void handleMessage(Message message) {
         String text = message.getText();
         User user = message.getFrom();
@@ -120,17 +131,21 @@ public class TelegramBotController extends TelegramLongPollingBot {
             videoUrls = YouTubeService.extractAllUrls(text);
         } catch (Exception e) {
             logger.error("Got invalid processing message: userId={}, user='{}', text={}", user.getId(), user, text);
-            sendErrorMessage(message, "telegram.error.no_url_found");
+            sendMessageByKey(message, "telegram.error.no_url_found");
             return;
         }
 
         if (videoUrls.isEmpty()) {
-            sendErrorMessage(message, "telegram.error.no_url_found");
+            sendMessageByKey(message, "telegram.error.no_url_found");
             return;
         }
 
         logger.info("Processing YouTube video: {}", videoUrls);
-        Message processingMsg = sendMessage(message, i18nService.getMessage("telegram.progress.processing", language));
+        Message processingMsg = sendMessageByKey(message, "telegram.progress.processing");
+        if (processingMsg == null) {
+            logger.error("Error sending processing message: userId={}", user.getId());
+            return;
+        }
 
         if (videoUrls.size() > 1) {
             editMessage(processingMsg, i18nService.getMessage("telegram.error.multiple_urls", language));
@@ -157,13 +172,21 @@ public class TelegramBotController extends TelegramLongPollingBot {
             sendSummary(message, summary.getTitle(), summary.getSummary(), language);
             // Delete processing message
             deleteMessage(processingMsg);
-        } catch (Exception e) {
+        } catch (TelegramApiException e) {
             logger.error("Error processing YouTube video: userId={}, videoURL={}", user.getId(), videoUrl, e);
             editMessage(processingMsg, i18nService.getMessage("telegram.error.general", language));
         }
     }
 
-    private void sendSummary(Message originalMessage, String title, String summary, String language) {
+    /**
+     * Sends a summary message to the user, splitting it into chunks if necessary.
+     *
+     * @param originalMessage The original message from the user.
+     * @param title           The title of the summary.
+     * @param summary         The summary text.
+     * @param language        The user's language code.
+     */
+    private void sendSummary(Message originalMessage, String title, String summary, String language) throws TelegramApiException {
         int chunkSize = MESSAGE_CHUNK_SIZE - title.length();
         List<String> chunks = this.splitTextIntoChunks(summary, chunkSize);
 
@@ -181,6 +204,12 @@ public class TelegramBotController extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Checks if a user has exceeded the rate limit.
+     *
+     * @param userId The user's ID.
+     * @return True if the user is rate-limited, false otherwise.
+     */
     private boolean isUserRateLimited(Long userId) {
         LocalDateTime lastRequest = userLastRequest.get(userId);
         if (lastRequest != null && lastRequest.plusSeconds(RATE_LIMIT_SECONDS).isAfter(LocalDateTime.now())) {
@@ -190,16 +219,12 @@ public class TelegramBotController extends TelegramLongPollingBot {
         return false;
     }
 
-    private Message sendMessage(Message originalMessage, String text) {
-        SendMessage message = new SendMessage();
-        message.setChatId(originalMessage.getChatId().toString());
-        message.setText(text);
-        message.setReplyToMessageId(originalMessage.getMessageId());
-
-        return sendWithRetry(message);
-    }
-
-
+    /**
+     * Edits an existing message.
+     *
+     * @param messageToEdit The message to edit.
+     * @param newText       The new message text.
+     */
     private void editMessage(Message messageToEdit, String newText) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(messageToEdit.getChatId().toString());
@@ -213,6 +238,11 @@ public class TelegramBotController extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Deletes an existing message.
+     *
+     * @param messageToDelete The message to delete.
+     */
     private void deleteMessage(Message messageToDelete) {
         DeleteMessage deleteMessage = new DeleteMessage();
         deleteMessage.setChatId(messageToDelete.getChatId().toString());
@@ -225,7 +255,13 @@ public class TelegramBotController extends TelegramLongPollingBot {
         }
     }
 
-    private void sendMarkdownMessage(Message originalMessage, String text) {
+    /**
+     * Sends a message with Markdown formatting.
+     *
+     * @param originalMessage The original message from the user.
+     * @param text            The message text.
+     */
+    private void sendMarkdownMessage(Message originalMessage, String text) throws TelegramApiException {
         SendMessage message = new SendMessage();
         message.setChatId(originalMessage.getChatId().toString());
         message.setText(text);
@@ -235,17 +271,36 @@ public class TelegramBotController extends TelegramLongPollingBot {
         sendWithRetry(message);
     }
 
-    private void sendErrorMessage(Message originalMessage, String errorMessageKey) {
-        String errorMessage = i18nService.getMessage(errorMessageKey, originalMessage.getFrom().getLanguageCode());
+    /**
+     * Sends a message by key of the message in the I18nService to the user.
+     *
+     * @param originalMessage The original message from the user.
+     * @param messageKey The key of the message in the I18nService.
+     * @return The sent message object, or null if sending failed.
+     */
+    private Message sendMessageByKey(Message originalMessage, String messageKey) {
+        String text = i18nService.getMessage(messageKey, originalMessage.getFrom().getLanguageCode());
+        SendMessage message = new SendMessage();
+        message.setChatId(originalMessage.getChatId().toString());
+        message.setText(text);
+        message.setReplyToMessageId(originalMessage.getMessageId());
 
         try {
-            sendMessage(originalMessage, errorMessage);
-        } catch (RuntimeException e) {
+            return sendWithRetry(message);
+        } catch (TelegramApiException e) {
             logger.error("Failed to send error message", e);
         }
+        return null;
     }
 
-    private Message sendWithRetry(SendMessage message) {
+    /**
+     * Sends a message with retries.
+     *
+     * @param message The message to send.
+     * @return The sent message object.
+     * @throws TelegramApiException if the message could not be sent after multiple retries.
+     */
+    private Message sendWithRetry(SendMessage message) throws TelegramApiException {
         TelegramApiException lastException = null;
 
         for (int i = 0; i < MAX_RETRIES; i++) {
@@ -263,7 +318,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
         }
 
         logger.error("Failed to send message after {} attempts", MAX_RETRIES, lastException);
-        throw new RuntimeException("Failed to send message after retries", lastException);
+        throw new TelegramApiException("Failed to send message after retries", lastException);
     }
 
     /**
@@ -273,7 +328,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
      * @param text      The string to split.
      * @param chunkSize The maximum size of each chunk (in runes/characters). Must be a positive integer.
      * @return A list of strings, where each string is a chunk of the original string.
-     * @throws IllegalArgumentException if chunkSize is not positive, or if the input string contains invalid UTF-8.
+     * @throws IllegalArgumentException if chunkSize is not positive.
      */
     private List<String> splitTextIntoChunks(String text, int chunkSize) {
         if (chunkSize <= 0) {
