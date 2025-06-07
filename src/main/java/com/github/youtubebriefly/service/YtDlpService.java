@@ -44,7 +44,7 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
     @Retryable(retryFor = YouTubeException.class, maxAttempts = 3)
     public VideoInfo getVideoInfo(String url) {
         logger.info("Get video info: {}", url);
-        String videoId = getVideoId(url);
+        String videoId = YouTubeService.getVideoId(url);
 
         if (videoInfoRepository.existsByTypeAndVideoId("youtube", videoId)) {
             logger.debug("Using video info from cache: {}-{}", "youtube", videoId);
@@ -83,7 +83,7 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
     @Retryable(retryFor = YouTubeException.class, maxAttempts = 3)
     public VideoTranscript getTranscript(String url, String language) {
         logger.info("Get video transcript: {}-{}", language, url);
-        String videoId = getVideoId(url);
+        String videoId = YouTubeService.getVideoId(url);
 
         if (videoTranscriptRepository.existsByTypeAndVideoIdAndLanguage("youtube", videoId, language)) {
             logger.debug("Using video transcript from cache: {}-{}-{}", "youtube", videoId, language);

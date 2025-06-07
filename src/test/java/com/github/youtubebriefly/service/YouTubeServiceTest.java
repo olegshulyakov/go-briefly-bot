@@ -13,18 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class YouTubeServiceTest {
 
-    YouTubeService service = new YouTubeService() {
-        @Override
-        public VideoInfo getVideoInfo(String url) {
-            return null;
-        }
-
-        @Override
-        public VideoTranscript getTranscript(String url, String languageCode) {
-            return null;
-        }
-    };
-
     @ParameterizedTest
     @CsvSource({
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ,true",
@@ -39,7 +27,7 @@ class YouTubeServiceTest {
             "https://www.youtube.com/watch?v=,false"
     })
     void isValidUrl(String url, boolean expected) {
-        assertEquals(expected, service.isValidUrl(url), "Test failed for URL: " + url);
+        assertEquals(expected, YouTubeService.isValidUrl(url), "Test failed for URL: " + url);
     }
 
     @ParameterizedTest
@@ -57,7 +45,7 @@ class YouTubeServiceTest {
     })
     void getVideoId(String url, String expected) {
         try {
-            assertEquals(expected, service.getVideoId(url), "Test failed for URL: " + url);
+            assertEquals(expected, YouTubeService.getVideoId(url), "Test failed for URL: " + url);
         } catch (YouTubeException e) {
             assertNull(expected, "Test failed for URL: " + url);
         }

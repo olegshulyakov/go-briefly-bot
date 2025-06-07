@@ -3,8 +3,11 @@ package com.github.youtubebriefly.service;
 import com.github.youtubebriefly.exception.YouTubeException;
 import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoTranscript;
+import org.springframework.util.StringUtils;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +40,7 @@ public interface YouTubeService {
      * @throws IllegalArgumentException if the input URL is null. This is more robust than just returning false,
      *                                  as it explicitly signals an invalid input condition.  This aligns with defensive programming.
      */
-    default boolean isValidUrl(String url) {
+    static boolean isValidUrl(String url) {
         // Null check
         if (url == null) {
             return false;
@@ -54,12 +57,10 @@ public interface YouTubeService {
      * Parses the YouTube video ID from the given URL.
      *
      * @param url The URL to parse.  Must not be null.
-     * @return An {@link String} containing the video ID if the URL is a valid YouTube video URL;
-     * otherwise, an empty {@link Optional}. This avoids NullPointerExceptions and provides a cleaner way
-     * to represent the possibility of a missing ID.
+     * @return An {@link String} containing the video ID if the URL is a valid YouTube video URL.
      * @throws YouTubeException if the input URL is null or ID not found.
      */
-    default String getVideoId(String url) throws YouTubeException {
+    static String getVideoId(String url) throws YouTubeException {
         // Null check
         if (url == null) {
             throw new YouTubeException("URL isd empty");
