@@ -23,6 +23,7 @@
         <hibernate-dialects.version>6.6.15.Final</hibernate-dialects.version>
         <commons-io.version>2.18.0</commons-io.version>
         <spring-ai.version>1.0.0</spring-ai.version>
+        <telegram.version>6.9.7.1</telegram.version>
     </properties>
 
     <dependencies>
@@ -59,6 +60,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Telegram -->
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots-spring-boot-starter</artifactId>
+            <version>${telegram.version}</version>
         </dependency>
 
         <!-- Neural Networks -->

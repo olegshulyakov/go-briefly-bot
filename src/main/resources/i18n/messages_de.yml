@@ -16,10 +16,10 @@ telegram:
         summary_failed: ❌ Entschuldigung, ich konnte das Transkript nicht zusammenfassen.
     result:
         first_message: |-
-            📖 **{{.title}}**
-            
-            {{.text}}
-        message: "{{.text}}"
+            📖 **{0}**
+
+            {1}
+        message: "{0}"
 
 llm:
     system_prompt: Wandeln Sie den bereitgestellten Text in eine übersichtliche Textzusammenfassung um. Konzentrieren Sie sich auf wichtige Punkte und lassen Sie Zeitstempel weg. Behalten Sie die ursprüngliche Struktur bei und heben Sie die Hauptideen in jedem Abschnitt hervor.

@@ -16,10 +16,10 @@ telegram:
         summary_failed: ❌ Lo siento, no pude resumir la transcripción.
     result:
         first_message: |-
-            📖 **{{.title}}**
-            
-            {{.text}}
-        message: "{{.text}}"
+            📖 **{0}**
+
+            {1}
+        message: "{0}"
 
 llm:
     system_prompt: Convierta el texto proporcionado en un resumen de texto conciso. Concéntrese en los puntos clave y omita las marcas de tiempo. Mantenga la estructura original y resalte las ideas principales en cada sección.

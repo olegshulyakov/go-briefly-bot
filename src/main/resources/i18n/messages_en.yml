@@ -16,10 +16,10 @@ telegram:
         summary_failed: ❌ Sorry, I couldn't summarize the transcript.
     result:
         first_message: |-
-            📖 **{{.title}}**
-            
-            {{.text}}
-        message: "{{.text}}"
+            📖 **{0}**
+
+            {1}
+        message: "{0}"
 
 llm:
     system_prompt: Convert the provided text into a concise text summary. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section.

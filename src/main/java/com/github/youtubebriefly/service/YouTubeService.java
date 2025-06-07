@@ -79,6 +79,27 @@ public interface YouTubeService {
     }
 
     /**
+     * Extracts all YouTube URLs from the given text.
+     *
+     * @param text The string to extract YouTube URLs from.
+     * @return A slice of strings containing all the YouTube URLs found in the text.
+     */
+    static List<String> extractAllUrls(String text) {
+        if (!StringUtils.hasText(text)) {
+            return Collections.emptyList();
+        }
+
+        Pattern pattern = Pattern.compile(YOUTUBE_URL_PATTERN);
+        Matcher matcher = pattern.matcher(text);
+        List<String> urls = new ArrayList<>();
+        while (matcher.find()) {
+            urls.add(matcher.group());
+        }
+
+        return urls;
+    }
+
+    /**
      * Get video info by URL
      *
      * @param url The YouTube video URL
