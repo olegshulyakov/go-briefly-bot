@@ -1,4 +1,4 @@
-# Telegram YouTube Reteller Bot
+# YouTube Briefly Bot
 
 A Telegram bot written in Go that retells YouTube videos. It uses `yt-dlp` to fetch video transcripts and a Hugging Face model (or OpenRouter API) to summarize them. The bot is designed to be lightweight, easy to deploy, and extensible.
 
@@ -41,6 +41,7 @@ Create a `.env` file in the root directory:
 
 ```env
 TELEGRAM_BOT_TOKEN=<your_telegram_bot_token>
+TELEGRAM_BOT_USERNAME=<your_telegram_bot_username>
 ```
 
 #### yt-dlp options (optional)
