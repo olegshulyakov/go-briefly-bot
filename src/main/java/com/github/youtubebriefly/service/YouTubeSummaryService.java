@@ -63,7 +63,7 @@ public class YouTubeSummaryService {
         // Step 3: Summarize transcript
         String summary = summaryService.generateSummary(videoTranscript.getTranscript(), language);
 
-        VideoSummary videoSummary = new VideoSummary("youtube", videoId, videoInfo.getTitle(), summary, language, LocalDateTime.now());
+        VideoSummary videoSummary = new VideoSummary("youtube", videoId, language, videoInfo.getTitle(), summary.trim(), LocalDateTime.now());
         videoSummaryRepository.save(videoSummary);
 
         return videoSummary;

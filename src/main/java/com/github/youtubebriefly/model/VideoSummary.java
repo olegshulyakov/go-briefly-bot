@@ -60,12 +60,12 @@ public class VideoSummary {
      *
      * @param type      The video type (e.g., "youtube").
      * @param videoId   The unique video ID.
+     * @param language  The language of the summary.
      * @param title     The title of the video.
      * @param summary   The summary of the video.
-     * @param language  The language of the summary.
      * @param createdAt The creation timestamp.
      */
-    public VideoSummary(String type, String videoId, String title, String summary, String language, LocalDateTime createdAt) {
+    public VideoSummary(String type, String videoId, String language, String title, String summary, LocalDateTime createdAt) {
         this.type = type;
         this.videoId = videoId;
         this.language = language;
