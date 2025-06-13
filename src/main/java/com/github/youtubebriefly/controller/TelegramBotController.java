@@ -5,6 +5,7 @@ import com.github.youtubebriefly.dao.UserRequestRepository;
 import com.github.youtubebriefly.exception.YouTubeException;
 import com.github.youtubebriefly.model.UserRequest;
 import com.github.youtubebriefly.model.VideoSummary;
+import com.github.youtubebriefly.service.MarkdownService;
 import com.github.youtubebriefly.service.YouTubeService;
 import com.github.youtubebriefly.service.YouTubeSummaryService;
 import com.github.youtubebriefly.service.i18nService;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.openai.api.common.OpenAiApiClientErrorException;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -50,6 +52,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
     private final UserRequestRepository userRequestRepository;
     private final i18nService i18nService;
     private final YouTubeSummaryService youTubeSummaryService;
+    private final MarkdownService markdownService;
 
     /**
      * {@inheritDoc}
@@ -272,7 +275,8 @@ public class TelegramBotController extends TelegramLongPollingBot {
     private void sendFormattedMessage(Message originalMessage, String text) throws TelegramApiException {
         SendMessage message = new SendMessage();
         message.setChatId(originalMessage.getChatId().toString());
-        message.setText(text);
+        message.setText(markdownService.toHtml(text));
+        message.setParseMode(ParseMode.HTML);
         message.setDisableWebPagePreview(true);
 
         sendWithRetry(message);
