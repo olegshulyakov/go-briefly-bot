@@ -1,0 +1,30 @@
+# This workflow will build a Java + Maven project
+# For more information see: https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-java-with-maven
+
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build
+        run: mvn --batch-mode -Dmaven.build.cache.enabled=false -DskipTests=true verify
+
+      - name: Test
+        run: mvn --batch-mode -Dmaven.build.cache.enabled=false test
