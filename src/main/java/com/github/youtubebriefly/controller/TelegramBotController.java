@@ -1,7 +1,9 @@
 package com.github.youtubebriefly.controller;
 
 import com.github.youtubebriefly.config.TelegramConfig;
+import com.github.youtubebriefly.dao.UserRequestRepository;
 import com.github.youtubebriefly.exception.YouTubeException;
+import com.github.youtubebriefly.model.UserRequest;
 import com.github.youtubebriefly.model.VideoSummary;
 import com.github.youtubebriefly.service.i18nService;
 import com.github.youtubebriefly.service.YouTubeService;
@@ -46,6 +48,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
      */
     private final Map<Long, LocalDateTime> userLastRequest = new HashMap<>();
     private final TelegramConfig config;
+    private final UserRequestRepository userRequestRepository;
     private final i18nService i18nService;
     private final YouTubeSummaryService youTubeSummaryService;
 
@@ -97,7 +100,13 @@ public class TelegramBotController extends TelegramLongPollingBot {
             return;
         }
 
+        UserRequest userRequest = userRequestRepository.save(new UserRequest(null, user.getId(), user.getLanguageCode(), message.getText(), LocalDateTime.now(), null));
+
+        // Process message
         handleMessage(message);
+
+        userRequest.setProceedAt(LocalDateTime.now());
+        userRequestRepository.save(userRequest);
     }
 
     /**
