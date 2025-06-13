@@ -28,10 +28,10 @@ public class i18nService {
      * @throws IllegalArgumentException if key or language is null or empty.
      */
     public String getMessage(String key, String language, Object... args) {
-        if (StringUtils.hasText(key)) {
+        if (!StringUtils.hasText(key)) {
             throw new IllegalArgumentException("Message key cannot be null or empty.");
         }
-        if (StringUtils.hasText(language)) {
+        if (!StringUtils.hasText(language)) {
             throw new IllegalArgumentException("Language code cannot be null or empty.");
         }
 
