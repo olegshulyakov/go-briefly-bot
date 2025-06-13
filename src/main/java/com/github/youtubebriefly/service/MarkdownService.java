@@ -64,6 +64,9 @@ public class MarkdownService {
         // Process [text](url) links
         html = html.replaceAll("\\[([^\\]]+)\\]\\(([^\\)]+)\\)", "<a href=\"$2\">$1</a>");
 
+        // Remove unsupported tags
+        html = html.replaceAll("<(?!/?(b|strong|i|em|u|ins|s|strike|a|code|pre)(\\s+[^>]*?)?)[^>]+>", "");
+
         return html;
     }
 }
