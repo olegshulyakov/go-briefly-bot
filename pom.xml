@@ -24,6 +24,7 @@
         <commons-io.version>2.18.0</commons-io.version>
         <spring-ai.version>1.0.0</spring-ai.version>
         <telegram.version>6.9.7.1</telegram.version>
+        <flexmark.version>0.64.8</flexmark.version>
     </properties>
 
     <dependencies>
@@ -67,6 +68,13 @@
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-spring-boot-starter</artifactId>
             <version>${telegram.version}</version>
+        </dependency>
+
+        <!-- Markdown -->
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-all</artifactId>
+            <version>${flexmark.version}</version>
         </dependency>
 
         <!-- Neural Networks -->
