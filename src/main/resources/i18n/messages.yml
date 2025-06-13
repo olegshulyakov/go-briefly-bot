@@ -1,0 +1,30 @@
+telegram:
+  welcome:
+    message: 👋 Welcome! Send me a YouTube link, and I'll summarize it for you. 📹✨
+  progress:
+    processing: ⏳ Processing your request...
+    fetching_info: 🔍 Getting information about the video...
+    fetching_transcript: 🎬 Getting a transcript...
+    summarizing: 🤖 Summarizing...
+  error:
+    general: 😔 Excuse me. I couldn't help you with it.
+    rate_limited: ⏱️ Please wait 30 seconds before making another request.
+    multiple_urls: ⚠️ Got multiple URLs, processing only first one.
+    no_url_found: ❌ No video URL found.
+    info_failed: ❌ Sorry, I couldn't fetch the information for this video.
+    transcript_failed: ❌ Sorry, I couldn't fetch the transcript for this video.
+    summary_failed: ❌ Sorry, I couldn't summarize the transcript.
+  result:
+    first_message: |-
+      📖 **{0}**
+      
+      {1}
+    message: "{0}"
+
+llm:
+  prompt: |-
+    Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in English.
+    
+    {0}
+    
+    SUMMARY:

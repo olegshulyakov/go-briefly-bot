@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Optional: Add feedback messages
+echo "Running Maven build after checkout..."
+
+# Run Maven clean package
+mvn clean package
+
+# Capture the exit code of the Maven command
+RESULT=$?
+
+# Provide feedback based on the result
+if [ $RESULT -ne 0 ]; then
+  echo "❌ Tests failed after checkout."
+  exit $RESULT
+else
+  echo "✅ Tests passed after checkout."
+  exit 0
+fi

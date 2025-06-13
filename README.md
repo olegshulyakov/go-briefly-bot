@@ -41,43 +41,44 @@ Create a `.env` file in the root directory:
 
 ```env
 TELEGRAM_BOT_TOKEN=<your_telegram_bot_token>
+TELEGRAM_BOT_USERNAME=<your_telegram_bot_username>
 ```
 
 #### yt-dlp options (optional)
 
 ```env
-# yt-dlp options
-YT_DLP_PROXY=socks5://user:pass@127.0.0.1:1080/
+# YouTube Socks5 Proxy
+YOUTUBE_PROXY_HOST=127.0.0.1
+YOUTUBE_PROXY_PORT=1080
+YOUTUBE_PROXY_USER=user
+YOUTUBE_PROXY_PASS=pass
 ```
 
 #### OpenAI
 
 ```env
 # Summarizer
-SUMMARIZER_PROVIDER_TYPE=openai
-SUMMARIZER_API_URL=https://api.openai.com/v1
-SUMMARIZER_API_TOKEN=your_open_ai_provider_api_token
-SUMMARIZER_MODEL=GPT-4o-mini
+OPENAI_BASE_URL=https://api.openai.com/
+OPENAI_API_KEY=your_open_ai_provider_api_token
+OPENAI_MODEL=GPT-4o-mini
 ```
 
 #### LM Studio
 
 ```env
 # Summarizer
-SUMMARIZER_PROVIDER_TYPE=openai
-SUMMARIZER_API_URL=http://127.0.0.1:1234/v1
-SUMMARIZER_API_TOKEN=not-needed
-SUMMARIZER_MODEL=qwen2.5-3b-instruct
+OPENAI_BASE_URL=http://127.0.0.1:1234/
+OPENAI_API_KEY=not-needed
+OPENAI_MODEL=qwen2.5-3b-instruct
 ```
 
 #### Ollama
 
 ```env
 # Summarizer
-SUMMARIZER_PROVIDER_TYPE=ollama
-SUMMARIZER_API_URL=http://127.0.0.1:11434/
-SUMMARIZER_API_TOKEN=not-needed
-SUMMARIZER_MODEL=llama3.1:8b
+OPENAI_BASE_URL=http://127.0.0.1:11434/
+OPENAI_API_KEY=not-needed
+OPENAI_MODEL=llama3.1:8b
 ```
 
 ### 3. Install Dependencies

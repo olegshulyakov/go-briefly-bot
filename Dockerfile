@@ -1,23 +1,23 @@
-# Stage 1: Build the Go application
-FROM golang:1.23-alpine AS builder
+# Stage 1: Build with Maven
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy Go module files
-COPY go.mod go.sum ./
+# Copy Maven pom.xml
+COPY pom.xml .
 
 # Download dependencies
-RUN go mod download
+RUN mvn dependency:go-offline
 
 # Copy the rest of the application code
-COPY . .
+COPY src ./src
 
-# Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux go build -o telegram-youtube-briefly .
+# Build the application
+RUN mvn package -DskipTests
 
 # Stage 2: Create a lightweight runtime image
-FROM alpine:latest
+FROM eclipse-temurin:21-jre-alpine
 
 # Install yt-dlp and Python (required for yt-dlp)
 RUN apk add --no-cache yt-dlp
@@ -26,10 +26,10 @@ RUN apk add --no-cache yt-dlp
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /app/telegram-youtube-briefly .
+COPY --from=builder /app/target/*.jar youtube-briefly.jar
 
-# Copy the locales directory
-COPY --from=builder /app/locales ./locales
+# Ports and volumes
+EXPOSE 8080
 
 # Set the entrypoint to run the application
-ENTRYPOINT ["./telegram-youtube-briefly"]
+ENTRYPOINT ["java", "-jar", "youtube-briefly.jar"]
