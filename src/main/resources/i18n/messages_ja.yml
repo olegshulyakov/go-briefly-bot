@@ -1,25 +1,29 @@
 telegram:
-    welcome:
-        message: 👋 ようこそ！YouTubeリンクを送ってください。要約します。📹✨
-    progress:
-        processing: ⏳ リクエストを処理中...
-        fetching_info: 🔍 動画情報を取得中...
-        fetching_transcript: 🎬 字幕を取得中...
-        summarizing: 🤖 要約中...
-    error:
-        general: 😔 申し訳ありません。お手伝いできませんでした。
-        rate_limited: ⏱️ 30秒待ってから再度リクエストしてください。
-        multiple_urls: ⚠️ 複数のURLが見つかりました。最初のURLのみを処理します。
-        no_url_found: ❌ 動画URLが見つかりませんでした。
-        info_failed: ❌ 申し訳ありません。この動画の情報を取得できませんでした。
-        transcript_failed: ❌ 申し訳ありません。この動画の字幕を取得できませんでした。
-        summary_failed: ❌ 申し訳ありません。字幕を要約できませんでした。
-    result:
-        first_message: |-
-            📖 **{0}**
+  welcome:
+    message: 👋 ようこそ！YouTubeリンクを送ってください。要約します。📹✨
+  progress:
+    processing: ⏳ リクエストを処理中...
+    fetching_info: 🔍 動画情報を取得中...
+    fetching_transcript: 🎬 字幕を取得中...
+    summarizing: 🤖 要約中...
+  error:
+    general: 😔 申し訳ありません。お手伝いできませんでした。
+    rate_limited: ⏱️ 30秒待ってから再度リクエストしてください。
+    multiple_urls: ⚠️ 複数のURLが見つかりました。最初のURLのみを処理します。
+    no_url_found: ❌ 動画URLが見つかりませんでした。
+    info_failed: ❌ 申し訳ありません。この動画の情報を取得できませんでした。
+    transcript_failed: ❌ 申し訳ありません。この動画の字幕を取得できませんでした。
+    summary_failed: ❌ 申し訳ありません。字幕を要約できませんでした。
+  result:
+    first_message: |-
+      📖 **{0}**
+      
+      {1}
+    message: "{0}"
 
-            {1}
-        message: "{0}"
-
-llm:
-    system_prompt: 提供されたテキストを簡潔なテキストの要約に変換します。 キーポイントに焦点を当て、タイムスタンプを省略します。 元の構造を維持し、各セクションの下で主なアイデアを強調表示します。
+  prompt: |-
+    Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Japanese.
+    
+    {0}
+    
+    SUMMARY:

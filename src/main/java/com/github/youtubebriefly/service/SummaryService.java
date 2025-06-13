@@ -1,5 +1,7 @@
 package com.github.youtubebriefly.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.api.common.OpenAiApiClientErrorException;
 import org.springframework.retry.annotation.Retryable;
@@ -13,6 +15,8 @@ import javax.validation.constraints.NotNull;
  */
 @Service
 public class SummaryService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SummaryService.class);
 
     private final i18nService i18nService;
     private final ChatClient chatClient;
@@ -40,9 +44,10 @@ public class SummaryService {
      */
     @Retryable(retryFor = OpenAiApiClientErrorException.class, maxAttempts = 3)
     public String generateSummary(String text, String languageCode) {
+        logger.info("Summarizing ***text*** on language: {}", languageCode);
+
         return chatClient.prompt()
-                .system(i18nService.getMessage("llm.system_prompt", languageCode))
-                .user(text)
+                .user(i18nService.getMessage("llm.prompt", languageCode, text))
                 .call()
                 .content();
     }
