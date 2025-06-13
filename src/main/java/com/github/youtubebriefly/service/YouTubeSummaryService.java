@@ -40,10 +40,10 @@ public class YouTubeSummaryService {
     public VideoSummary getSummary(String videoUrl, String language) throws YouTubeException, OpenAiApiClientErrorException {
         logger.info("Get video summary: {}-{}", language, videoUrl);
 
-        if (StringUtils.hasText(videoUrl)) {
+        if (!StringUtils.hasText(videoUrl)) {
             throw new IllegalArgumentException("Video URL cannot be null or empty.");
         }
-        if (StringUtils.hasText(language)) {
+        if (!StringUtils.hasText(language)) {
             throw new IllegalArgumentException("Language cannot be null or empty.");
         }
 
