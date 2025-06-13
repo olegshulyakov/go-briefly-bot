@@ -100,7 +100,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
             return;
         }
 
-        UserRequest userRequest = userRequestRepository.save(new UserRequest(null, user.getId(), user.getLanguageCode(), message.getText(), LocalDateTime.now(), null));
+        UserRequest userRequest = userRequestRepository.save(new UserRequest(null, user.getId(), user.getLanguageCode(), message.getChatId(), message.getMessageId(), message.getText(), LocalDateTime.now(), null));
 
         // Process message
         handleMessage(message);
@@ -290,7 +290,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
     private Message sendMessageByKey(Message originalMessage, String messageKey) {
         String text = i18nService.getMessage(messageKey, originalMessage.getFrom().getLanguageCode());
         SendMessage message = new SendMessage();
-        message.setChatId(originalMessage.getChatId().toString());
+        message.setChatId(originalMessage.getChatId());
         message.setText(text);
         message.setReplyToMessageId(originalMessage.getMessageId());
 

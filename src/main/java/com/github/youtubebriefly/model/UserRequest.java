@@ -1,6 +1,8 @@
 package com.github.youtubebriefly.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,12 +34,27 @@ public class UserRequest {
      * The user ID from the external messaging platform (e.g., Telegram).
      * This allows us to associate the request with a specific user.
      */
+    @NotNull
     private Long userId;
 
     /**
      * The user language from the external messaging platform (e.g., Telegram).
      */
     private String language;
+
+    /**
+     * The chat ID from the external messaging platform (e.g., Telegram).
+     * This allows us to associate the request with a specific chat.
+     */
+    @NotNull
+    private Long chatId;
+
+    /**
+     * The message ID from the external messaging platform (e.g., Telegram).
+     * This allows us to associate the request with a specific message.
+     */
+    @NotNull
+    private Integer messageId;
 
     /**
      * The text content of the user's request.  This is the actual message sent by the user.
@@ -47,10 +64,12 @@ public class UserRequest {
     /**
      * The date and time when the user request was received.  This is important for tracking and analysis.
      */
+    @NotNull
     private LocalDateTime requestedAt;
 
     /**
      * The date and time when the user request was proceed.  This is important for tracking and analysis.
      */
+    @Null
     private LocalDateTime proceedAt;
 }
