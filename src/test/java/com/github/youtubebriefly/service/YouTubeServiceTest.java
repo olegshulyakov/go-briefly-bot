@@ -1,16 +1,12 @@
 package com.github.youtubebriefly.service;
 
 import com.github.youtubebriefly.exception.YouTubeException;
-import com.github.youtubebriefly.model.VideoInfo;
-import com.github.youtubebriefly.model.VideoTranscript;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class YouTubeServiceTest {
 
     @ParameterizedTest
