@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -21,6 +22,7 @@ public class TelegramInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(TelegramInitializer.class);
 
+    private final TelegramConfig config;
     private final TelegramBotController telegramBot;
 
     /**
@@ -30,6 +32,11 @@ public class TelegramInitializer {
      */
     @PostConstruct
     public void initialize() {
+        if (!StringUtils.hasText(config.getBotToken()) || !StringUtils.hasText(config.getBotUsername())) {
+            logger.info("Telegram bot registration skipped.");
+            return;
+        }
+
         try {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
             telegramBotsApi.registerBot(telegramBot);
