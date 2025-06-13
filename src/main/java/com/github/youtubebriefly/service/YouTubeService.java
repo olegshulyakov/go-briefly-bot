@@ -30,7 +30,7 @@ public interface YouTubeService {
      * The pattern captures the YouTube video ID in group 1.
      * </p>
      */
-    String YOUTUBE_URL_PATTERN = "^(?:https?://)?(?:www\\.)?(?:youtube\\.com/watch\\?v=|youtu\\.be/)([a-zA-Z0-9_-]{11})$";
+    String YOUTUBE_URL_PATTERN = "(?:https?://)?(?:www\\.)?(?:youtube\\.com/watch\\?v=|youtu\\.be/)([a-zA-Z0-9_-]{11})";
 
     /**
      * Checks if the given URL is a valid YouTube video URL.
