@@ -5,16 +5,15 @@ import com.github.youtubebriefly.dao.UserRequestRepository;
 import com.github.youtubebriefly.exception.YouTubeException;
 import com.github.youtubebriefly.model.UserRequest;
 import com.github.youtubebriefly.model.VideoSummary;
-import com.github.youtubebriefly.service.i18nService;
 import com.github.youtubebriefly.service.YouTubeService;
 import com.github.youtubebriefly.service.YouTubeSummaryService;
+import com.github.youtubebriefly.service.i18nService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.openai.api.common.OpenAiApiClientErrorException;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -209,7 +208,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
                 messageText = i18nService.getMessage("telegram.result.message", language, chunk);
             }
 
-            sendMarkdownMessage(originalMessage, messageText);
+            sendFormattedMessage(originalMessage, messageText);
         }
     }
 
@@ -270,11 +269,10 @@ public class TelegramBotController extends TelegramLongPollingBot {
      * @param originalMessage The original message from the user.
      * @param text            The message text.
      */
-    private void sendMarkdownMessage(Message originalMessage, String text) throws TelegramApiException {
+    private void sendFormattedMessage(Message originalMessage, String text) throws TelegramApiException {
         SendMessage message = new SendMessage();
         message.setChatId(originalMessage.getChatId().toString());
         message.setText(text);
-        message.setParseMode(ParseMode.MARKDOWN);
         message.setDisableWebPagePreview(true);
 
         sendWithRetry(message);
@@ -284,7 +282,7 @@ public class TelegramBotController extends TelegramLongPollingBot {
      * Sends a message by key of the message in the I18nService to the user.
      *
      * @param originalMessage The original message from the user.
-     * @param messageKey The key of the message in the I18nService.
+     * @param messageKey      The key of the message in the I18nService.
      * @return The sent message object, or null if sending failed.
      */
     private Message sendMessageByKey(Message originalMessage, String messageKey) {
