@@ -1,0 +1,13 @@
+spring:
+
+  # Common
+  application:
+    name: youtube-briefly-rest-api
+
+# Logging
+logging:
+  level:
+    ROOT: INFO
+    com.github.youtubebriefly: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.client: INFO

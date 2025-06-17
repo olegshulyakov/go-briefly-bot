@@ -1,0 +1,16 @@
+spring:
+
+  # Common
+  application:
+    name: youtube-briefly-telegram
+
+# Logging
+logging:
+  file:
+    name: youtube-briefly.log
+  level:
+    ROOT: INFO
+    com.github.youtubebriefly: DEBUG
+    org.springframework.ai: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.client: INFO
