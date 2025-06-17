@@ -17,12 +17,12 @@
     <description>A Telegram bot written in Java that retells YouTube videos.</description>
 
     <modules>
-        <module>core</module>
-        <module>dao</module>
-        <module>transcript-service</module>
-        <module>summarization-service</module>
-        <module>rest-api</module>
-        <module>telegram-service</module>
+        <module>briefly-core</module>
+        <module>briefly-dao</module>
+        <module>briefly-transcript</module>
+        <module>briefly-summarization</module>
+        <module>briefly-rest-api</module>
+        <module>briefly-telegram</module>
     </modules>
 
     <properties>
@@ -41,22 +41,22 @@
             <!-- Project -->
             <dependency>
                 <groupId>com.github.youtubebriefly</groupId>
-                <artifactId>core</artifactId>
+                <artifactId>briefly-core</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.youtubebriefly</groupId>
-                <artifactId>dao</artifactId>
+                <artifactId>briefly-dao</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.youtubebriefly</groupId>
-                <artifactId>transcript-service</artifactId>
+                <artifactId>briefly-transcript</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.youtubebriefly</groupId>
-                <artifactId>summarization-service</artifactId>
+                <artifactId>briefly-summarization</artifactId>
                 <version>${revision}</version>
             </dependency>
 

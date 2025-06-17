@@ -8,13 +8,29 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>dao</artifactId>
+    <artifactId>briefly-telegram</artifactId>
+
+    <properties>
+        <spring-boot.run.main-class>com.github.youtubebriefly.Application</spring-boot.run.main-class>
+    </properties>
 
     <dependencies>
         <!-- Project -->
         <dependency>
             <groupId>com.github.youtubebriefly</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>briefly-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.youtubebriefly</groupId>
+            <artifactId>briefly-dao</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.youtubebriefly</groupId>
+            <artifactId>briefly-summarization</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.youtubebriefly</groupId>
+            <artifactId>briefly-transcript</artifactId>
         </dependency>
 
         <!-- Lombok -->
@@ -24,35 +40,16 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Jakarta -->
+        <!-- Telegram -->
         <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-        </dependency>
-
-        <!-- Database -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-community-dialects</artifactId>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots-spring-boot-starter</artifactId>
         </dependency>
 
         <!-- Unit Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -78,10 +75,14 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <skip>true</skip>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>
