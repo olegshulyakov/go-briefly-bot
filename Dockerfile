@@ -1,23 +1,50 @@
-# Stage 1: Build with Maven
-FROM maven:3.9-eclipse-temurin-21-alpine AS builder
+#################################################
+# Stage 1: Install dependencies with Maven
+#################################################
+FROM maven:3.9-eclipse-temurin-21-alpine AS deps
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Copy Maven pom.xml
-COPY pom.xml .
+COPY pom.xml pom.xml
+COPY briefly-core/pom.xml briefly-core/pom.xml
+COPY briefly-dao/pom.xml briefly-dao/pom.xml
+COPY briefly-transcript/pom.xml briefly-transcript/pom.xml
+COPY briefly-summarization/pom.xml briefly-summarization/pom.xml
+COPY briefly-rest-api/pom.xml briefly-rest-api/pom.xml
+COPY briefly-telegram/pom.xml briefly-telegram/pom.xml
 
 # Download dependencies
-RUN mvn dependency:go-offline
+RUN mvn -B dependency:go-offline
+
+#################################################
+# Stage 2: Build with Maven
+#################################################
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy dependencies
+COPY --from=deps /root/.m2 /root/.m2
+COPY --from=deps /app/ /app
 
 # Copy the rest of the application code
-COPY src ./src
+COPY briefly-core/src/ briefly-core/src
+COPY briefly-dao/src/ briefly-dao/src
+COPY briefly-transcript/src/ briefly-transcript/src
+COPY briefly-summarization/src/ briefly-summarization/src
+COPY briefly-rest-api/src/ briefly-rest-api/src
+COPY briefly-telegram/src/ briefly-telegram/src
 
 # Build the application
-RUN mvn package -DskipTests
+RUN mvn -B clean install -DskipTests
 
-# Stage 2: Create a lightweight runtime image
+#################################################
+# Stage 3: Create a lightweight runtime image
 FROM eclipse-temurin:21-jre-alpine
+#################################################
 
 # Install yt-dlp and Python (required for yt-dlp)
 RUN apk add --no-cache yt-dlp
@@ -26,10 +53,10 @@ RUN apk add --no-cache yt-dlp
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /app/target/*.jar youtube-briefly.jar
+COPY --from=builder /app/briefly-telegram/target/*.jar youtube-briefly-telegram.jar
 
 # Ports and volumes
 EXPOSE 8080
 
 # Set the entrypoint to run the application
-ENTRYPOINT ["java", "-jar", "youtube-briefly.jar"]
+ENTRYPOINT ["java", "-jar", "youtube-briefly-telegram.jar"]
