@@ -12,19 +12,21 @@ package com.github.youtubebriefly.exception;
 public class YouTubeException extends RuntimeException {
 
     /**
-     * Constructs a {@code YouTubeException} with the specified message.
-     *
-     * @param message The error message.  Should be descriptive and informative.
+     * {@inheritDoc}
      */
     public YouTubeException(String message) {
         super(message);
     }
 
     /**
-     * Constructs a {@code YouTubeException} with the specified message and cause.
-     *
-     * @param message The error message.
-     * @param cause The underlying cause of this exception.  Can be {@code null}.
+     * {@inheritDoc}
+     */
+    public YouTubeException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * {@inheritDoc}
      */
     public YouTubeException(String message, Throwable cause) {
         super(message, cause);

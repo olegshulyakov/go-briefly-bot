@@ -6,6 +6,8 @@ import com.github.youtubebriefly.config.YouTubeConfig;
 import com.github.youtubebriefly.dao.VideoInfoRepository;
 import com.github.youtubebriefly.dao.VideoTranscriptRepository;
 import com.github.youtubebriefly.exception.YouTubeException;
+import com.github.youtubebriefly.file.SubtitleFormats;
+import com.github.youtubebriefly.file.TranscriptFiles;
 import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoTranscript;
 import com.github.youtubebriefly.util.TranscriptCleaner;
@@ -16,7 +18,9 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class YtDlpService implements YouTubeService, TranscriptCleaner {
     private static final Logger logger = LoggerFactory.getLogger(YtDlpService.class);
-    private static final String SUBTITLE_FORMAT = "srt";
+    private static final String SUBTITLE_FORMAT = SubtitleFormats.SRT.toString();
 
     private final VideoInfoRepository videoInfoRepository;
     private final VideoTranscriptRepository videoTranscriptRepository;
@@ -106,35 +110,17 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
         execYtDlpCommand(args);
         logger.debug("Got video transcript: {}-{}-{}", "youtube", videoId, language);
 
-        // Generate the file name
-        String fileName = String.format("subtitles_%s.%s.%s", videoId, language, SUBTITLE_FORMAT);
-        File transcriptFile = new File(fileName);
-
-        // Check if file has been created
-        if (!transcriptFile.exists() || !transcriptFile.isFile()) {
-            logger.error("Transcript file not found: {}", transcriptFile.getAbsolutePath());
-            throw new YouTubeException("Transcript file not found");
-        }
-
         // Read the transcript file
-        StringBuilder transcript = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(transcriptFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                transcript.append(line).append("\n");
-            }
+        String transcript;
+        try {
+            String fileName = String.format("subtitles_%s.%s.%s", videoId, language, SUBTITLE_FORMAT);
+            transcript = TranscriptFiles.readAndDelete(fileName);
         } catch (IOException e) {
             logger.error("Failed to read transcript file", e);
-            throw new YouTubeException("Failed to read transcript file", e);
+            throw new YouTubeException(e);
         }
 
-        // Cleanup file
-        if (!transcriptFile.delete()) {
-            logger.error("Cannot remove transcript file: {}", transcriptFile.getAbsolutePath());
-            throw new YouTubeException("Cannot remove transcript file");
-        }
-
-        VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, language, LocalDateTime.now(), cleanTranscript(transcript.toString()));
+        VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, language, LocalDateTime.now(), cleanTranscript(transcript));
         videoTranscriptRepository.save(videoTranscript);
 
         return videoTranscript;

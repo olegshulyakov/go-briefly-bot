@@ -1,6 +1,6 @@
 package com.github.youtubebriefly;
 
-import com.github.youtubebriefly.util.TranscriptFiles;
+import com.github.youtubebriefly.file.TranscriptFiles;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
