@@ -8,9 +8,9 @@ import com.github.youtubebriefly.dao.VideoTranscriptRepository;
 import com.github.youtubebriefly.exception.YouTubeException;
 import com.github.youtubebriefly.file.SubtitleFormats;
 import com.github.youtubebriefly.file.TranscriptFiles;
+import com.github.youtubebriefly.file.Transcripts;
 import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoTranscript;
-import com.github.youtubebriefly.util.TranscriptCleaner;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @RequiredArgsConstructor
-public class YtDlpService implements YouTubeService, TranscriptCleaner {
+public class YtDlpService implements YouTubeService {
     private static final Logger logger = LoggerFactory.getLogger(YtDlpService.class);
     private static final String SUBTITLE_FORMAT = SubtitleFormats.SRT.toString();
 
@@ -120,7 +120,7 @@ public class YtDlpService implements YouTubeService, TranscriptCleaner {
             throw new YouTubeException(e);
         }
 
-        VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, language, LocalDateTime.now(), cleanTranscript(transcript));
+        VideoTranscript videoTranscript = new VideoTranscript("youtube", videoId, language, LocalDateTime.now(), Transcripts.cleanSRT(transcript));
         videoTranscriptRepository.save(videoTranscript);
 
         return videoTranscript;
