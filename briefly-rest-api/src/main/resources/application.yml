@@ -8,9 +8,24 @@ spring:
   datasource:
     url: jdbc:sqlite:./bot.sqlite
     driver-class-name: org.sqlite.JDBC
+    hikari:
+      pool-name: SQLiteHikariPool
+      maximum-pool-size: 10
+      minimum-idle: 1
+      auto-commit: false
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 15000
+      leak-detection-threshold: 2000
+      validation-timeout: 5000
   jpa:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     hibernate.ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: true
 
   # Neural Networks
   ai:
