@@ -1,7 +1,7 @@
 #################################################
 # Stage 1: Install dependencies with Maven
 #################################################
-FROM maven:3.9-eclipse-temurin-21-alpine AS deps
+FROM maven:3-eclipse-temurin-21-alpine AS deps
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -21,7 +21,7 @@ RUN mvn -B dependency:go-offline
 #################################################
 # Stage 2: Build with Maven
 #################################################
-FROM maven:3.9-eclipse-temurin-21-alpine AS builder
+FROM maven:3-eclipse-temurin-21-alpine AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -53,10 +53,10 @@ RUN apk add --no-cache yt-dlp
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /app/briefly-telegram/target/*.jar youtube-briefly-telegram.jar
+COPY --from=builder /app/briefly-rest-api/target/*.jar youtube-briefly-rest-api.jar
 
 # Ports and volumes
 EXPOSE 8080
 
 # Set the entrypoint to run the application
-ENTRYPOINT ["java", "-jar", "youtube-briefly-telegram.jar"]
+ENTRYPOINT ["java", "-jar", "youtube-briefly-rest-api.jar"]

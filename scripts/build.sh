@@ -2,4 +2,4 @@
 
 image_name="telegram-youtube-briefly"
 
-docker build -t "$image_name" .
+docker build --tag "$image_name" --file Dockerfile.Telegram .
