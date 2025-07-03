@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -42,7 +41,7 @@ public class YtDlpService implements YouTubeService {
      * {@inheritDoc}
      */
     @Override
-    @Retryable(retryFor = YouTubeException.class, maxAttempts = 3)
+    @Retryable(retryFor = YouTubeException.class)
     public VideoInfo getVideoInfo(String url) {
         logger.info("Get video info: {}", url);
         String videoId = YouTubeService.getVideoId(url);
@@ -81,7 +80,7 @@ public class YtDlpService implements YouTubeService {
      * {@inheritDoc}
      */
     @Override
-    @Retryable(retryFor = YouTubeException.class, maxAttempts = 3)
+    @Retryable(retryFor = YouTubeException.class)
     public VideoTranscript getTranscript(String url, String language) {
         logger.info("Get video transcript: {}-{}", language, url);
         String videoId = YouTubeService.getVideoId(url);
@@ -133,8 +132,8 @@ public class YtDlpService implements YouTubeService {
     private String exec(List<String> args) {
         RetryableProcessBuilder processBuilder = new RetryableProcessBuilder("yt-dlp");
 
-        if (StringUtils.hasText(youtubeConfig.getYtDlpProxy())) {
-            processBuilder.addOption("--proxy", youtubeConfig.getYtDlpProxy());
+        if (null != youtubeConfig.getYtDlpAdditionalOptions()) {
+            processBuilder.addOption(youtubeConfig.getYtDlpAdditionalOptions());
         }
         processBuilder.addOption(args);
 

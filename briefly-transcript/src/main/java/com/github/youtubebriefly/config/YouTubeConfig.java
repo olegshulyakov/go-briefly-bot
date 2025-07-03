@@ -23,6 +23,9 @@ public class YouTubeConfig {
     @Value("${YOUTUBE_PROXY_PASS:}")
     private String youtubeProxyPass;
 
+    @Value("${YT_DLP_ADDITIONAL_OPTIONS:}")
+    private String ytDlpAdditionalOptions;
+
     /**
      * Constructs the yt-dlp proxy string based on the configured properties.
      *
@@ -42,5 +45,15 @@ public class YouTubeConfig {
             return String.format("socks5://%s:%s", this.youtubeProxyHost, this.youtubeProxyPort);
         }
         return null;
+    }
+
+    /**
+     * Gets the yt-dlp configured properties.
+     *
+     * @return The additional options if configured,
+     *         or an empty string if no options is configured.
+     */
+    public String[] getYtDlpAdditionalOptions() {
+        return StringUtils.hasText(this.ytDlpAdditionalOptions) ? this.ytDlpAdditionalOptions.split("\\s") : null;
     }
 }
