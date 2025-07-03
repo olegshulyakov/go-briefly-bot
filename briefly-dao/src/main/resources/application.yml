@@ -2,7 +2,7 @@ spring:
 
   # Database
   datasource:
-    url: jdbc:sqlite:./bot.sqlite
+    url: jdbc:sqlite:${BRIEFLY_DB::#{'./data/db.sqlite'}}
     driver-class-name: org.sqlite.JDBC
     hikari:
       pool-name: SQLiteHikariPool

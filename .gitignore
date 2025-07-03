@@ -332,5 +332,5 @@ gradle-app.setting
 
 # End of https://www.toptal.com/developers/gitignore/api/dotenv,java,maven,gradle,intellij+all,visualstudiocode,netbeans,eclipse,linux,macos,windows
 
-### SQLite ###
-*.db
+### Data storage ###
+data/*
