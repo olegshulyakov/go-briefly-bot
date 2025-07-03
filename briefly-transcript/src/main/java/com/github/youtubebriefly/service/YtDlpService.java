@@ -11,6 +11,7 @@ import com.github.youtubebriefly.file.TranscriptFiles;
 import com.github.youtubebriefly.file.Transcripts;
 import com.github.youtubebriefly.model.VideoInfo;
 import com.github.youtubebriefly.model.VideoTranscript;
+import com.github.youtubebriefly.process.RetryableProcessBuilder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +19,11 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Service handles video info retrieval and transcript downloading using yt-dlp
@@ -56,7 +53,7 @@ public class YtDlpService implements YouTubeService {
         }
 
         List<String> args = Arrays.asList("--dump-json", url);
-        String output = execYtDlpCommand(args);
+        String output = exec(args);
         logger.debug("Got video info: {}-{}", "youtube", videoId);
 
         try {
@@ -107,7 +104,7 @@ public class YtDlpService implements YouTubeService {
                 String.format("subtitles_%s", videoId),
                 url
         );
-        execYtDlpCommand(args);
+        exec(args);
         logger.debug("Got video transcript: {}-{}-{}", "youtube", videoId, language);
 
         // Read the transcript file
@@ -133,50 +130,19 @@ public class YtDlpService implements YouTubeService {
      * @return Output from yt-dlp command
      * @throws YouTubeException if command fails
      */
-    private String execYtDlpCommand(List<String> args) {
-        List<String> command = new ArrayList<>(args.size() + 3);
-        command.add("yt-dlp");
+    private String exec(List<String> args) {
+        RetryableProcessBuilder processBuilder = new RetryableProcessBuilder("yt-dlp");
 
         if (StringUtils.hasText(youtubeConfig.getYtDlpProxy())) {
-            command.add("--proxy");
-            command.add(youtubeConfig.getYtDlpProxy());
+            processBuilder.addOption("--proxy", youtubeConfig.getYtDlpProxy());
         }
-        command.addAll(args);
-
-        logger.debug("Executing command: {}", String.join(" ", command));
-
-        Process process;
-        StringBuilder output = new StringBuilder();
-        StringBuilder errorOutput = new StringBuilder();
+        processBuilder.addOption(args);
 
         try {
-            process = new ProcessBuilder(command).start();
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
-                }
-
-                String errorLine;
-                while ((errorLine = errorReader.readLine()) != null) {
-                    errorOutput.append(errorLine).append("\n");
-                }
-            }
-
-            process.waitFor(30, TimeUnit.SECONDS);
-        } catch (IOException | InterruptedException e) {
+            return processBuilder.execWithRetry(3);
+        } catch (IOException e) {
             logger.error("Failed to read video info", e);
             throw new YouTubeException("Failed to read video info", e);
         }
-
-        int exitCode = process.exitValue();
-        if (exitCode != 0) {
-            logger.warn("yt-dlp finished with exit code {}\n{}", exitCode, errorOutput);
-            throw new YouTubeException("yt-dlp command failed with exit code " + exitCode);
-        }
-        return output.toString();
     }
 }

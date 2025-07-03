@@ -44,6 +44,12 @@
             <artifactId>commons-io</artifactId>
         </dependency>
 
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
         <!-- Unit Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
