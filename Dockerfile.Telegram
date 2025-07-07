@@ -52,6 +52,9 @@ RUN apk add --no-cache yt-dlp
 # Set the working directory
 WORKDIR /app
 
+# Set the volume directory
+VOLUME ["/app/data"]
+
 # Copy the built binary from the builder stage
 COPY --from=builder /app/briefly-telegram/target/*.jar youtube-briefly-telegram.jar
 
