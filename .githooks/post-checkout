@@ -1,0 +1,33 @@
+#!/bin/sh
+
+echo "Executing steps after checkout..."
+
+# Checking Go version
+go version
+
+# Capture the exit code
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+  echo "❌ GoLang is not installed, see https://go.dev/doc/install for instructions."
+  exit $RESULT
+fi
+
+# Download dependencies
+echo "Downloading dependencies..."
+go mod download
+
+# Run build
+echo "Running build..."
+go build -v
+
+# Capture the exit code
+RESULT=$?
+
+# Provide feedback based on the result
+if [ $RESULT -ne 0 ]; then
+  echo "❌ Build failed after checkout."
+  exit $RESULT
+else
+  echo "✅ Build passed after checkout."
+  exit 0
+fi

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Run tests
+echo "Running tests..."
+go test -v
+
+# Capture the exit code
+RESULT=$?
+
+# Abort the commit if tests fail
+if [ $RESULT -ne 0 ]; then
+  echo "❌ Tests failed. Commit aborted."
+  exit $RESULT
+else
+  echo "✅ Tests passed. Commit proceeding."
+  exit 0
+fi
+
