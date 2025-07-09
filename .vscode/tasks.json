@@ -11,7 +11,8 @@
         "isDefault": true
       },
       "problemMatcher": ["$go"],
-      "detail": "Build the Go application."
+      "detail": "Build the Go application.",
+      "dependsOn": ["go: fmt", "go: test"]
     },
     {
       "label": "go: run",
@@ -26,19 +27,11 @@
       "label": "go: test",
       "type": "shell",
       "command": "go",
-      "args": ["test", "./..."],
-      "group": "test",
-      "problemMatcher": ["$go"],
-      "detail": "Run all Go tests in the project."
-    },
-    {
-      "label": "go: test (verbose)",
-      "type": "shell",
-      "command": "go",
       "args": ["test", "-v", "./..."],
       "group": "test",
       "problemMatcher": ["$go"],
-      "detail": "Run all Go tests with verbose output."
+      "detail": "Run all Go tests in the project.",
+      "dependsOn": ["go: fmt"]
     },
     {
       "label": "go: clean",
@@ -53,10 +46,11 @@
       "label": "go: lint",
       "type": "shell",
       "command": "golangci-lint",
-      "args": ["run"],
+      "args": ["run", "./..."],
       "group": "none",
       "problemMatcher": ["$golangci-lint"],
-      "detail": "Run golangci-lint for static code analysis."
+      "detail": "Run golangci-lint for static code analysis.",
+      "dependsOn": ["go: fmt"]
     },
     {
       "label": "go: fmt",
@@ -65,16 +59,8 @@
       "args": ["fmt", "./..."],
       "group": "none",
       "problemMatcher": [],
-      "detail": "Format Go code using go fmt."
-    },
-    {
-      "label": "go: generate",
-      "type": "shell",
-      "command": "go",
-      "args": ["generate", "./..."],
-      "group": "none",
-      "problemMatcher": ["$go"],
-      "detail": "Run go generate to generate code."
+      "detail": "Format Go code using go fmt.",
+      "dependsOn": ["go: mod tidy"]
     },
     {
       "label": "go: mod tidy",
