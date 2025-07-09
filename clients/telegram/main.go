@@ -10,7 +10,7 @@ func main() {
 	// Load configuration
 	cfg, err := briefly.LoadConfiguration()
 	if err != nil {
-		briefly.Logger.Error("Failed to load config: %v", "error", err)
+		briefly.Error("Failed to load config: %v", "error", err)
 	}
 
 	// Start the Telegram bot

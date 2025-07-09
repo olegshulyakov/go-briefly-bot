@@ -40,12 +40,11 @@ import (
 //     the LLM provider (e.g., OpenAI or Ollama) and its settings (e.g., API URL, token, model).
 //   - The function uses the `go-i18n` package for localization of system and user prompts.
 //   - The API response is expected to contain a "choices" field with the summarized text.
-//   - Logging is performed using the `Logger` for debugging and error tracking.
 func SummarizeText(text string, lang string) (string, error) {
-	Logger.Debug("SummarizeText start", "language", lang, "api", Configuration.OpenAiBaseUrl, "model", Configuration.OpenAiModel)
+	Debug("SummarizeText start", "language", lang, "api", Configuration.OpenAiBaseURL, "model", Configuration.OpenAiModel)
 
 	// Localize system and user prompts
-	Logger.Debug("Localizing prompts...")
+	Debug("Localizing prompts...")
 	localizer := GetLocalizer(lang)
 
 	systemPrompt := localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "llm.system_prompt"})
@@ -57,7 +56,7 @@ func SummarizeText(text string, lang string) (string, error) {
 	})
 
 	// Prepare payload
-	Logger.Debug("Preparing API payload...")
+	Debug("Preparing API payload...")
 	payload := map[string]interface{}{
 		"model": Configuration.OpenAiModel,
 		"messages": []map[string]string{
@@ -68,8 +67,8 @@ func SummarizeText(text string, lang string) (string, error) {
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		Logger.Error("Failed to marshal payload", "error", err)
-		return "", fmt.Errorf("failed to marshal payload: %v", err)
+		Error("Failed to marshal payload", "error", err)
+		return "", fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
 	// Determine API endpoint
@@ -81,76 +80,76 @@ func SummarizeText(text string, lang string) (string, error) {
 
 	for retry := 0; retry < maxRetries; retry++ {
 		if retry > 1 {
-			Logger.Debug("Sleeping after attempt...", "attempt", retry)
+			Debug("Sleeping after attempt...", "attempt", retry)
 			time.Sleep(retryDelay)
 		}
 
-		Logger.Debug("Attempt to summarize text...", "attempt", retry+1)
+		Debug("Attempt to summarize text...", "attempt", retry+1)
 
-		req, err := http.NewRequest("POST", Configuration.OpenAiBaseUrl+endpoint, bytes.NewBuffer(payloadBytes))
+		req, err := http.NewRequest("POST", Configuration.OpenAiBaseURL+endpoint, bytes.NewBuffer(payloadBytes))
 		if err != nil {
-			Logger.Error("Failed to create request", "error", err)
-			return "", fmt.Errorf("failed to create request: %v", err)
+			Error("Failed to create request", "error", err)
+			return "", fmt.Errorf("failed to create request: %w", err)
 		}
 
-		req.Header.Set("Authorization", "Bearer "+Configuration.OpenAiApiKey)
+		req.Header.Set("Authorization", "Bearer "+Configuration.OpenAiAPIKey)
 		req.Header.Set("Content-Type", "application/json")
 
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			Logger.Error("Failed to send request", "error", err)
-			return "", fmt.Errorf("failed to send request: %v", err)
+			Error("Failed to send request", "error", err)
+			return "", fmt.Errorf("failed to send request: %w", err)
 		}
 		defer resp.Body.Close()
 
 		// Extract summary from response
-		Logger.Debug("Extracting summary from response...")
+		Debug("Extracting summary from response...")
 
 		// Decode API response
 		var result map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			Logger.Error("Failed to decode response", "error", err)
-			return "", fmt.Errorf("failed to decode response: %v", err)
+			Error("Failed to decode response", "error", err)
+			return "", fmt.Errorf("failed to decode response: %w", err)
 		}
 
 		// Validate the response structure
 		if result == nil {
-			Logger.Warn("Empty API response, retrying...")
+			Warn("Empty API response, retrying...")
 			continue
 		}
 
 		// Check for errors in the response
 		if errMsg, ok := result["error"].(string); ok {
-			Logger.Error("API error", "error", errMsg)
+			Error("API error", "error", errMsg)
 			continue
 		}
 
 		choices, ok := result["choices"].([]interface{})
 		if !ok || len(choices) == 0 {
-			Logger.Warn("Invalid or empty choices in API response, retrying...", "result", result)
+			Warn("Invalid or empty choices in API response, retrying...", "result", result)
 			continue
 		}
 
 		firstChoice, ok := choices[0].(map[string]interface{})
 		if !ok {
-			Logger.Warn("Invalid choice structure in API response, retrying...", "choices", choices)
+			Warn("Invalid choice structure in API response, retrying...", "choices", choices)
 			continue
 		}
 
 		message, ok := firstChoice["message"].(map[string]interface{})
 		if !ok {
-			Logger.Warn("Invalid message structure in API response, retrying...", "firstChoice", firstChoice)
+			Warn("Invalid message structure in API response, retrying...", "firstChoice", firstChoice)
 			continue
 		}
 
 		summary, ok := message["content"].(string)
 		if !ok {
-			Logger.Warn("Invalid content in API response, retrying...")
+			Warn("Invalid content in API response, retrying...")
 			continue
 		}
 
-		Logger.Debug("SummarizeText completed", "language", lang)
+		Debug("SummarizeText completed", "language", lang)
 		return summary, nil
 	}
 

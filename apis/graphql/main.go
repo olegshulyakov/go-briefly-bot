@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/olegshulyakov/go-briefly-bot/briefly"
 
 func main() {
-	fmt.Println("Something interesting will be here")
+	briefly.Info("Something interesting will be here")
 }

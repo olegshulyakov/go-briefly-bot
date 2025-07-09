@@ -1,16 +1,16 @@
-package briefly
+package briefly_test
 
 import (
 	"os"
 	"testing"
 
+	"github.com/olegshulyakov/go-briefly-bot/briefly"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 // resetConfig clears the global Configuration and environment variables
 func resetConfig(envVars []string) {
-	Configuration = nil
 	for _, v := range envVars {
 		os.Unsetenv(v)
 	}
@@ -28,20 +28,20 @@ func TestLoadConfiguration_SuccessFromEnvironment(t *testing.T) {
 	defer resetConfig(envVars)
 
 	// Set environment variables
-	os.Setenv("TELEGRAM_BOT_TOKEN", "tele_token_env")
-	os.Setenv("YT_DLP_ADDITIONAL_OPTIONS", "yt_options_env")
-	os.Setenv("OPENAI_BASE_URL", "openai_url_env")
-	os.Setenv("OPENAI_API_KEY", "openai_key_env")
-	os.Setenv("OPENAI_MODEL", "openai_model_env")
+	t.Setenv("TELEGRAM_BOT_TOKEN", "tele_token_env")
+	t.Setenv("YT_DLP_ADDITIONAL_OPTIONS", "yt_options_env")
+	t.Setenv("OPENAI_BASE_URL", "openai_url_env")
+	t.Setenv("OPENAI_API_KEY", "openai_key_env")
+	t.Setenv("OPENAI_MODEL", "openai_model_env")
 
 	// Execute and validate
-	cfg, err := LoadConfiguration()
+	cfg, err := briefly.LoadConfiguration()
 	require.NoError(t, err, "Valid config should not return error")
-	assert.Equal(t, &Config{
+	assert.Equal(t, &briefly.Config{
 		TelegramToken:          "tele_token_env",
 		YtDlpAdditionalOptions: "yt_options_env",
-		OpenAiBaseUrl:          "openai_url_env",
-		OpenAiApiKey:           "openai_key_env",
+		OpenAiBaseURL:          "openai_url_env",
+		OpenAiAPIKey:           "openai_key_env",
 		OpenAiModel:            "openai_model_env",
 	}, cfg, "Configuration should match environment values")
 }
@@ -55,36 +55,36 @@ func TestLoadConfiguration_ValidationFailures(t *testing.T) {
 		{
 			name: "Missing Telegram Token",
 			envSetup: func() {
-				os.Setenv("OPENAI_BASE_URL", "url")
-				os.Setenv("OPENAI_API_KEY", "key")
-				os.Setenv("OPENAI_MODEL", "model")
+				t.Setenv("OPENAI_BASE_URL", "url")
+				t.Setenv("OPENAI_API_KEY", "key")
+				t.Setenv("OPENAI_MODEL", "model")
 			},
 			expectedErr: "TELEGRAM_BOT_TOKEN not set",
 		},
 		{
 			name: "Missing OpenAI URL",
 			envSetup: func() {
-				os.Setenv("TELEGRAM_BOT_TOKEN", "token")
-				os.Setenv("OPENAI_API_KEY", "key")
-				os.Setenv("OPENAI_MODEL", "model")
+				t.Setenv("TELEGRAM_BOT_TOKEN", "token")
+				t.Setenv("OPENAI_API_KEY", "key")
+				t.Setenv("OPENAI_MODEL", "model")
 			},
 			expectedErr: "OPENAI_BASE_URL not set",
 		},
 		{
 			name: "Missing OpenAI Key",
 			envSetup: func() {
-				os.Setenv("TELEGRAM_BOT_TOKEN", "token")
-				os.Setenv("OPENAI_BASE_URL", "url")
-				os.Setenv("OPENAI_MODEL", "model")
+				t.Setenv("TELEGRAM_BOT_TOKEN", "token")
+				t.Setenv("OPENAI_BASE_URL", "url")
+				t.Setenv("OPENAI_MODEL", "model")
 			},
 			expectedErr: "OPENAI_API_KEY not set",
 		},
 		{
 			name: "Missing OpenAI Model",
 			envSetup: func() {
-				os.Setenv("TELEGRAM_BOT_TOKEN", "token")
-				os.Setenv("OPENAI_BASE_URL", "url")
-				os.Setenv("OPENAI_API_KEY", "key")
+				t.Setenv("TELEGRAM_BOT_TOKEN", "token")
+				t.Setenv("OPENAI_BASE_URL", "url")
+				t.Setenv("OPENAI_API_KEY", "key")
 			},
 			expectedErr: "OPENAI_MODEL not set",
 		},
@@ -104,7 +104,7 @@ func TestLoadConfiguration_ValidationFailures(t *testing.T) {
 			tt.envSetup()
 
 			// Execute and validate error
-			_, err := LoadConfiguration()
+			_, err := briefly.LoadConfiguration()
 			require.Error(t, err, "Expected validation error")
 			assert.EqualError(t, err, tt.expectedErr, "Error message should match")
 		})
@@ -123,13 +123,13 @@ func TestLoadConfiguration_OptionalYtDlpOptions(t *testing.T) {
 	defer resetConfig(envVars)
 
 	// Set required variables only
-	os.Setenv("TELEGRAM_BOT_TOKEN", "token")
-	os.Setenv("OPENAI_BASE_URL", "url")
-	os.Setenv("OPENAI_API_KEY", "key")
-	os.Setenv("OPENAI_MODEL", "model")
+	t.Setenv("TELEGRAM_BOT_TOKEN", "token")
+	t.Setenv("OPENAI_BASE_URL", "url")
+	t.Setenv("OPENAI_API_KEY", "key")
+	t.Setenv("OPENAI_MODEL", "model")
 
 	// Execute and validate
-	cfg, err := LoadConfiguration()
+	cfg, err := briefly.LoadConfiguration()
 	require.NoError(t, err, "Config with optional field missing should succeed")
 	assert.Empty(t, cfg.YtDlpAdditionalOptions, "Optional field should be empty")
 }

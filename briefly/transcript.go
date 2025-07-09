@@ -2,6 +2,7 @@ package briefly
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,11 +11,11 @@ import (
 )
 
 // Define the regex pattern for YouTube URLs
-var YoutubeUrlPattern = `(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})`
+var youtubeURLPattern = `(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})`
 
 // VideoInfo represents metadata about a YouTube video.
 type VideoInfo struct {
-	Id        string `json:"id"`        // The unique identifier of the video.
+	ID        string `json:"id"`        // The unique identifier of the video.
 	Uploader  string `json:"uploader"`  // The name of the video uploader.
 	Title     string `json:"title"`     // The title of the video.
 	Thumbnail string `json:"thumbnail"` // The URL of the video's thumbnail.
@@ -42,39 +43,38 @@ type VideoInfo struct {
 //
 // Notes:
 //   - The function relies on the `yt-dlp` tool being installed and accessible in the system's PATH.
-//   - Logging is performed using the `config.Logger` for debugging and error tracking.
 func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 	var videoInfo VideoInfo
 
-	Logger.Debug("VideoInfo download", "url", videoURL)
+	Debug("VideoInfo download", "url", videoURL)
 
 	args := []string{
 		"--dump-json",
 	}
 
 	if Configuration.YtDlpAdditionalOptions != "" {
-		args = append(args[:], Configuration.YtDlpAdditionalOptions)
+		args = append(args, Configuration.YtDlpAdditionalOptions)
 	}
 
 	if videoURL != "" {
-		args = append(args[:], videoURL)
+		args = append(args, videoURL)
 	} else {
-		return videoInfo, fmt.Errorf("videoURL is empty")
+		return videoInfo, errors.New("videoURL is empty")
 	}
 
 	cmd := exec.Command("yt-dlp", args...)
 
 	output, err := cmd.Output()
 	if err != nil {
-		return videoInfo, fmt.Errorf("failed to extract video info: %v", err)
+		return videoInfo, fmt.Errorf("failed to extract video info: %w", err)
 	}
 
 	err = json.Unmarshal(output, &videoInfo)
 	if err != nil {
-		return videoInfo, fmt.Errorf("failed to parse video info: %v", err)
+		return videoInfo, fmt.Errorf("failed to parse video info: %w", err)
 	}
 
-	Logger.Debug("VideoInfo downloaded", "url", videoURL)
+	Debug("VideoInfo downloaded", "url", videoURL)
 
 	return videoInfo, nil
 }
@@ -103,9 +103,8 @@ func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 //   - The function relies on the `yt-dlp` tool being installed and accessible in the system's PATH.
 //   - The transcript is extracted in Russian (`ru` and `ru_auto`) and saved as an SRT file.
 //   - The transcript file is deleted after reading to clean up temporary files.
-//   - Logging is performed using the `config.Logger` for debugging and error tracking.
 func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) {
-	Logger.Debug("Transcript extract", "url", videoURL)
+	Debug("Transcript extract", "url", videoURL)
 
 	args := []string{
 		"--no-progress",
@@ -116,24 +115,24 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 	}
 
 	if Configuration.YtDlpAdditionalOptions != "" {
-		args = append(args[:], Configuration.YtDlpAdditionalOptions)
+		args = append(args, Configuration.YtDlpAdditionalOptions)
 	}
 
 	if languageCode != "" {
-		args = append(args[:], "--sub-lang", fmt.Sprintf("%s,%s_auto,-live_chat", languageCode, languageCode))
+		args = append(args, "--sub-lang", fmt.Sprintf("%s,%s_auto,-live_chat", languageCode, languageCode))
 	}
 
 	if videoURL != "" {
-		args = append(args[:], "--output", fmt.Sprintf("subtitles_%s.%%(ext)s", videoURL[len(videoURL)-11:]), videoURL)
+		args = append(args, "--output", fmt.Sprintf("subtitles_%s.%%(ext)s", videoURL[len(videoURL)-11:]), videoURL)
 	} else {
-		return "", fmt.Errorf("videoURL is empty")
+		return "", errors.New("videoURL is empty")
 	}
 
 	cmd := exec.Command("yt-dlp", args...)
 
 	output, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("failed to extract transcript: %v\n%s", err, output)
+		return "", fmt.Errorf("failed to extract transcript: %w\n%s", err, output)
 	}
 
 	// Generate the file name
@@ -142,22 +141,22 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 	// Read the transcript file
 	transcript, err := os.ReadFile(fileName)
 	if err != nil {
-		return "", fmt.Errorf("no subtitles to found: %v", err)
+		return "", fmt.Errorf("no subtitles to found: %w", err)
 	}
 
 	err = os.Remove(fileName)
 	if err != nil {
-		return "", fmt.Errorf("failed to delete transcript file: %v", err)
+		return "", fmt.Errorf("failed to delete transcript file: %w", err)
 	}
 
-	Logger.Debug("Transcript extracted", "url", videoURL)
-
-	Logger.Debug("Transcript clean", "url", videoURL)
+	Debug("Transcript extracted", "url", videoURL)
 
 	cleaned, err := cleanTranscript(string(transcript))
 	if err != nil {
-		return "", fmt.Errorf("failed to clean transcript file: %v", err)
+		return "", fmt.Errorf("failed to clean transcript file: %w", err)
 	}
+
+	Debug("Transcript cleaned", "url", videoURL)
 
 	return cleaned, nil
 }
@@ -174,7 +173,7 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 //   - true if the text contains a valid YouTube URL, false otherwise.
 func IsValidYouTubeURL(text string) bool {
 	// Compile the regex
-	re, err := regexp.Compile(YoutubeUrlPattern)
+	re, err := regexp.Compile(youtubeURLPattern)
 	if err != nil {
 		return false
 	}
@@ -205,14 +204,14 @@ func IsValidYouTubeURL(text string) bool {
 //	fmt.Println("URLs:", urls)
 func ExtractAllYouTubeURLs(text string) ([]string, error) {
 	// Compile the regex
-	re, err := regexp.Compile(YoutubeUrlPattern)
+	re, err := regexp.Compile(youtubeURLPattern)
 	if err != nil {
-		return nil, fmt.Errorf("error compiling regex: %v", err)
+		return nil, fmt.Errorf("error compiling regex: %w", err)
 	}
 
 	// Check if the text contains a YouTube URL
 	if !re.MatchString(text) {
-		return nil, fmt.Errorf("no valid URL found")
+		return nil, errors.New("no valid URL found")
 	}
 
 	// Find all YouTube URLs in text

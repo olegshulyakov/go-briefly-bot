@@ -1,4 +1,4 @@
-// Package handlers provides functionality to handle Telegram bot interactions,
+// Package bot provides functionality to handle Telegram bot interactions,
 // including message processing, rate limiting, and YouTube video summarization.
 package bot
 
@@ -36,11 +36,11 @@ func StartTelegramBot(token string) {
 	var err error
 	Bot, err = tgbotapi.NewBotAPI(token)
 	if err != nil {
-		briefly.Logger.Error("Failed to create bot: %v", "error", err)
+		briefly.Error("Failed to create bot: %v", "error", err)
 	}
 
 	// Bot.Debug = true
-	briefly.Logger.Info("Bot started successfully")
+	briefly.Info("Bot started successfully")
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -58,7 +58,7 @@ func StartTelegramBot(token string) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	briefly.Logger.Info("Shutting down bot...")
+	briefly.Info("Shutting down bot...")
 }
 
 // sendWithRetry sends a message with retries in case of failure.
@@ -79,10 +79,10 @@ func sendWithRetry(msg tgbotapi.Chattable) (tgbotapi.Message, error) {
 		if err == nil {
 			return sentMsg, nil // Success
 		}
-		briefly.Logger.Warn("Failed to send message", "attempt", i+1, "error", err)
+		briefly.Warn("Failed to send message", "attempt", i+1, "error", err)
 	}
 
-	briefly.Logger.Error(fmt.Sprintf("Failed to send message after %d attempts", maxRetries), "error", err)
+	briefly.Error(fmt.Sprintf("Failed to send message after %d attempts", maxRetries), "error", err)
 	return tgbotapi.Message{}, err
 }
 
@@ -152,16 +152,16 @@ func sendErrorMessage(userMessage *tgbotapi.Message, text string) {
 //
 // Returns:
 //   - bool: True if the user is rate-limited, false otherwise.
-func isUserRateLimited(userId int64) bool {
+func isUserRateLimited(userID int64) bool {
 	userMutex.Lock()
 	defer userMutex.Unlock()
 
-	lastRequest, exists := userLastRequest[userId]
+	lastRequest, exists := userLastRequest[userID]
 	if exists && time.Since(lastRequest) < 30*time.Second {
 		return true // User is rate-limited
 	}
 
-	userLastRequest[userId] = time.Now() // Update the last request time
+	userLastRequest[userID] = time.Now() // Update the last request time
 	return false
 }
 
@@ -175,19 +175,19 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 
 	// Check if the user is bot
 	if message.From.IsBot {
-		briefly.Logger.Warn("Got message from bot", "userId", message.From.ID, "user", message.From, "bot", message.From.IsBot, "language", message.From.LanguageCode)
+		briefly.Warn("Got message from bot", "userId", message.From.ID, "user", message.From, "bot", message.From.IsBot, "language", message.From.LanguageCode)
 		return
 	}
 
 	// Check if the user is rate-limited
 	if isUserRateLimited(message.From.ID) {
-		briefly.Logger.Warn("Rate Limit exceeded", "userId", message.From.ID, "user", message.From, "language", message.From.LanguageCode)
+		briefly.Warn("Rate Limit exceeded", "userId", message.From.ID, "user", message.From, "language", message.From.LanguageCode)
 		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.rate_limited"}))
 		return
 	}
 
 	text := message.Text
-	briefly.Logger.Debug("Telegram: Request", "userId", message.From.ID, "user", message.From, "language", message.From.LanguageCode, "text", text)
+	briefly.Debug("Telegram: Request", "userId", message.From.ID, "user", message.From, "language", message.From.LanguageCode, "text", text)
 
 	if message.IsCommand() {
 		switch message.Command() {
@@ -200,16 +200,16 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	// Check if the message contains a YouTube link and extract URL
 	videoURLs, err := briefly.ExtractAllYouTubeURLs(text)
 	if err != nil {
-		briefly.Logger.Error("Got invalid processing message", "userId", message.From.ID, "user", message.From, "text", text)
+		briefly.Error("Got invalid processing message", "userId", message.From.ID, "user", message.From, "text", text)
 		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.no_url_found"}))
 		return
 	}
 
 	// Notify user about process start
-	briefly.Logger.Info("Processing YouTube video", "urls", videoURLs)
+	briefly.Info("Processing YouTube video", "urls", videoURLs)
 	processingMsg, err := sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.processing"}))
 	if err != nil {
-		briefly.Logger.Error("Failed to send processing message: %v", "error", err)
+		briefly.Error("Failed to send processing message: %v", "error", err)
 		return
 	}
 
@@ -222,13 +222,13 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	// Fetch video info
 	processingMsg, err = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_info"}))
 	if err != nil {
-		briefly.Logger.Error("Failed to update progress message: %v", "error", err)
+		briefly.Error("Failed to update progress message: %v", "error", err)
 		return
 	}
 
 	videoInfo, err := briefly.GetYoutubeVideoInfo(videoURL)
 	if err != nil {
-		briefly.Logger.Error("Failed to get video info", "userId", message.From.ID, "videoURL", videoURL, "error", err)
+		briefly.Error("Failed to get video info", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.info_failed"}))
 		return
 	}
@@ -236,13 +236,13 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	// Fetch transcript
 	processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_transcript"}))
 	if err != nil {
-		briefly.Logger.Error("Failed to update progress message", "userId", message.From.ID, "error", err)
+		briefly.Error("Failed to update progress message", "userId", message.From.ID, "error", err)
 		return
 	}
 
 	transcript, err := briefly.GetYoutubeTranscript(videoURL, message.From.LanguageCode)
 	if err != nil {
-		briefly.Logger.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
+		briefly.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.transcript_failed"}))
 		return
 	}
@@ -250,13 +250,13 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	// Summarize transcript
 	processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.summarizing"}))
 	if err != nil {
-		briefly.Logger.Error("Failed to update progress message", "userId", message.From.ID, "error", err)
+		briefly.Error("Failed to update progress message", "userId", message.From.ID, "error", err)
 		return
 	}
 
 	summary, err := briefly.SummarizeText(transcript, message.From.LanguageCode)
 	if err != nil {
-		briefly.Logger.Error("Failed to summarize transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
+		briefly.Error("Failed to summarize transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.summary_failed"}))
 		return
 	}
@@ -265,7 +265,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	chunkSize := 4000 - len(videoInfo.Title)
 	chunks := briefly.SplitStringIntoChunks(summary, chunkSize)
 	for i, chunk := range chunks {
-		briefly.Logger.Debug("Attempt to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL)
+		briefly.Debug("Attempt to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL)
 
 		var msg string
 		if i == 0 {

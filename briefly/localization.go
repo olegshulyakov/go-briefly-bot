@@ -34,7 +34,7 @@ func getBundle(localesDir string) *i18n.Bundle {
 	// Load translations from the locales directory
 	files, err := os.ReadDir(localesDir)
 	if err != nil {
-		Logger.Error("Failed to read locales directory", "error", err)
+		Error("Failed to read locales directory", "error", err)
 	}
 
 	for _, file := range files {
