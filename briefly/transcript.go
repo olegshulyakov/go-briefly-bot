@@ -17,6 +17,7 @@ var youtubeURLPattern = `(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|yo
 type VideoInfo struct {
 	ID        string `json:"id"`        // The unique identifier of the video.
 	Uploader  string `json:"uploader"`  // The name of the video uploader.
+	Language  string `json:"language"`  // The video language.
 	Title     string `json:"title"`     // The title of the video.
 	Thumbnail string `json:"thumbnail"` // The URL of the video's thumbnail.
 }
@@ -53,7 +54,7 @@ func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 	}
 
 	if Configuration.YtDlpAdditionalOptions != "" {
-		args = append(args, Configuration.YtDlpAdditionalOptions)
+		args = append(args, strings.Split(Configuration.YtDlpAdditionalOptions, " ")...)
 	}
 
 	if videoURL != "" {
@@ -115,7 +116,7 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 	}
 
 	if Configuration.YtDlpAdditionalOptions != "" {
-		args = append(args, Configuration.YtDlpAdditionalOptions)
+		args = append(args, strings.Split(Configuration.YtDlpAdditionalOptions, " ")...)
 	}
 
 	if languageCode != "" {
