@@ -22,7 +22,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o go-briefly-telegram ./clients/telegram
 FROM alpine:latest
 
 # Install yt-dlp and Python (required for yt-dlp)
-RUN apk add --no-cache yt-dlp
+RUN apk add --no-cache yt-dlp=2025.06.25-r0 ffmpeg=6.1.2-r2
 
 # Set the working directory
 WORKDIR /app
