@@ -1,5 +1,4 @@
-// Package config provides functionality for localization and internationalization (i18n).
-package config
+package briefly
 
 import (
 	"encoding/json"
@@ -13,7 +12,7 @@ import (
 // bundle is a global instance of the i18n bundle used for managing translations.
 var bundle *i18n.Bundle
 
-// setupLocalizer initializes the localization bundle by loading translation files
+// getBundle initializes the localization bundle by loading translation files
 // from the `locales` directory.
 //
 // The function registers JSON as the unmarshal function for translation files and
@@ -21,17 +20,21 @@ var bundle *i18n.Bundle
 //
 // Example:
 //
-//	setupLocalizer()
-func setupLocalizer() {
+//	getBundle()
+func getBundle(localesDir string) *i18n.Bundle {
+	if localesDir == "" {
+		localesDir = "locales"
+	}
+
 	// Create a new bundle with the default language (English)
 	bundle = i18n.NewBundle(language.English)
-	bundle.RegisterUnmarshalFunc("json", json.Unmarshal) // Use json.Unmarshal for JSON files
+
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 
 	// Load translations from the locales directory
-	localesDir := "locales"
 	files, err := os.ReadDir(localesDir)
 	if err != nil {
-		Logger.Fatalf("Failed to read locales directory: %v", err)
+		Logger.Error("Failed to read locales directory", "error", err)
 	}
 
 	for _, file := range files {
@@ -39,6 +42,8 @@ func setupLocalizer() {
 			bundle.MustLoadMessageFile(filepath.Join(localesDir, file.Name()))
 		}
 	}
+
+	return bundle
 }
 
 // GetLocalizer returns a localizer for the specified language.
@@ -46,7 +51,7 @@ func setupLocalizer() {
 // If the language is not specified, the default language (English) is used.
 //
 // Parameters:
-//   - lang: The language code (e.g., "en", "ru") for which to create the localizer.
+//   - lang: The language code (e.g. "en") for which to create the localizer.
 //
 // Returns:
 //   - A pointer to an i18n.Localizer instance for the specified language.
@@ -58,6 +63,9 @@ func setupLocalizer() {
 func GetLocalizer(lang string) *i18n.Localizer {
 	if lang == "" {
 		lang = language.English.String()
+	}
+	if bundle == nil {
+		bundle = getBundle("")
 	}
 
 	localizer := i18n.NewLocalizer(bundle, lang)

@@ -5,7 +5,7 @@
       "label": "go: build",
       "type": "shell",
       "command": "go",
-      "args": ["build"],
+      "args": ["build", "./..."],
       "group": {
         "kind": "build",
         "isDefault": true

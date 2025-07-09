@@ -1,0 +1,18 @@
+package main
+
+import (
+	"github.com/olegshulyakov/go-briefly-bot/briefly"
+	"github.com/olegshulyakov/go-briefly-bot/clients/telegram/bot"
+)
+
+// main is the entry point for the application.
+func main() {
+	// Load configuration
+	cfg, err := briefly.LoadConfiguration()
+	if err != nil {
+		briefly.Logger.Error("Failed to load config: %v", "error", err)
+	}
+
+	// Start the Telegram bot
+	bot.StartTelegramBot(cfg.TelegramToken)
+}

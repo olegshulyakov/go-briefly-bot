@@ -18,7 +18,7 @@ go mod download
 
 # Run build
 echo "Running build..."
-go build -v
+go build -v ./...
 
 # Capture the exit code
 RESULT=$?

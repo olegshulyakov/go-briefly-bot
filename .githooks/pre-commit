@@ -2,7 +2,7 @@
 
 # Run tests
 echo "Running tests..."
-go test -v
+go test -v ./...
 
 # Capture the exit code
 RESULT=$?

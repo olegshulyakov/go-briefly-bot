@@ -1,6 +1,4 @@
-// Package services provides functionality for interacting with YouTube videos,
-// such as extracting video information and transcripts.
-package services
+package briefly
 
 import (
 	"encoding/json"
@@ -9,7 +7,6 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"youtube-briefly-bot/config"
 )
 
 // Define the regex pattern for YouTube URLs
@@ -49,14 +46,14 @@ type VideoInfo struct {
 func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 	var videoInfo VideoInfo
 
-	config.Logger.Debugf("VideoInfo download: %v", videoURL)
+	Logger.Debug("VideoInfo download", "url", videoURL)
 
 	args := []string{
 		"--dump-json",
 	}
 
-	if config.Configuration.YtDlpProxy != "" {
-		args = append(args[:], "--proxy", config.Configuration.YtDlpProxy)
+	if Configuration.YtDlpAdditionalOptions != "" {
+		args = append(args[:], Configuration.YtDlpAdditionalOptions)
 	}
 
 	if videoURL != "" {
@@ -69,15 +66,15 @@ func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 
 	output, err := cmd.Output()
 	if err != nil {
-		return videoInfo, fmt.Errorf("failed to extract video info: %v\n", err)
+		return videoInfo, fmt.Errorf("failed to extract video info: %v", err)
 	}
 
 	err = json.Unmarshal(output, &videoInfo)
 	if err != nil {
-		return videoInfo, fmt.Errorf("failed to parse video info: %v\n", err)
+		return videoInfo, fmt.Errorf("failed to parse video info: %v", err)
 	}
 
-	config.Logger.Debugf("VideoInfo downloaded: %v", videoURL)
+	Logger.Debug("VideoInfo downloaded", "url", videoURL)
 
 	return videoInfo, nil
 }
@@ -108,7 +105,7 @@ func GetYoutubeVideoInfo(videoURL string) (VideoInfo, error) {
 //   - The transcript file is deleted after reading to clean up temporary files.
 //   - Logging is performed using the `config.Logger` for debugging and error tracking.
 func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) {
-	config.Logger.Debugf("Transcript extract: %v", videoURL)
+	Logger.Debug("Transcript extract", "url", videoURL)
 
 	args := []string{
 		"--no-progress",
@@ -118,8 +115,8 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 		"--convert-subs", "srt",
 	}
 
-	if config.Configuration.YtDlpProxy != "" {
-		args = append(args[:], "--proxy", config.Configuration.YtDlpProxy)
+	if Configuration.YtDlpAdditionalOptions != "" {
+		args = append(args[:], Configuration.YtDlpAdditionalOptions)
 	}
 
 	if languageCode != "" {
@@ -145,7 +142,7 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 	// Read the transcript file
 	transcript, err := os.ReadFile(fileName)
 	if err != nil {
-		return "", fmt.Errorf("No subtitles to found: %v", err)
+		return "", fmt.Errorf("no subtitles to found: %v", err)
 	}
 
 	err = os.Remove(fileName)
@@ -153,9 +150,9 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 		return "", fmt.Errorf("failed to delete transcript file: %v", err)
 	}
 
-	config.Logger.Debugf("Transcript extracted: %v", videoURL)
+	Logger.Debug("Transcript extracted", "url", videoURL)
 
-	config.Logger.Debugf("Transcript clean: %v", videoURL)
+	Logger.Debug("Transcript clean", "url", videoURL)
 
 	cleaned, err := cleanTranscript(string(transcript))
 	if err != nil {
@@ -210,12 +207,12 @@ func ExtractAllYouTubeURLs(text string) ([]string, error) {
 	// Compile the regex
 	re, err := regexp.Compile(YoutubeUrlPattern)
 	if err != nil {
-		return nil, fmt.Errorf("Error compiling regex: %v", err)
+		return nil, fmt.Errorf("error compiling regex: %v", err)
 	}
 
 	// Check if the text contains a YouTube URL
 	if !re.MatchString(text) {
-		return nil, fmt.Errorf("No valid URL found")
+		return nil, fmt.Errorf("no valid URL found")
 	}
 
 	// Find all YouTube URLs in text

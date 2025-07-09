@@ -1,5 +1,4 @@
 # Binaries
-youtube-briefly-bot
 
 # Environment files
 .env
@@ -15,3 +14,4 @@ vendor/
 # Temp files
 *.srt
 *.vtt
+data/

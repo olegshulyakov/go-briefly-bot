@@ -125,7 +125,7 @@ go run main.go
 ## Project Structure
 
 ```
-youtube-briefly-bot/
+go-briefly-bot/
 ├── .env
 ├── .gitignore
 ├── .golangci.yml
@@ -188,4 +188,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Support
 
-If you encounter any issues or have questions, please [open an issue](https://github.com/olegshulyakov/youtube-briefly-bot/issues).
+If you encounter any issues or have questions, please [open an issue](https://github.com/olegshulyakov/github.com/olegshulyakov/go-briefly-bot/issues).
