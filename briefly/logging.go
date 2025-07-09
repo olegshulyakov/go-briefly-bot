@@ -21,7 +21,7 @@ func getLogger() *slog.Logger { return defaultLogger.Load() }
 // The logger is configured to output to standard output (stdout).
 func setupLogger() *slog.Logger {
 	opts := &slog.HandlerOptions{
-		AddSource: true,
+		AddSource: false,
 		Level:     slog.LevelDebug,
 	}
 
