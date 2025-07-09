@@ -1,8 +1,8 @@
 version: "3.4"
 services:
-  youtube-briefly-bot:
-    image: ghcr.io/olegshulyakov/youtube-briefly-bot:latest
-    container_name: youtube-briefly-bot
+  go-briefly-bot:
+    image: ghcr.io/olegshulyakov/go-briefly-bot:latest
+    container_name: go-briefly-bot
     mem_limit: 256m
     environment:
       - TELEGRAM_BOT_TOKEN= # your_telegram_bot_token

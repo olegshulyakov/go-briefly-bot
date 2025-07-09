@@ -1,5 +1,7 @@
 # Stage 1: Build the Go application
-FROM golang:1.23-alpine AS builder
+FROM golang:1.21-alpine AS builder
+
+ENV GOROOT /usr/local/go
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -14,7 +16,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux go build -o telegram-youtube-briefly .
+RUN CGO_ENABLED=0 GOOS=linux go build -o go-briefly-telegram ./clients/telegram
 
 # Stage 2: Create a lightweight runtime image
 FROM alpine:latest
@@ -26,10 +28,10 @@ RUN apk add --no-cache yt-dlp
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /app/telegram-youtube-briefly .
+COPY --from=builder /app/go-briefly-telegram /usr/bin/
 
 # Copy the locales directory
-COPY --from=builder /app/locales ./locales
+COPY --from=builder /app/locales /app/locales
 
 # Set the entrypoint to run the application
-ENTRYPOINT ["./telegram-youtube-briefly"]
+ENTRYPOINT ["go-briefly-telegram"]

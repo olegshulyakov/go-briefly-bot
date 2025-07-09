@@ -1,9 +1,9 @@
 #!/bin/bash
 
-image_name="telegram-youtube-briefly"
-container_name="telegram-youtube-briefly"
+image_name="go-briefly-telegram"
+container_name="go-briefly-telegram"
 
-docker build -t "$image_name" .
+docker build -t "$image_name" --file .build/Telegram.Dockerfile .
 docker stop "$container_name" &>/dev/null || true
 docker rm "$container_name" &>/dev/null || true
 

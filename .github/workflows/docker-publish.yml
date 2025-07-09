@@ -1,9 +1,4 @@
-name: Docker Publish
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: Docker - Publish
 
 on:
   push:
@@ -14,7 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-publish-image:
+  build-and-publish-telegram:
 
     runs-on: ubuntu-latest
     permissions:
@@ -73,6 +68,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: .build/Telegram.Dockerfile
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}

@@ -7,14 +7,13 @@ on:
   push:
     branches:
       - main
-      - 'releases/**'
+      - "releases/**"
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   pull_request:
     branches:
       - main
-      - 'releases/**'
-
+      - "releases/**"
 
 jobs:
   build:
@@ -23,18 +22,18 @@ jobs:
       matrix:
         go-version:
           - 1.21
-          - 'stable'
+          - "stable"
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ matrix.go-version }}
-        cache-dependency-path: go.sum
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache-dependency-path: go.sum
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: go build -v ./...
 
-    - name: Test
-      run: go test -v ./...
+      - name: Test
+        run: go test -v ./...
