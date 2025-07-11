@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/olegshulyakov/go-briefly-bot/briefly"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
@@ -78,23 +77,20 @@ func init() {
 // Notes:
 //   - The function relies on the application configuration (`LoadConfig`) to determine
 //     the LLM provider (e.g., OpenAI or Ollama) and its settings (e.g., API URL, token, model).
-//   - The function uses the `go-i18n` package for localization of system and user prompts.
 //   - The API response is expected to contain a "choices" field with the summarized text.
 func SummarizeText(text string, lang string) (string, error) {
 	slog.Debug("SummarizeText start", "language", lang, "api", openAiBaseURL, "model", openAiModel)
-
-	// Localize system and user prompts
-	slog.Debug("Localizing prompts...")
-	localizer := briefly.GetLocalizer(lang)
 
 	client := openai.NewClient(
 		option.WithBaseURL(openAiBaseURL),
 		option.WithAPIKey(openAiAPIKey),
 	)
 
+	// Localize system and user prompts
+	slog.Debug("Localizing prompts...")
 	body := openai.ChatCompletionNewParams{
 		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage(localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "llm.system_prompt"})),
+			openai.SystemMessage(briefly.MustLocalize(lang, "llm.system_prompt")),
 			openai.UserMessage(text),
 		},
 		Model: openAiModel,

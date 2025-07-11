@@ -13,7 +13,6 @@ import (
 
 	tg_md2html "github.com/PaulSonOfLars/gotg_md2html"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/olegshulyakov/go-briefly-bot/briefly"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/summarization"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript"
@@ -176,9 +175,6 @@ func isUserRateLimited(userID int64) bool {
 // Parameters:
 //   - message: The incoming message to process.
 func handleTelegramMessage(message *tgbotapi.Message) {
-	// Create a localizer for the user's language
-	localizer := briefly.GetLocalizer(message.From.LanguageCode)
-
 	// Check if the user is bot
 	if message.From.IsBot {
 		slog.Warn("Got message from bot", "userId", message.From.ID, "user", message.From, "bot", message.From.IsBot, "language", message.From.LanguageCode)
@@ -188,7 +184,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	// Check if the user is rate-limited
 	if isUserRateLimited(message.From.ID) {
 		slog.Warn("Rate Limit exceeded", "userId", message.From.ID, "user", message.From, "language", message.From.LanguageCode)
-		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.rate_limited"}))
+		sendErrorMessage(message, briefly.MustLocalize(message.From.LanguageCode, "telegram.error.rate_limited"))
 		return
 	}
 
@@ -197,7 +193,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 
 	if message.IsCommand() {
 		if message.Command() == "start" {
-			_, _ = sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.welcome.message"}))
+			_, _ = sendMessage(message, briefly.MustLocalize(message.From.LanguageCode, "telegram.welcome.message"))
 		}
 		return
 	}
@@ -206,13 +202,13 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	videoURLs, err := youtube.ExtractAllYouTubeURLs(text)
 	if err != nil {
 		slog.Error("Got invalid processing message", "userId", message.From.ID, "user", message.From, "text", text)
-		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.no_url_found"}))
+		sendErrorMessage(message, briefly.MustLocalize(message.From.LanguageCode, "telegram.error.no_url_found"))
 		return
 	}
 
 	// Notify user about process start
 	slog.Info("Processing YouTube video", "urls", videoURLs)
-	processingMsg, err := sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.processing"}))
+	processingMsg, err := sendMessage(message, briefly.MustLocalize(message.From.LanguageCode, "telegram.progress.processing"))
 	if err != nil {
 		slog.Error("Failed to send processing message: %v", "error", err)
 		return
@@ -220,12 +216,12 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 
 	// Check if there are multiple URLs
 	if len(videoURLs) > 1 {
-		processingMsg, _ = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.multiple_urls"}))
+		processingMsg, _ = editMessage(message, processingMsg, briefly.MustLocalize(message.From.LanguageCode, "telegram.error.multiple_urls"))
 	}
 	videoURL := videoURLs[0]
 
 	// Fetch video info
-	processingMsg, err = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_info"}))
+	processingMsg, err = editMessage(message, processingMsg, briefly.MustLocalize(message.From.LanguageCode, "telegram.progress.fetching_info"))
 	if err != nil {
 		slog.Error("Failed to update progress message: %v", "error", err)
 		return
@@ -234,12 +230,12 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	videoTranscript, err := transcript.GetYoutubeVideoTranscript(videoURL, message.From.LanguageCode)
 	if err != nil {
 		slog.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
-		_, _ = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.transcript_failed"}))
+		_, _ = editMessage(message, processingMsg, briefly.MustLocalize(message.From.LanguageCode, "telegram.error.transcript_failed"))
 		return
 	}
 
 	// Summarize transcript
-	processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.summarizing"}))
+	processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+briefly.MustLocalize(message.From.LanguageCode, "telegram.progress.summarizing"))
 	if err != nil {
 		slog.Error("Failed to update progress message", "userId", message.From.ID, "error", err)
 		return
@@ -248,7 +244,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	summary, err := summarization.SummarizeText(videoTranscript.Transcript, message.From.LanguageCode)
 	if err != nil {
 		slog.Error("Failed to summarize transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
-		_, _ = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.summary_failed"}))
+		_, _ = editMessage(message, processingMsg, briefly.MustLocalize(message.From.LanguageCode, "telegram.error.summary_failed"))
 		return
 	}
 
@@ -260,25 +256,27 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 
 		var msg string
 		if i == 0 {
-			msg = localizer.MustLocalize(&i18n.LocalizeConfig{
-				MessageID: "telegram.result.first_message",
-				TemplateData: map[string]interface{}{
+			msg = briefly.MustLocalizeTemplate(
+				message.From.LanguageCode,
+				"telegram.result.first_message",
+				map[string]interface{}{
 					"title": videoTranscript.Title,
 					"text":  chunk,
 				},
-			})
+			)
 		} else {
-			msg = localizer.MustLocalize(&i18n.LocalizeConfig{
-				MessageID: "telegram.result.message",
-				TemplateData: map[string]interface{}{
+			msg = briefly.MustLocalizeTemplate(
+				message.From.LanguageCode,
+				"telegram.result.message",
+				map[string]interface{}{
 					"text": chunk,
 				},
-			})
+			)
 		}
 
 		_, err = sendMarkdownMessage(message, msg)
 		if err != nil {
-			sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.general"}))
+			sendErrorMessage(message, briefly.MustLocalize(message.From.LanguageCode, "telegram.error.general"))
 		}
 	}
 

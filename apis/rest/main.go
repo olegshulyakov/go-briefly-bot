@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/olegshulyakov/go-briefly-bot/briefly"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/summarization"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
@@ -29,6 +30,10 @@ func main() {
 	videoRouter.GET("/info", getVideoInfo)
 	videoRouter.GET("/transcript", getVideoTranscript)
 	videoRouter.GET("/summarize", getVideoSummarize)
+
+	// Setup locale endpoints
+	localeRouter := router.Group("/locale")
+	localeRouter.GET("/message", getLocaleMessage)
 
 	// Start server
 	slog.Info("Starting server", "port", port)
@@ -86,4 +91,17 @@ func getVideoTranscript(c *gin.Context) {
 
 func getVideoSummarize(c *gin.Context) {
 	c.String(http.StatusNotImplemented, "")
+}
+
+func getLocaleMessage(c *gin.Context) {
+	messageID := c.Query("messageId")
+	languageCode := c.DefaultQuery("languageCode", "en")
+
+	message, err := briefly.Localize(languageCode, messageID)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, message)
 }
