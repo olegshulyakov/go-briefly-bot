@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/olegshulyakov/go-briefly-bot/briefly"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/utils"
 )
 
@@ -61,7 +61,7 @@ func GetYoutubeVideoInfo(videoURL string) (*VideoInfo, error) {
 
 	var videoInfo *VideoInfo
 
-	briefly.Debug("VideoInfo download", "url", videoURL)
+	slog.Debug("VideoInfo download", "url", videoURL)
 
 	args := []string{
 		"--dump-json",
@@ -77,7 +77,7 @@ func GetYoutubeVideoInfo(videoURL string) (*VideoInfo, error) {
 		return nil, fmt.Errorf("failed to parse video info: %w", err)
 	}
 
-	briefly.Debug("VideoInfo downloaded", "url", videoURL)
+	slog.Debug("VideoInfo downloaded", "url", videoURL)
 
 	return videoInfo, nil
 }
@@ -134,7 +134,7 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 		"--output", fmt.Sprintf("subtitles_%s.%%(ext)s", videoID),
 	}
 
-	briefly.Debug("Transcript extract", "url", videoURL)
+	slog.Debug("Transcript extract", "url", videoURL)
 	output, err := execYtDlp(args, videoURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to extract transcript: %w\n%s", err, output)
@@ -146,14 +146,14 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 		return "", err
 	}
 
-	briefly.Debug("Transcript extracted", "url", videoURL)
+	slog.Debug("Transcript extracted", "url", videoURL)
 
 	cleaned, err := utils.CleanSRT(transcript)
 	if err != nil {
 		return "", fmt.Errorf("failed to clean transcript file: %w", err)
 	}
 
-	briefly.Debug("Transcript cleaned", "url", videoURL)
+	slog.Debug("Transcript cleaned", "url", videoURL)
 
 	return cleaned, nil
 }

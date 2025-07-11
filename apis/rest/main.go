@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/olegshulyakov/go-briefly-bot/briefly"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/summarization"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
@@ -31,7 +31,7 @@ func main() {
 	videoRouter.GET("/summarize", getVideoSummarize)
 
 	// Start server
-	briefly.Info("Starting server", "port", port)
+	slog.Info("Starting server", "port", port)
 	router.Run(fmt.Sprintf("localhost:%d", port))
 }
 

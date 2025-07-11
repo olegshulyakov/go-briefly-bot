@@ -3,6 +3,7 @@ package summarization
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
@@ -80,10 +81,10 @@ func init() {
 //   - The function uses the `go-i18n` package for localization of system and user prompts.
 //   - The API response is expected to contain a "choices" field with the summarized text.
 func SummarizeText(text string, lang string) (string, error) {
-	briefly.Debug("SummarizeText start", "language", lang, "api", openAiBaseURL, "model", openAiModel)
+	slog.Debug("SummarizeText start", "language", lang, "api", openAiBaseURL, "model", openAiModel)
 
 	// Localize system and user prompts
-	briefly.Debug("Localizing prompts...")
+	slog.Debug("Localizing prompts...")
 	localizer := briefly.GetLocalizer(lang)
 
 	client := openai.NewClient(
@@ -99,7 +100,7 @@ func SummarizeText(text string, lang string) (string, error) {
 		Model: openAiModel,
 	}
 
-	briefly.Debug("Summarizing text...")
+	slog.Debug("Summarizing text...")
 
 	chatCompletion, err := client.Chat.Completions.New(
 		context.Background(),
@@ -110,21 +111,21 @@ func SummarizeText(text string, lang string) (string, error) {
 
 	// Check for errors in the response
 	if err != nil {
-		briefly.Error("Open AI API error", "error", err)
+		slog.Error("Open AI API error", "error", err)
 		return "", err
 	}
 
 	// Extract summary from response
-	briefly.Debug("Extracting summary from response...")
+	slog.Debug("Extracting summary from response...")
 
 	choices := chatCompletion.Choices
 	if len(choices) == 0 {
-		briefly.Warn("Invalid or empty choices in API response, retrying...", "chatCompletion", chatCompletion)
+		slog.Warn("Invalid or empty choices in API response, retrying...", "chatCompletion", chatCompletion)
 		return "", err
 	}
 
 	summary := choices[0].Message.Content
 
-	briefly.Debug("SummarizeText completed", "language", lang)
+	slog.Debug("SummarizeText completed", "language", lang)
 	return summary, nil
 }
