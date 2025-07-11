@@ -20,6 +20,8 @@ import (
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
 )
 
+const telegramMessageMaxLength = 4000
+
 var (
 	// Bot is the global Telegram bot instance.
 	Bot *tgbotapi.BotAPI
@@ -146,7 +148,7 @@ func editMessage(userMessage *tgbotapi.Message, messageToEdit tgbotapi.Message, 
 func sendErrorMessage(userMessage *tgbotapi.Message, text string) {
 	msg := tgbotapi.NewMessage(userMessage.Chat.ID, text)
 	msg.ReplyToMessageID = userMessage.MessageID
-	Bot.Send(msg)
+	_, _ = Bot.Send(msg)
 }
 
 // isUserRateLimited checks if the user has made a request within the last 30 seconds.
@@ -194,9 +196,8 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	slog.Debug("Telegram: Request", "userId", message.From.ID, "user", message.From, "language", message.From.LanguageCode, "text", text)
 
 	if message.IsCommand() {
-		switch message.Command() {
-		case "start":
-			sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.welcome.message"}))
+		if message.Command() == "start" {
+			_, _ = sendMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.welcome.message"}))
 		}
 		return
 	}
@@ -233,7 +234,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	videoTranscript, err := transcript.GetYoutubeVideoTranscript(videoURL, message.From.LanguageCode)
 	if err != nil {
 		slog.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
-		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.transcript_failed"}))
+		_, _ = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.transcript_failed"}))
 		return
 	}
 
@@ -247,12 +248,12 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	summary, err := summarization.SummarizeText(videoTranscript.Transcript, message.From.LanguageCode)
 	if err != nil {
 		slog.Error("Failed to summarize transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
-		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.summary_failed"}))
+		_, _ = editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.summary_failed"}))
 		return
 	}
 
 	// Send summary to user
-	chunkSize := 4000 - len(videoTranscript.Title)
+	chunkSize := telegramMessageMaxLength - len(videoTranscript.Title)
 	chunks := briefly.SplitStringIntoChunks(summary, chunkSize)
 	for i, chunk := range chunks {
 		slog.Debug("Attempt to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL)
@@ -283,5 +284,5 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 
 	// Delete the "Processing" message
 	deleteMsg := tgbotapi.NewDeleteMessage(message.Chat.ID, processingMsg.MessageID)
-	Bot.Send(deleteMsg)
+	_, _ = Bot.Send(deleteMsg)
 }

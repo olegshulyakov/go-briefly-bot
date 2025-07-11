@@ -32,7 +32,7 @@ func main() {
 
 	// Start server
 	slog.Info("Starting server", "port", port)
-	router.Run(fmt.Sprintf("localhost:%d", port))
+	_ = router.Run(fmt.Sprintf("localhost:%d", port))
 }
 
 func postSummarizeText(c *gin.Context) {
@@ -48,7 +48,7 @@ func postSummarizeText(c *gin.Context) {
 
 	summary, err := summarization.SummarizeText(request.Text, request.LanguageCode)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -64,7 +64,7 @@ func getVideoInfo(c *gin.Context) {
 	videoInfo, err := youtube.GetYoutubeVideoInfo(url)
 
 	if err != nil {
-		c.AbortWithError(http.StatusNotFound, err)
+		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
@@ -77,7 +77,7 @@ func getVideoTranscript(c *gin.Context) {
 
 	videoTranscript, err := transcript.GetYoutubeVideoTranscript(url, languageCode)
 	if err != nil {
-		c.AbortWithError(http.StatusNotFound, err)
+		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 

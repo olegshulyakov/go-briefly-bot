@@ -76,17 +76,17 @@ Another line`,
 func TestReadAndRemoveFile(t *testing.T) {
 	t.Run("valid file", func(t *testing.T) {
 		content := "Test content"
-		tmpFile, err := os.CreateTemp("", "testfile.*.txt")
+		tmpFile, err := os.CreateTemp(t.TempDir(), "testfile.*.txt")
 		if err != nil {
 			t.Fatal(err)
 		}
 		defer os.Remove(tmpFile.Name()) // Cleanup in case of test failure
 
 		// Write content to the temporary file
-		if _, err := tmpFile.Write([]byte(content)); err != nil {
+		if _, err = tmpFile.WriteString(content); err != nil {
 			t.Fatal(err)
 		}
-		if err := tmpFile.Close(); err != nil {
+		if err = tmpFile.Close(); err != nil {
 			t.Fatal(err)
 		}
 
@@ -99,7 +99,7 @@ func TestReadAndRemoveFile(t *testing.T) {
 		}
 
 		// Check if the file was deleted
-		if _, err := os.Stat(tmpFile.Name()); !os.IsNotExist(err) {
+		if _, err = os.Stat(tmpFile.Name()); !os.IsNotExist(err) {
 			t.Errorf("File was not deleted")
 		}
 	})
