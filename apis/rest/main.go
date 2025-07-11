@@ -78,9 +78,8 @@ func getVideoInfo(c *gin.Context) {
 
 func getVideoTranscript(c *gin.Context) {
 	url := c.Query("url")
-	languageCode := c.DefaultQuery("languageCode", "en")
 
-	videoTranscript, err := transcript.GetYoutubeVideoTranscript(url, languageCode)
+	videoTranscript, err := transcript.GetYoutubeVideoTranscript(url)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return

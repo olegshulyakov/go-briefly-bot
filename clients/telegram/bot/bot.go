@@ -227,7 +227,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
-	videoTranscript, err := transcript.GetYoutubeVideoTranscript(videoURL, message.From.LanguageCode)
+	videoTranscript, err := transcript.GetYoutubeVideoTranscript(videoURL)
 	if err != nil {
 		slog.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		_, _ = editMessage(message, processingMsg, briefly.MustLocalize(message.From.LanguageCode, "telegram.error.transcript_failed"))

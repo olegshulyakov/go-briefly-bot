@@ -16,13 +16,13 @@ type VideoTranscript struct {
 	Transcript string `json:"transcript"` // The URL of the video's transcript.
 }
 
-func GetYoutubeVideoTranscript(videoURL string, languageCode string) (*VideoTranscript, error) {
+func GetYoutubeVideoTranscript(videoURL string) (*VideoTranscript, error) {
 	videoInfo, err := youtube.GetYoutubeVideoInfo(videoURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video info: %s", videoURL)
 	}
 
-	transcript, err := youtube.GetYoutubeTranscript(videoURL, languageCode)
+	transcript, err := youtube.GetYoutubeTranscript(videoURL, videoInfo.Language)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video transcript: %s", videoURL)
 	}
