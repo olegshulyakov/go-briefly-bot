@@ -14,6 +14,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/olegshulyakov/go-briefly-bot/briefly"
+	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript"
+	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
 )
 
 var (
@@ -198,7 +200,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	}
 
 	// Check if the message contains a YouTube link and extract URL
-	videoURLs, err := briefly.ExtractAllYouTubeURLs(text)
+	videoURLs, err := youtube.ExtractAllYouTubeURLs(text)
 	if err != nil {
 		briefly.Error("Got invalid processing message", "userId", message.From.ID, "user", message.From, "text", text)
 		sendErrorMessage(message, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.no_url_found"}))
@@ -226,21 +228,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
-	videoInfo, err := briefly.GetYoutubeVideoInfo(videoURL)
-	if err != nil {
-		briefly.Error("Failed to get video info", "userId", message.From.ID, "videoURL", videoURL, "error", err)
-		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.info_failed"}))
-		return
-	}
-
-	// Fetch transcript
-	processingMsg, err = editMessage(message, processingMsg, processingMsg.Text+"\n"+localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.progress.fetching_transcript"}))
-	if err != nil {
-		briefly.Error("Failed to update progress message", "userId", message.From.ID, "error", err)
-		return
-	}
-
-	transcript, err := briefly.GetYoutubeTranscript(videoURL, message.From.LanguageCode)
+	videoTranscript, err := transcript.GetYoutubeVideoTranscript(videoURL, message.From.LanguageCode)
 	if err != nil {
 		briefly.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.transcript_failed"}))
@@ -254,7 +242,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
-	summary, err := briefly.SummarizeText(transcript, message.From.LanguageCode)
+	summary, err := briefly.SummarizeText(videoTranscript.Transcript, message.From.LanguageCode)
 	if err != nil {
 		briefly.Error("Failed to summarize transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.summary_failed"}))
@@ -262,7 +250,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	}
 
 	// Send summary to user
-	chunkSize := 4000 - len(videoInfo.Title)
+	chunkSize := 4000 - len(videoTranscript.Title)
 	chunks := briefly.SplitStringIntoChunks(summary, chunkSize)
 	for i, chunk := range chunks {
 		briefly.Debug("Attempt to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL)
@@ -272,7 +260,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 			msg = localizer.MustLocalize(&i18n.LocalizeConfig{
 				MessageID: "telegram.result.first_message",
 				TemplateData: map[string]interface{}{
-					"title": videoInfo.Title,
+					"title": videoTranscript.Title,
 					"text":  chunk,
 				},
 			})

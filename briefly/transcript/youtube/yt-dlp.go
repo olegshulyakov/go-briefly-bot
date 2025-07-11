@@ -1,10 +1,13 @@
-package briefly
+package youtube
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os/exec"
+
+	"github.com/olegshulyakov/go-briefly-bot/briefly"
+	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/utils"
 )
 
 // VideoInfo represents metadata about a YouTube video.
@@ -43,12 +46,12 @@ func GetYoutubeVideoInfo(videoURL string) (*VideoInfo, error) {
 		return nil, errors.New("videoURL is empty")
 	}
 	if !IsValidYouTubeURL(videoURL) {
-		return nil, errors.New("no valid URL found")
+		return nil, fmt.Errorf("no valid URL found: %s", videoURL)
 	}
 
 	var videoInfo *VideoInfo
 
-	Debug("VideoInfo download", "url", videoURL)
+	briefly.Debug("VideoInfo download", "url", videoURL)
 
 	args := []string{
 		"--dump-json",
@@ -64,7 +67,7 @@ func GetYoutubeVideoInfo(videoURL string) (*VideoInfo, error) {
 		return nil, fmt.Errorf("failed to parse video info: %w", err)
 	}
 
-	Debug("VideoInfo downloaded", "url", videoURL)
+	briefly.Debug("VideoInfo downloaded", "url", videoURL)
 
 	return videoInfo, nil
 }
@@ -103,7 +106,7 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 		languageCode = "en"
 	}
 	if !IsValidYouTubeURL(videoURL) {
-		return "", errors.New("no valid URL found")
+		return "", fmt.Errorf("no valid URL found: %s", videoURL)
 	}
 
 	videoID, err := GetYouTubeID(videoURL)
@@ -121,26 +124,26 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 		"--output", fmt.Sprintf("subtitles_%s.%%(ext)s", videoID),
 	}
 
-	Debug("Transcript extract", "url", videoURL)
+	briefly.Debug("Transcript extract", "url", videoURL)
 	output, err := execYtDlp(args, videoURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to extract transcript: %w\n%s", err, output)
 	}
 
 	// Read the transcript file
-	transcript, err := ReadAndRemoveFile(fmt.Sprintf("subtitles_%s.%s.%s", videoID, languageCode, extension))
+	transcript, err := utils.ReadAndRemoveFile(fmt.Sprintf("subtitles_%s.%s.%s", videoID, languageCode, extension))
 	if err != nil {
 		return "", err
 	}
 
-	Debug("Transcript extracted", "url", videoURL)
+	briefly.Debug("Transcript extracted", "url", videoURL)
 
-	cleaned, err := CleanSRT(transcript)
+	cleaned, err := utils.CleanSRT(transcript)
 	if err != nil {
 		return "", fmt.Errorf("failed to clean transcript file: %w", err)
 	}
 
-	Debug("Transcript cleaned", "url", videoURL)
+	briefly.Debug("Transcript cleaned", "url", videoURL)
 
 	return cleaned, nil
 }
@@ -148,17 +151,15 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 func execYtDlp(arguments []string, url string) ([]byte, error) {
 	const maxAttempts = 3
 	var (
-		args   []string
-		output []byte
-		err    error
+		err               error
+		output            []byte
+		additionalOptions = briefly.Configuration.YtDlpAdditionalOptions
+		args              = make([]string, 0, len(arguments)+len(additionalOptions)+1)
 	)
 
-	// Generate arguments
-	args = make([]string, 0, len(arguments)+len(Configuration.YtDlpAdditionalOptions)+1)
-	if len(Configuration.YtDlpAdditionalOptions) > 0 {
-		args = append(args, Configuration.YtDlpAdditionalOptions...)
+	if len(additionalOptions) > 0 {
+		args = append(args, additionalOptions...)
 	}
-
 	args = append(args, arguments...)
 	args = append(args, url)
 

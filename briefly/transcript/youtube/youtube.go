@@ -1,4 +1,4 @@
-package briefly
+package youtube
 
 import (
 	"errors"

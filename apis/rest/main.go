@@ -7,6 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olegshulyakov/go-briefly-bot/briefly"
+	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript"
+	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
 )
 
 func main() {
@@ -59,37 +61,27 @@ func postSummarizeText(c *gin.Context) {
 func getVideoInfo(c *gin.Context) {
 	url := c.Query("url")
 
-	videoInfo, err := briefly.GetYoutubeVideoInfo(url)
+	videoInfo, err := youtube.GetYoutubeVideoInfo(url)
 
 	if err != nil {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"videoId":  videoInfo.ID,
-		"language": videoInfo.Language,
-		"uploader": videoInfo.Uploader,
-		"title":    videoInfo.Title,
-		"thumbnai": videoInfo.Thumbnail,
-	})
+	c.IndentedJSON(http.StatusOK, videoInfo)
 }
 
 func getVideoTranscript(c *gin.Context) {
 	url := c.Query("url")
 	languageCode := c.DefaultQuery("languageCode", "en")
 
-	transcript, err := briefly.GetYoutubeTranscript(url, languageCode)
+	videoTranscript, err := transcript.GetYoutubeVideoTranscript(url, languageCode)
 	if err != nil {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"videoId":    url,
-		"language":   languageCode,
-		"transcript": transcript,
-	})
+	c.IndentedJSON(http.StatusOK, videoTranscript)
 }
 
 func getVideoSummarize(c *gin.Context) {
