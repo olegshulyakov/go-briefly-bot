@@ -2,6 +2,8 @@ package summarization
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -15,6 +17,37 @@ const maxRetries = 3
 
 // maxTimeout sets maximun request timeout
 const maxTimeout = 20 * time.Second
+
+var (
+	openAiBaseURL string
+	openAiAPIKey  string
+	openAiModel   string
+)
+
+func init() {
+	openAiBaseURL = os.Getenv("OPENAI_BASE_URL")
+	openAiAPIKey = os.Getenv("OPENAI_API_KEY")
+	openAiModel = os.Getenv("OPENAI_MODEL")
+
+	// Validate provider-specific fields
+	isError := false
+	if openAiBaseURL == "" {
+		fmt.Fprintf(os.Stderr, "OPENAI_BASE_URL not set")
+		isError = true
+	}
+	if openAiAPIKey == "" {
+		fmt.Fprintf(os.Stderr, "OPENAI_API_KEY not set")
+		isError = true
+	}
+	if openAiModel == "" {
+		fmt.Fprintf(os.Stderr, "OPENAI_MODEL not set")
+		isError = true
+	}
+
+	if isError {
+		os.Exit(1)
+	}
+}
 
 // SummarizeText sends a request to a configured Language Model (LLM) provider
 // (e.g., OpenAI or Ollama) to summarize the given text in the specified language.
@@ -47,15 +80,15 @@ const maxTimeout = 20 * time.Second
 //   - The function uses the `go-i18n` package for localization of system and user prompts.
 //   - The API response is expected to contain a "choices" field with the summarized text.
 func SummarizeText(text string, lang string) (string, error) {
-	briefly.Debug("SummarizeText start", "language", lang, "api", briefly.Configuration.OpenAiBaseURL, "model", briefly.Configuration.OpenAiModel)
+	briefly.Debug("SummarizeText start", "language", lang, "api", openAiBaseURL, "model", openAiModel)
 
 	// Localize system and user prompts
 	briefly.Debug("Localizing prompts...")
 	localizer := briefly.GetLocalizer(lang)
 
 	client := openai.NewClient(
-		option.WithBaseURL(briefly.Configuration.OpenAiBaseURL),
-		option.WithAPIKey(briefly.Configuration.OpenAiAPIKey),
+		option.WithBaseURL(openAiBaseURL),
+		option.WithAPIKey(openAiAPIKey),
 	)
 
 	body := openai.ChatCompletionNewParams{
@@ -63,7 +96,7 @@ func SummarizeText(text string, lang string) (string, error) {
 			openai.SystemMessage(localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "llm.system_prompt"})),
 			openai.UserMessage(text),
 		},
-		Model: briefly.Configuration.OpenAiModel,
+		Model: openAiModel,
 	}
 
 	briefly.Debug("Summarizing text...")

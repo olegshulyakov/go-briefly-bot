@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olegshulyakov/go-briefly-bot/briefly"
@@ -12,17 +11,10 @@ import (
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
 )
 
+// Web server port
+const port = 8080
+
 func main() {
-	// Load configuration
-	_, err := briefly.LoadConfiguration()
-	if err != nil {
-		briefly.Error("Failed to load config: %v", "error", err)
-		os.Exit(1)
-	}
-
-	// Set port
-	port := 8080
-
 	router := gin.Default()
 	router.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "Go Briefly API")

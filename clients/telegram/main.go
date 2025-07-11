@@ -1,21 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/olegshulyakov/go-briefly-bot/briefly"
 	"github.com/olegshulyakov/go-briefly-bot/clients/telegram/bot"
 )
 
 // main is the entry point for the application.
 func main() {
-	// Load configuration
-	cfg, err := briefly.LoadConfiguration()
-	if err != nil {
-		briefly.Error("Failed to load config: %v", "error", err)
+	telegramToken := os.Getenv("TELEGRAM_BOT_TOKEN")
+	if telegramToken == "" {
+		fmt.Fprintf(os.Stderr, "TELEGRAM_BOT_TOKEN not set")
 		os.Exit(1)
 	}
 
 	// Start the Telegram bot
-	bot.StartTelegramBot(cfg.TelegramToken)
+	bot.StartTelegramBot(telegramToken)
 }

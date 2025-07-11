@@ -4,11 +4,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/olegshulyakov/go-briefly-bot/briefly"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/utils"
 )
+
+var (
+	ytDlpAdditionalOptions []string
+)
+
+func init() {
+	ytDlpAdditionalOptions = strings.Fields(os.Getenv("YT_DLP_ADDITIONAL_OPTIONS"))
+}
 
 // VideoInfo represents metadata about a YouTube video.
 type VideoInfo struct {
@@ -151,14 +161,13 @@ func GetYoutubeTranscript(videoURL string, languageCode string) (string, error) 
 func execYtDlp(arguments []string, url string) ([]byte, error) {
 	const maxAttempts = 3
 	var (
-		err               error
-		output            []byte
-		additionalOptions = briefly.Configuration.YtDlpAdditionalOptions
-		args              = make([]string, 0, len(arguments)+len(additionalOptions)+1)
+		err    error
+		output []byte
+		args   = make([]string, 0, len(arguments)+len(ytDlpAdditionalOptions)+1)
 	)
 
-	if len(additionalOptions) > 0 {
-		args = append(args, additionalOptions...)
+	if len(ytDlpAdditionalOptions) > 0 {
+		args = append(args, ytDlpAdditionalOptions...)
 	}
 	args = append(args, arguments...)
 	args = append(args, url)
