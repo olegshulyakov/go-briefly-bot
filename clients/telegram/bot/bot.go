@@ -14,6 +14,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/olegshulyakov/go-briefly-bot/briefly"
+	"github.com/olegshulyakov/go-briefly-bot/briefly/summarization"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
 )
@@ -242,7 +243,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 		return
 	}
 
-	summary, err := briefly.SummarizeText(videoTranscript.Transcript, message.From.LanguageCode)
+	summary, err := summarization.SummarizeText(videoTranscript.Transcript, message.From.LanguageCode)
 	if err != nil {
 		briefly.Error("Failed to summarize transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		editMessage(message, processingMsg, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "telegram.error.summary_failed"}))

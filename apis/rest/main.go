@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olegshulyakov/go-briefly-bot/briefly"
+	"github.com/olegshulyakov/go-briefly-bot/briefly/summarization"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript"
 	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
 )
@@ -43,10 +44,17 @@ func main() {
 }
 
 func postSummarizeText(c *gin.Context) {
-	text := c.GetString("text")
-	languageCode := c.GetString("languageCode")
+	type Request struct {
+		Text         string `json:"text"`
+		LanguageCode string `json:"languageCode"`
+	}
 
-	summary, err := briefly.SummarizeText(text, languageCode)
+	var request Request
+	if err := c.BindJSON(&request); err != nil {
+		return
+	}
+
+	summary, err := summarization.SummarizeText(request.Text, request.LanguageCode)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -54,7 +62,7 @@ func postSummarizeText(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"summary":      summary,
-		"languageCode": languageCode,
+		"languageCode": request.LanguageCode,
 	})
 }
 
