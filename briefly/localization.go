@@ -1,7 +1,6 @@
 package briefly
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -10,12 +9,13 @@ import (
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
+	"gopkg.in/yaml.v3"
 )
 
 // localesFolder specifies where localization files are placed
 const localesFolder = "locales"
 
-const extension = "json"
+const extension = "yml"
 
 // bundle is a global instance of the i18n bundle used for managing translations.
 var defaultBundle atomic.Pointer[i18n.Bundle]
@@ -37,7 +37,7 @@ func getBundle() *i18n.Bundle {
 	// Create a new bundle with the default language (English)
 	bundle := i18n.NewBundle(language.English)
 
-	bundle.RegisterUnmarshalFunc(extension, json.Unmarshal)
+	bundle.RegisterUnmarshalFunc(extension, yaml.Unmarshal)
 
 	// Load translations from the locales directory
 	files, err := os.ReadDir(localesFolder)

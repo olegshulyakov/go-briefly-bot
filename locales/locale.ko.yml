@@ -1,0 +1,29 @@
+telegram:
+  welcome:
+    message: 👋 환영합니다! YouTube 링크를 보내주시면 요약해 드립니다. 📹✨
+  progress:
+    processing: ⏳ 요청 처리 중...
+    fetching_info: 🔍 비디오 정보 가져오는 중...
+    fetching_transcript: 🎬 스크립트 가져오는 중...
+    summarizing: 🤖 요약 중...
+  error:
+    general: 😔 죄송합니다. 도와드릴 수 없었습니다.
+    rate_limited: ⏱️ 30초 후에 다시 요청해 주세요.
+    multiple_urls: ⚠️ 여러 URL이 발견되었습니다. 첫 번째 URL만 처리합니다.
+    no_url_found: ❌ 비디오 URL을 찾을 수 없습니다.
+    info_failed: ❌ 죄송합니다. 이 비디오의 정보를 가져올 수 없습니다.
+    transcript_failed: ❌ 죄송합니다. 이 비디오의 스크립트를 가져올 수 없습니다.
+    summary_failed: ❌ 죄송합니다. 스크립트를 요약할 수 없습니다.
+  result:
+    first_message: |-
+      📖 **{{.title}}**
+
+      {{.text}}
+    message: "{{.text}}"
+
+  prompt: |-
+    Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Korean.
+
+    {{.text}}
+
+    SUMMARY:

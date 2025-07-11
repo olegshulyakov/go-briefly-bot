@@ -259,7 +259,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 			msg = briefly.MustLocalizeTemplate(
 				message.From.LanguageCode,
 				"telegram.result.first_message",
-				map[string]interface{}{
+				map[string]string{
 					"title": videoTranscript.Title,
 					"text":  chunk,
 				},
@@ -268,7 +268,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 			msg = briefly.MustLocalizeTemplate(
 				message.From.LanguageCode,
 				"telegram.result.message",
-				map[string]interface{}{
+				map[string]string{
 					"text": chunk,
 				},
 			)

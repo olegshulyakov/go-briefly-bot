@@ -90,14 +90,18 @@ func SummarizeText(text string, lang string) (string, error) {
 	slog.Debug("Localizing prompts...")
 	body := openai.ChatCompletionNewParams{
 		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage(briefly.MustLocalize(lang, "llm.system_prompt")),
-			openai.UserMessage(text),
+			openai.UserMessage(briefly.MustLocalizeTemplate(
+				lang,
+				"llm.prompt",
+				map[string]string{
+					"text": text,
+				},
+			)),
 		},
 		Model: openAiModel,
 	}
 
 	slog.Debug("Summarizing text...")
-
 	chatCompletion, err := client.Chat.Completions.New(
 		context.Background(),
 		body,
@@ -113,7 +117,6 @@ func SummarizeText(text string, lang string) (string, error) {
 
 	// Extract summary from response
 	slog.Debug("Extracting summary from response...")
-
 	choices := chatCompletion.Choices
 	if len(choices) == 0 {
 		slog.Warn("Invalid or empty choices in API response, retrying...", "chatCompletion", chatCompletion)

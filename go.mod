@@ -10,6 +10,7 @@ require (
 	github.com/nicksnyder/go-i18n/v2 v2.5.1
 	github.com/openai/openai-go v1.10.0
 	golang.org/x/text v0.22.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -40,5 +41,4 @@ require (
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
