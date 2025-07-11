@@ -3,16 +3,17 @@ package briefly
 import (
 	"errors"
 	"os"
+	"strings"
 )
 
 // Config represents the application configuration, including settings for Telegram,
 // language model providers (e.g., OpenAI, Ollama), and other environment variables.
 type Config struct {
-	TelegramToken          string // The token for the Telegram bot.
-	YtDlpAdditionalOptions string // The proxy URL for yt-dlp.
-	OpenAiBaseURL          string // The URL for the OpenAI API.
-	OpenAiAPIKey           string // The token for the OpenAI API.
-	OpenAiModel            string // The model to use for OpenAI.
+	TelegramToken          string   // The token for the Telegram bot.
+	YtDlpAdditionalOptions []string // The additional options for yt-dlp.
+	OpenAiBaseURL          string   // The URL for the OpenAI API.
+	OpenAiAPIKey           string   // The token for the OpenAI API.
+	OpenAiModel            string   // The model to use for OpenAI.
 }
 
 var Configuration *Config
@@ -35,7 +36,7 @@ var Configuration *Config
 func LoadConfiguration() (*Config, error) {
 	Configuration = &Config{
 		TelegramToken:          os.Getenv("TELEGRAM_BOT_TOKEN"),
-		YtDlpAdditionalOptions: os.Getenv("YT_DLP_ADDITIONAL_OPTIONS"),
+		YtDlpAdditionalOptions: strings.Fields(os.Getenv("YT_DLP_ADDITIONAL_OPTIONS")),
 		OpenAiBaseURL:          os.Getenv("OPENAI_BASE_URL"),
 		OpenAiAPIKey:           os.Getenv("OPENAI_API_KEY"),
 		OpenAiModel:            os.Getenv("OPENAI_MODEL"),

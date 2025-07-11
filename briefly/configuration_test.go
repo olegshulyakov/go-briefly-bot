@@ -29,7 +29,7 @@ func TestLoadConfiguration_SuccessFromEnvironment(t *testing.T) {
 
 	// Set environment variables
 	t.Setenv("TELEGRAM_BOT_TOKEN", "tele_token_env")
-	t.Setenv("YT_DLP_ADDITIONAL_OPTIONS", "yt_options_env")
+	t.Setenv("YT_DLP_ADDITIONAL_OPTIONS", "--option1  val1   --option2  val2")
 	t.Setenv("OPENAI_BASE_URL", "openai_url_env")
 	t.Setenv("OPENAI_API_KEY", "openai_key_env")
 	t.Setenv("OPENAI_MODEL", "openai_model_env")
@@ -39,7 +39,7 @@ func TestLoadConfiguration_SuccessFromEnvironment(t *testing.T) {
 	require.NoError(t, err, "Valid config should not return error")
 	assert.Equal(t, &briefly.Config{
 		TelegramToken:          "tele_token_env",
-		YtDlpAdditionalOptions: "yt_options_env",
+		YtDlpAdditionalOptions: []string{"--option1", "val1", "--option2", "val2"},
 		OpenAiBaseURL:          "openai_url_env",
 		OpenAiAPIKey:           "openai_key_env",
 		OpenAiModel:            "openai_model_env",
