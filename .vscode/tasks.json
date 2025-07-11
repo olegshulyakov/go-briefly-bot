@@ -6,10 +6,7 @@
       "type": "shell",
       "command": "go",
       "args": ["build", "./..."],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "group": "build",
       "problemMatcher": ["$go"],
       "detail": "Build the Go application.",
       "dependsOn": ["go: fmt", "go: test"]
@@ -47,10 +44,13 @@
       "type": "shell",
       "command": "golangci-lint",
       "args": ["run", "./..."],
-      "group": "none",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
       "problemMatcher": ["$golangci-lint"],
       "detail": "Run golangci-lint for static code analysis.",
-      "dependsOn": ["go: fmt"]
+      "dependsOn": ["go: build"]
     },
     {
       "label": "go: fmt",
