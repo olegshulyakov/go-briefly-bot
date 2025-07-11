@@ -23,8 +23,8 @@ func init() {
 // VideoInfo represents metadata about a YouTube video.
 type VideoInfo struct {
 	ID        string `json:"id"`        // The unique identifier of the video.
-	Uploader  string `json:"uploader"`  // The name of the video uploader.
 	Language  string `json:"language"`  // The video language.
+	Uploader  string `json:"uploader"`  // The name of the video uploader.
 	Title     string `json:"title"`     // The title of the video.
 	Thumbnail string `json:"thumbnail"` // The URL of the video's thumbnail.
 }

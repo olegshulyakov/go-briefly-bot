@@ -9,8 +9,8 @@ import (
 // VideoTranscript represents metadata about a YouTube video transcript.
 type VideoTranscript struct {
 	ID         string `json:"id"`         // The unique identifier of the video.
-	Uploader   string `json:"uploader"`   // The name of the video uploader.
 	Language   string `json:"language"`   // The video language.
+	Uploader   string `json:"uploader"`   // The name of the video uploader.
 	Title      string `json:"title"`      // The title of the video.
 	Thumbnail  string `json:"thumbnail"`  // The URL of the video's thumbnail.
 	Transcript string `json:"transcript"` // The URL of the video's transcript.
