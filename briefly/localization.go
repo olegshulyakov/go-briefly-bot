@@ -2,15 +2,24 @@ package briefly
 
 import (
 	"encoding/json"
+	"log/slog"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
 
+// localesFolder specifies where localization files are placed
+const localesFolder = "locales"
+
 // bundle is a global instance of the i18n bundle used for managing translations.
-var bundle *i18n.Bundle
+var defaultBundle atomic.Pointer[i18n.Bundle]
+
+func init() {
+	defaultBundle.Store(getBundle())
+}
 
 // getBundle initializes the localization bundle by loading translation files
 // from the `locales` directory.
@@ -21,25 +30,21 @@ var bundle *i18n.Bundle
 // Example:
 //
 //	getBundle()
-func getBundle(localesDir string) *i18n.Bundle {
-	if localesDir == "" {
-		localesDir = "locales"
-	}
-
+func getBundle() *i18n.Bundle {
 	// Create a new bundle with the default language (English)
-	bundle = i18n.NewBundle(language.English)
+	bundle := i18n.NewBundle(language.English)
 
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 
 	// Load translations from the locales directory
-	files, err := os.ReadDir(localesDir)
+	files, err := os.ReadDir(localesFolder)
 	if err != nil {
-		Error("Failed to read locales directory", "error", err)
+		slog.Error("Failed to read locales directory", "error", err)
 	}
 
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
-			bundle.MustLoadMessageFile(filepath.Join(localesDir, file.Name()))
+			bundle.MustLoadMessageFile(filepath.Join(localesFolder, file.Name()))
 		}
 	}
 
@@ -64,10 +69,7 @@ func GetLocalizer(lang string) *i18n.Localizer {
 	if lang == "" {
 		lang = language.English.String()
 	}
-	if bundle == nil {
-		bundle = getBundle("")
-	}
 
-	localizer := i18n.NewLocalizer(bundle, lang)
+	localizer := i18n.NewLocalizer(defaultBundle.Load(), lang)
 	return localizer
 }
