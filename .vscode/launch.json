@@ -12,7 +12,8 @@
       "program": "${workspaceFolder}/apis/rest",
       "args": [],
       "cwd": "${workspaceFolder}",
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "go: build"
     },
     {
       "name": "Run: Telegram Bot",
@@ -22,7 +23,8 @@
       "program": "${workspaceFolder}/clients/telegram",
       "args": [],
       "cwd": "${workspaceFolder}",
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "go: build"
     }
   ]
 }
