@@ -43,7 +43,7 @@
       "label": "go: lint",
       "type": "shell",
       "command": "golangci-lint",
-      "args": ["run", "./..."],
+      "args": ["run", "--fix", "./..."],
       "group": {
         "kind": "build",
         "isDefault": true
