@@ -1,3 +1,18 @@
+// Package summarization provides functionality to generate text summaries using OpenAI's API.
+// It handles localization of prompts, API communication, and error handling.
+//
+// The package requires the following environment variables to be set:
+//   - OPENAI_BASE_URL: The base URL for OpenAI API
+//   - OPENAI_API_KEY: The API key for authentication
+//   - OPENAI_MODEL: The model to use for summarization
+//
+// Example usage:
+//
+//	summary, err := summarization.SummarizeText("Long text to summarize...", "en")
+//	if err != nil {
+//	    // handle error
+//	}
+//	fmt.Println(summary)
 package summarization
 
 import (
@@ -12,18 +27,19 @@ import (
 	"github.com/openai/openai-go/option"
 )
 
-// maxRetries sets maximum number of retries
-const maxRetries = 3
-
-// maxTimeout sets maximun request timeout
-const maxTimeout = 20 * time.Second
-
-var (
-	openAiBaseURL string
-	openAiAPIKey  string
-	openAiModel   string
+const (
+	maxRetries = 3                // Maximum number of retry attempts for API calls
+	maxTimeout = 20 * time.Second // Maximum duration for API requests
 )
 
+var (
+	openAiBaseURL string // Base URL for OpenAI API
+	openAiAPIKey  string // API key for OpenAI authentication
+	openAiModel   string // Model identifier for summarization
+)
+
+// init initializes the package by loading required environment variables.
+// It exits the program if any required variables are missing.
 func init() {
 	openAiBaseURL = os.Getenv("OPENAI_BASE_URL")
 	openAiAPIKey = os.Getenv("OPENAI_API_KEY")
@@ -49,35 +65,19 @@ func init() {
 	}
 }
 
-// SummarizeText sends a request to a configured Language Model (LLM) provider
-// (e.g., OpenAI or Ollama) to summarize the given text in the specified language.
-//
-// The function performs the following steps:
-//  1. Loads the application configuration to determine the LLM provider and its settings.
-//  2. Localizes the system and user prompts based on the specified language.
-//  3. Prepares and sends an HTTP request to the LLM provider's API.
-//  4. Decodes the API response and extracts the summarized text.
+// SummarizeText generates a summary of the input text in the specified language.
+// It handles prompt localization, API communication, and response processing.
 //
 // Parameters:
-//   - text: The text to be summarized.
-//   - lang: The language code (e.g., "en", "ru") for localization and summarization.
+//   - text: The text content to be summarized
+//   - lang: The target language for the summary (e.g., "en", "fr")
 //
 // Returns:
-//   - A string containing the summarized text.
-//   - An error if any step fails, such as configuration loading, API request, or response decoding.
+//   - The generated summary as a string
+//   - An error if the summarization fails
 //
-// Example:
-//
-//	summary, err := SummarizeText("This is a long text to summarize.", "en")
-//	if err != nil {
-//	    log.Errorf("Failed to summarize text: %v", err)
-//	}
-//	fmt.Println("Summary:", summary)
-//
-// Notes:
-//   - The function relies on the application configuration (`LoadConfig`) to determine
-//     the LLM provider (e.g., OpenAI or Ollama) and its settings (e.g., API URL, token, model).
-//   - The API response is expected to contain a "choices" field with the summarized text.
+// The function logs debug information about the summarization process and
+// errors if they occur during API communication.
 func SummarizeText(text string, lang string) (string, error) {
 	slog.Debug("SummarizeText start", "language", lang, "api", openAiBaseURL, "model", openAiModel)
 

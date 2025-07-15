@@ -1,3 +1,6 @@
+// Package transcript provides functionality to retrieve video transcripts
+// from YouTube videos. It extracts video metadata (title, uploader, thumbnail)
+// along with the transcript text in the video's primary language.
 package transcript
 
 import (
@@ -6,16 +9,35 @@ import (
 	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/youtube"
 )
 
-// VideoTranscript represents metadata about a YouTube video transcript.
+// VideoTranscript represents the complete transcript information for a video,
+// including metadata and the transcript text itself.
 type VideoTranscript struct {
-	ID         string `json:"id"`         // The unique identifier of the video.
-	Language   string `json:"language"`   // The video language.
-	Uploader   string `json:"uploader"`   // The name of the video uploader.
-	Title      string `json:"title"`      // The title of the video.
-	Thumbnail  string `json:"thumbnail"`  // The URL of the video's thumbnail.
-	Transcript string `json:"transcript"` // The URL of the video's transcript.
+	ID         string `json:"id"`         // Unique YouTube video ID
+	Language   string `json:"language"`   // Primary language code of the video (e.g., "en")
+	Uploader   string `json:"uploader"`   // Name of the video uploader/channel
+	Title      string `json:"title"`      // Title of the video
+	Thumbnail  string `json:"thumbnail"`  // URL to the video thumbnail image
+	Transcript string `json:"transcript"` // Full text transcript of the video
 }
 
+// Transcript retrieves and returns the complete transcript information
+// for a YouTube video given its URL.
+//
+// Parameters:
+//   - videoURL: The full YouTube video URL (e.g., "https://youtube.com/watch?v=...")
+//
+// Returns:
+//   - *VideoTranscript containing all video metadata and transcript text
+//   - error if any step of the process fails (video info or transcript retrieval)
+//
+// Example:
+//
+//	transcript, err := Transcript("https://youtube.com/watch?v=dQw4w9WgXcQ")
+//	if err != nil {
+//	    // handle error
+//	}
+//	fmt.Println(transcript.Title)       // Print video title
+//	fmt.Println(transcript.Transcript)  // Print transcript text
 func Transcript(videoURL string) (*VideoTranscript, error) {
 	videoInfo, err := youtube.VideoInfo(videoURL)
 	if err != nil {

@@ -12,28 +12,23 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// localesFolder specifies where localization files are placed
 const (
+	// localesFolder is the name of the directory containing translation files.
 	localesFolder = "locales"
-	extension     = "yml"
+	// extension is the file extension for translation files.
+	extension = "yml"
 )
 
-// bundle is a global instance of the i18n bundle used for managing translations.
+// defaultBundle holds the atomic pointer to the i18n bundle.
 var defaultBundle atomic.Pointer[i18n.Bundle]
 
 func init() {
 	defaultBundle.Store(bundle())
 }
 
-// bundle initializes the localization bundle by loading translation files
-// from the `locales` directory.
-//
-// The function registers JSON as the unmarshal function for translation files and
-// loads all `.json` files from the `locales` directory.
-//
-// Example:
-//
-//	bundle()
+// bundle initializes and returns a new i18n bundle with translations loaded
+// from the locales directory. The bundle uses English as default language
+// and YAML as the translation file format.
 func bundle() *i18n.Bundle {
 	// Create a new bundle with the default language (English)
 	bundle := i18n.NewBundle(language.English)
@@ -55,20 +50,8 @@ func bundle() *i18n.Bundle {
 	return bundle
 }
 
-// localizer returns a localizer for the specified language.
-//
-// If the language is not specified, the default language (English) is used.
-//
-// Parameters:
-//   - lang: The language code (e.g. "en") for which to create the localizer.
-//
-// Returns:
-//   - A pointer to an i18n.localizer instance for the specified language.
-//
-// Example:
-//
-//	localizer := localizer("ru")
-//	message := localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "welcome"})
+// localizer creates and returns a new Localizer for the specified language.
+// If language is empty, defaults to English.
 func localizer(lang string) *i18n.Localizer {
 	if lang == "" {
 		lang = language.English.String()
@@ -78,14 +61,25 @@ func localizer(lang string) *i18n.Localizer {
 	return localizer
 }
 
+// Localize translates a message ID to the specified language.
+// Returns the translated string or an error if translation fails.
+// If languageCode is empty, defaults to English.
 func Localize(languageCode string, messageID string) (string, error) {
 	return localizer(languageCode).Localize(&i18n.LocalizeConfig{MessageID: messageID})
 }
 
+// MustLocalize translates a message ID to the specified language.
+// Panics if translation fails. If languageCode is empty, defaults to English.
 func MustLocalize(languageCode string, messageID string) string {
 	return localizer(languageCode).MustLocalize(&i18n.LocalizeConfig{MessageID: messageID})
 }
 
+// MustLocalizeTemplate translates a message ID with template data to the specified language.
+// Panics if translation fails. If languageCode is empty, defaults to English.
+// The templateData parameter is used to interpolate values in the translated message.
 func MustLocalizeTemplate(languageCode string, messageID string, templateData interface{}) string {
-	return localizer(languageCode).MustLocalize(&i18n.LocalizeConfig{MessageID: messageID, TemplateData: templateData})
+	return localizer(languageCode).MustLocalize(&i18n.LocalizeConfig{
+		MessageID:    messageID,
+		TemplateData: templateData,
+	})
 }

@@ -5,56 +5,25 @@ import (
 	"strings"
 )
 
-// CleanSRT cleans up a transcript string by removing empty lines,
-// timeline lines, numeric lines (subtitle sequence numbers), and duplicate lines.
+// CleanSRT processes SRT (SubRip Subtitle) formatted text and returns a cleaned version.
+// It performs the following operations:
+//   - Removes empty lines
+//   - Removes timeline markers (e.g., "00:00:00,000 --> 00:00:00,000")
+//   - Removes subtitle sequence numbers
+//   - Deduplicates repeated lines
+//   - Joins remaining lines with spaces
 //
-// It takes the transcript text as input and returns the cleaned transcript
-// as a string and an error if any issue occurs during processing.
+// Parameters:
+//   - text: The input SRT formatted text to be cleaned
 //
-// The function performs the following cleaning operations:
-//   - Skips empty lines: Lines consisting only of whitespace are removed.
-//   - Skips timeline lines: Lines matching the SRT timeline format
-//     "HH:MM:SS,milliseconds --> HH:MM:SS,milliseconds" are removed.
-//   - Skips numeric lines: Lines that can be parsed as integers are removed,
-//     assuming these are subtitle sequence numbers.
-//   - Removes duplicate lines: Only the first occurrence of each unique line is kept.
+// Returns:
+//   - string: The cleaned text with all lines joined by spaces
+//   - error: Non-nil if any error occurs during string building
 //
 // Example:
 //
-//	transcript := `1
-//	00:00:00,000 --> 00:00:05,000
-//	Hello world
-//
-//	2
-//	00:00:05,000 --> 00:00:10,000
-//	Hello world
-//	Duplicate line
-//
-//	Duplicate line
-//
-//	3
-//	00:00:10,000 --> 00:00:15,000
-//	Another line
-//	`
-//	cleanedTranscript, err := CleanSRT(transcript)
-//	if err != nil {
-//		fmt.Println("Error:", err)
-//		return
-//	}
-//	fmt.Println(cleanedTranscript)
-//	// Output:
-//	// Hello world
-//	// Duplicate line
-//	// Another line
-//
-// Args:
-//
-//	text: The SRT transcript text as a string.
-//
-// Returns:
-//
-//	string: The cleaned transcript string.
-//	error:  An error if there was an issue during processing. Returns nil in normal cases.
+//	cleaned, err := CleanSRT("1\n00:00:00,000 --> 00:00:02,000\nHello\nHello\n\n2\n00:00:03,000 --> 00:00:05,000\nWorld")
+//	// Returns: "Hello World", nil
 func CleanSRT(text string) (string, error) {
 	var sb strings.Builder
 	seen := make(map[string]bool)

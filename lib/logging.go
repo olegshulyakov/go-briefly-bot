@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// Sets slog default log options
+// Sets slog default log options.
 func init() {
 	opts := &slog.HandlerOptions{
 		AddSource: false,

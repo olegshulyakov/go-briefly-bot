@@ -1,3 +1,9 @@
+// Package youtube provides functionality for interacting with YouTube videos,
+// including retrieving video information and transcripts.
+//
+// The package uses yt-dlp (https://github.com/yt-dlp/yt-dlp) as a backend
+// for fetching data from YouTube. Additional yt-dlp options can be configured
+// through the YT_DLP_ADDITIONAL_OPTIONS environment variable.
 package youtube
 
 import (
@@ -13,6 +19,8 @@ import (
 )
 
 var (
+	// ytDlpAdditionalOptions contains additional command-line options for yt-dlp
+	// parsed from YT_DLP_ADDITIONAL_OPTIONS environment variable.
 	ytDlpAdditionalOptions []string
 )
 
@@ -29,28 +37,9 @@ type Info struct {
 	Thumbnail string `json:"thumbnail"` // The URL of the video's thumbnail.
 }
 
-// VideoInfo retrieves metadata about a YouTube video using its URL.
-//
-// The function uses the `yt-dlp` command-line tool to extract video information
-// in JSON format and then parses it into a VideoInfo struct.
-//
-// Parameters:
-//   - videoURL: The URL of the YouTube video.
-//
-// Returns:
-//   - A VideoInfo struct containing the video's metadata.
-//   - An error if the video information cannot be extracted or parsed.
-//
-// Example:
-//
-//	videoInfo, err := VideoInfo("https://www.youtube.com/watch?v=example")
-//	if err != nil {
-//	    log.Errorf("Failed to get video info: %v", err)
-//	}
-//	fmt.Printf("Video Title: %s\n", videoInfo.Title)
-//
-// Notes:
-//   - The function relies on the `yt-dlp` tool being installed and accessible in the system's PATH.
+// VideoInfo retrieves metadata about a YouTube video from its URL.
+// It returns an Info struct containing video details or an error if the operation fails.
+// The function validates the URL before attempting to fetch information.
 func VideoInfo(videoURL string) (*Info, error) {
 	slog.Debug("VideoInfo download", "url", videoURL)
 	defer slog.Debug("VideoInfo downloaded", "url", videoURL)
@@ -75,30 +64,10 @@ func VideoInfo(videoURL string) (*Info, error) {
 	return videoInfo, nil
 }
 
-// Transcript retrieves the transcript of a YouTube video using its URL.
-//
-// The function uses the `yt-dlp` command-line tool to extract the transcript
-// in SRT format, reads the transcript file, and then deletes the file.
-//
-// Parameters:
-//   - videoURL: The URL of the YouTube video.
-//
-// Returns:
-//   - A string containing the transcript of the video.
-//   - An error if the transcript cannot be extracted, read, or the file cannot be deleted.
-//
-// Example:
-//
-//	transcript, err := Transcript("https://www.youtube.com/watch?v=example")
-//	if err != nil {
-//	    log.Errorf("Failed to get transcript: %v", err)
-//	}
-//	fmt.Println("Transcript:", transcript)
-//
-// Notes:
-//   - The function relies on the `yt-dlp` tool being installed and accessible in the system's PATH.
-//   - The transcript is extracted in Russian (`ru` and `ru_auto`) and saved as an SRT file.
-//   - The transcript file is deleted after reading to clean up temporary files.
+// Transcript retrieves the transcript/subtitles for a YouTube video.
+// It accepts a video URL and optional language code (defaults to English if empty).
+// Returns the cleaned transcript text in SRT format or an error if the operation fails.
+// The function automatically removes the downloaded subtitle file after reading it.
 func Transcript(videoURL string, languageCode string) (string, error) {
 	slog.Debug("Transcript load", "url", videoURL)
 	defer slog.Debug("Transcript loaded", "url", videoURL)
@@ -154,6 +123,10 @@ func Transcript(videoURL string, languageCode string) (string, error) {
 	return transcript, nil
 }
 
+// execYtDlp executes the yt-dlp command with the provided arguments and URL.
+// It automatically retries the command up to 3 times on failure and includes
+// any additional options specified in YT_DLP_ADDITIONAL_OPTIONS.
+// Returns the command output or an error if all attempts fail.
 func execYtDlp(arguments []string, url string) ([]byte, error) {
 	const maxAttempts = 3
 	var (

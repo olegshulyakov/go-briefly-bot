@@ -1,3 +1,6 @@
+// Package youtube provides utilities for working with YouTube URLs.
+// It includes functionality to validate YouTube URLs, extract video IDs,
+// and find all YouTube URLs in a given text.
 package youtube
 
 import (
@@ -5,24 +8,17 @@ import (
 	"regexp"
 )
 
-// Constant string representing the regular expression pattern used to match YouTube video URLs.
-//   - This pattern is designed to handle various YouTube URL formats, including:
-//   - - Full URLs with "https://" or "http://"
-//   - - URLs with "www."
-//   - - Shortened URLs like "youtu.be/"
-//   - - URLs with the standard "youtube.com/watch?v="
+// youtubeURLPattern is the regular expression pattern used to match YouTube URLs.
+// It supports various formats including:
+// - https://www.youtube.com/watch?v=ID,
+// - http://youtu.be/ID,
+// - www.youtube.com/watch?v=ID,
+// - youtube.com/watch?v=ID.
 const youtubeURLPattern = `(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})`
 
-// IsValidURL checks if the provided text contains a valid YouTube URL.
-//
-// It compiles a regular expression defined by YoutubeUrlPattern and uses it to
-// determine whether the input text contains a YouTube URL.
-//
-// Parameters:
-//   - text: The string to check for a YouTube URL.
-//
-// Returns:
-//   - true if the text contains a valid YouTube URL, false otherwise.
+// IsValidURL checks if the given text string contains a valid YouTube URL.
+// Returns true if the text matches the YouTube URL pattern, false otherwise.
+// An empty string will always return false.
 func IsValidURL(text string) bool {
 	if text == "" {
 		return false
@@ -30,6 +26,10 @@ func IsValidURL(text string) bool {
 	return ytRegexp().MatchString(text)
 }
 
+// GetID extracts the YouTube video ID from a valid YouTube URL.
+// Returns the 11-character video ID if found, or an error if:
+// - The input is not a valid YouTube URL.
+// - No video ID could be extracted from the URL.
 func GetID(text string) (string, error) {
 	if !IsValidURL(text) {
 		return "", errors.New("no valid URL found")
@@ -41,23 +41,8 @@ func GetID(text string) (string, error) {
 	return matches[1], nil
 }
 
-// ExtractURLs extracts all YouTube URLs from the given text.
-// It uses a regular expression to find all matching URLs.
-//
-// Parameters:
-//   - text: The string to extract YouTube URLs from.
-//
-// Returns:
-//   - A slice of strings containing all the YouTube URLs found in the text.
-//   - An error if there was an error compiling the regex.
-//
-// Example:
-//
-//	urls, err := ExtractURLs("Check out this video: https://www.youtube.com/watch?v=dQw4w9WgXcQ and another one at https://youtu.be/abcdefg123")
-//	if err != nil {
-//	    log.Errorf("Error extracting URLs: %v", err)
-//	}
-//	fmt.Println("URLs:", urls)
+// ExtractURLs finds all valid YouTube URLs in the given text.
+// Returns a slice of all matching YouTube URL strings, or an error if no valid URLs are found.
 func ExtractURLs(text string) ([]string, error) {
 	if !IsValidURL(text) {
 		return nil, errors.New("no valid URL found")
@@ -65,6 +50,8 @@ func ExtractURLs(text string) ([]string, error) {
 	return ytRegexp().FindAllString(text, -1), nil
 }
 
+// ytRegexp compiles and returns the regular expression for matching YouTube URLs.
+// Uses the youtubeURLPattern constant and panics if the pattern is invalid.
 func ytRegexp() *regexp.Regexp {
 	return regexp.MustCompile(youtubeURLPattern)
 }
