@@ -14,12 +14,8 @@ telegram:
     info_failed: ❌ Sorry, I couldn't fetch the information for this video.
     transcript_failed: ❌ Sorry, I couldn't fetch the transcript for this video.
     summary_failed: ❌ Sorry, I couldn't summarize the transcript.
-  result:
-    first_message: |-
-      📖 **{{.title}}**
-
-      {{.text}}
-    message: "{{.text}}"
+  response:
+    title: 📖 **{{.title}}**
 
 llm:
   prompt: |-

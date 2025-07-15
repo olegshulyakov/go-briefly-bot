@@ -14,12 +14,8 @@ telegram:
     info_failed: ❌ 抱歉，我无法获取此视频的信息。
     transcript_failed: ❌ 抱歉，我无法获取此视频的文字稿。
     summary_failed: ❌ 抱歉，我无法总结文字稿。
-  result:
-    first_message: |-
-      📖 **{{.title}}**
-
-      {{.text}}
-    message: "{{.text}}"
+  response:
+    title: 📖 **{{.title}}**
 
   prompt: |-
     Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Chinese.

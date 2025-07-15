@@ -14,12 +14,8 @@ telegram:
     info_failed: ❌ 죄송합니다. 이 비디오의 정보를 가져올 수 없습니다.
     transcript_failed: ❌ 죄송합니다. 이 비디오의 스크립트를 가져올 수 없습니다.
     summary_failed: ❌ 죄송합니다. 스크립트를 요약할 수 없습니다.
-  result:
-    first_message: |-
-      📖 **{{.title}}**
-
-      {{.text}}
-    message: "{{.text}}"
+  response:
+    title: 📖 **{{.title}}**
 
   prompt: |-
     Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Korean.
