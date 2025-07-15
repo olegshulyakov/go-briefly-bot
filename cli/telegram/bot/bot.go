@@ -1,5 +1,20 @@
 // Package bot provides functionality to handle Telegram bot interactions,
 // including message processing, rate limiting, and YouTube video summarization.
+//
+// The package offers:
+// - Telegram bot initialization and configuration
+// - Message handling with rate limiting
+// - YouTube video URL extraction and processing
+// - Video transcript fetching and summarization
+// - Localized responses based on user language
+// - Message formatting and chunking for Telegram's message length limits
+//
+// Key Features:
+// - Rate limiting to prevent abuse (30-second cooldown per user)
+// - Support for both plain text and formatted (Markdown/HTML) messages
+// - Automatic splitting of long messages to comply with Telegram's limits
+// - Progress updates during video processing
+// - Error handling with localized user feedback
 package bot
 
 import (
@@ -16,7 +31,10 @@ import (
 	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/youtube"
 )
 
-const telegramMessageMaxLength = 4000
+const (
+	// maxLength defines the maximum length for a single Telegram message
+	maxLength = 4000
+)
 
 var (
 	// Bot is the global Telegram bot instance.
@@ -29,12 +47,21 @@ var (
 	userMutex = sync.Mutex{}
 )
 
+// New initializes a new Telegram bot instance with the provided API token.
+// It sets the global Bot variable and returns the initialized bot instance.
 func New(token string) (bot *tgbotapi.BotAPI, err error) {
 	bot, err = tgbotapi.NewBotAPI(token)
 	Bot = bot
 	return
 }
 
+// Handle processes incoming Telegram updates, routing them to appropriate handlers.
+// It performs initial validation including:
+// - Nil message checks
+// - Bot user detection
+// - Rate limiting enforcement
+// - Command handling (currently only "/start")
+// - Regular message processing
 func Handle(update tgbotapi.Update) {
 	message := update.Message
 	if message == nil {
@@ -83,6 +110,8 @@ func Handle(update tgbotapi.Update) {
 	handle(message)
 }
 
+// sendRetry attempts to send a message with retry logic (max 3 attempts).
+// Returns the sent message or error if all attempts fail.
 func sendRetry(msg tgbotapi.Chattable) (tgbotapi.Message, error) {
 	const maxRetries = 3
 	var err error
@@ -100,12 +129,16 @@ func sendRetry(msg tgbotapi.Chattable) (tgbotapi.Message, error) {
 	return tgbotapi.Message{}, err
 }
 
+// send creates and sends a plain text reply message to the user.
+// Returns the sent message or error.
 func send(userMessage *tgbotapi.Message, text string) (tgbotapi.Message, error) {
 	msg := tgbotapi.NewMessage(userMessage.Chat.ID, text)
 	msg.ReplyToMessageID = userMessage.MessageID
 	return sendRetry(msg)
 }
 
+// sendFormatted creates and sends a formatted (HTML) reply message to the user.
+// Returns the sent message or error.
 func sendFormatted(userMessage *tgbotapi.Message, text string) (tgbotapi.Message, error) {
 	escapedMessageText := tg_md2html.MD2HTMLV2(text)
 
@@ -115,22 +148,29 @@ func sendFormatted(userMessage *tgbotapi.Message, text string) (tgbotapi.Message
 	return sendRetry(msg)
 }
 
+// edit modifies an existing message with new text.
+// Returns the edited message or error.
 func edit(userMessage *tgbotapi.Message, messageToEdit tgbotapi.Message, text string) (tgbotapi.Message, error) {
 	editMsg := tgbotapi.NewEditMessageText(userMessage.Chat.ID, messageToEdit.MessageID, text)
 	return sendRetry(editMsg)
 }
 
+// sendQuite sends a message without returning any response or error (fire-and-forget).
 func sendQuite(userMessage *tgbotapi.Message, text string) {
 	msg := tgbotapi.NewMessage(userMessage.Chat.ID, text)
 	msg.ReplyToMessageID = userMessage.MessageID
 	_, _ = Bot.Send(msg)
 }
 
+// deleteQuite deletes a message without returning any response or error (fire-and-forget).
 func deleteQuite(userMessage *tgbotapi.Message, message tgbotapi.Message) {
 	deleteMsg := tgbotapi.NewDeleteMessage(userMessage.Chat.ID, message.MessageID)
 	_, _ = Bot.Send(deleteMsg)
 }
 
+// isUserRateLimited checks if a user has made a request within the rate limit window (30 seconds).
+// Updates the last request time if the user is not rate-limited.
+// Returns true if the user should be rate-limited.
 func isUserRateLimited(userID int64) bool {
 	userMutex.Lock()
 	defer userMutex.Unlock()
@@ -144,6 +184,14 @@ func isUserRateLimited(userID int64) bool {
 	return false
 }
 
+// handle processes non-command messages containing YouTube URLs.
+// It performs the following steps:
+// 1. Extracts YouTube URLs from the message
+// 2. Sends progress updates to the user
+// 3. Fetches video transcript
+// 4. Generates a summary
+// 5. Sends the results back to the user
+// 6. Cleans up progress messages
 func handle(message *tgbotapi.Message) {
 	text := message.Text
 	slog.Debug(
@@ -238,7 +286,7 @@ func handle(message *tgbotapi.Message) {
 		),
 		summary,
 	)
-	chunks := lib.SplitStringIntoChunks(response, telegramMessageMaxLength)
+	chunks := lib.SplitStringIntoChunks(response, maxLength)
 	for i, chunk := range chunks {
 		slog.Debug("Attempt to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL)
 		_, err = sendFormatted(message, chunk)
