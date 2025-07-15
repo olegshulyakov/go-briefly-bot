@@ -17,12 +17,12 @@ type VideoTranscript struct {
 }
 
 func GetYoutubeVideoTranscript(videoURL string) (*VideoTranscript, error) {
-	videoInfo, err := youtube.GetYoutubeVideoInfo(videoURL)
+	videoInfo, err := youtube.VideoInfo(videoURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video info: %s", videoURL)
 	}
 
-	transcript, err := youtube.GetYoutubeTranscript(videoURL, videoInfo.Language)
+	transcript, err := youtube.Transcript(videoURL, videoInfo.Language)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video transcript: %s", videoURL)
 	}

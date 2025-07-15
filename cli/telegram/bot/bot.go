@@ -199,7 +199,7 @@ func handleTelegramMessage(message *tgbotapi.Message) {
 	}
 
 	// Check if the message contains a YouTube link and extract URL
-	videoURLs, err := youtube.ExtractAllYouTubeURLs(text)
+	videoURLs, err := youtube.ExtractURLs(text)
 	if err != nil {
 		slog.Error("Got invalid processing message", "userId", message.From.ID, "user", message.From, "text", text)
 		sendErrorMessage(message, lib.MustLocalize(message.From.LanguageCode, "telegram.error.no_url_found"))

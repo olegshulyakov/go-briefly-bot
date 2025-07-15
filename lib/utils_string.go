@@ -12,10 +12,12 @@ func SplitStringIntoChunks(text string, chunkSize int) []string {
 		return []string{text} // Return the original string as a single chunk if chunkSize is not positive.
 	}
 
-	var chunks []string
-	var currentChunk strings.Builder
-	runeCount := 0
-	runeIndex := 0 // Track rune index within the text for slicing
+	var (
+		chunks       []string
+		currentChunk strings.Builder
+		runeCount    = 0
+		runeIndex    = 0 // Track rune index within the text for slicing
+	)
 
 	for index := 0; index < len(text); {
 		_, size := utf8.DecodeRuneInString(text[index:]) // Get the rune and its size in bytes

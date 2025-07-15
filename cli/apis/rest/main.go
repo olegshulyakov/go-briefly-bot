@@ -66,7 +66,7 @@ func postSummarizeText(c *gin.Context) {
 func getVideoInfo(c *gin.Context) {
 	url := c.Query("url")
 
-	videoInfo, err := youtube.GetYoutubeVideoInfo(url)
+	videoInfo, err := youtube.VideoInfo(url)
 
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)

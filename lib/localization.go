@@ -13,18 +13,19 @@ import (
 )
 
 // localesFolder specifies where localization files are placed
-const localesFolder = "locales"
-
-const extension = "yml"
+const (
+	localesFolder = "locales"
+	extension     = "yml"
+)
 
 // bundle is a global instance of the i18n bundle used for managing translations.
 var defaultBundle atomic.Pointer[i18n.Bundle]
 
 func init() {
-	defaultBundle.Store(getBundle())
+	defaultBundle.Store(bundle())
 }
 
-// getBundle initializes the localization bundle by loading translation files
+// bundle initializes the localization bundle by loading translation files
 // from the `locales` directory.
 //
 // The function registers JSON as the unmarshal function for translation files and
@@ -32,8 +33,8 @@ func init() {
 //
 // Example:
 //
-//	getBundle()
-func getBundle() *i18n.Bundle {
+//	bundle()
+func bundle() *i18n.Bundle {
 	// Create a new bundle with the default language (English)
 	bundle := i18n.NewBundle(language.English)
 
@@ -54,7 +55,7 @@ func getBundle() *i18n.Bundle {
 	return bundle
 }
 
-// getLocalizer returns a localizer for the specified language.
+// localizer returns a localizer for the specified language.
 //
 // If the language is not specified, the default language (English) is used.
 //
@@ -62,13 +63,13 @@ func getBundle() *i18n.Bundle {
 //   - lang: The language code (e.g. "en") for which to create the localizer.
 //
 // Returns:
-//   - A pointer to an i18n.Localizer instance for the specified language.
+//   - A pointer to an i18n.localizer instance for the specified language.
 //
 // Example:
 //
-//	localizer := getLocalizer("ru")
+//	localizer := localizer("ru")
 //	message := localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "welcome"})
-func getLocalizer(lang string) *i18n.Localizer {
+func localizer(lang string) *i18n.Localizer {
 	if lang == "" {
 		lang = language.English.String()
 	}
@@ -78,13 +79,13 @@ func getLocalizer(lang string) *i18n.Localizer {
 }
 
 func Localize(languageCode string, messageID string) (string, error) {
-	return getLocalizer(languageCode).Localize(&i18n.LocalizeConfig{MessageID: messageID})
+	return localizer(languageCode).Localize(&i18n.LocalizeConfig{MessageID: messageID})
 }
 
 func MustLocalize(languageCode string, messageID string) string {
-	return getLocalizer(languageCode).MustLocalize(&i18n.LocalizeConfig{MessageID: messageID})
+	return localizer(languageCode).MustLocalize(&i18n.LocalizeConfig{MessageID: messageID})
 }
 
 func MustLocalizeTemplate(languageCode string, messageID string, templateData interface{}) string {
-	return getLocalizer(languageCode).MustLocalize(&i18n.LocalizeConfig{MessageID: messageID, TemplateData: templateData})
+	return localizer(languageCode).MustLocalize(&i18n.LocalizeConfig{MessageID: messageID, TemplateData: templateData})
 }

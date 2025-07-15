@@ -13,7 +13,7 @@ import (
 //   - - URLs with the standard "youtube.com/watch?v="
 const youtubeURLPattern = `(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})`
 
-// IsValidYouTubeURL checks if the provided text contains a valid YouTube URL.
+// IsValidURL checks if the provided text contains a valid YouTube URL.
 //
 // It compiles a regular expression defined by YoutubeUrlPattern and uses it to
 // determine whether the input text contains a YouTube URL.
@@ -23,25 +23,25 @@ const youtubeURLPattern = `(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|
 //
 // Returns:
 //   - true if the text contains a valid YouTube URL, false otherwise.
-func IsValidYouTubeURL(text string) bool {
-	re := getYouTubeRegexp()
-	return re.MatchString(text)
+func IsValidURL(text string) bool {
+	if text == "" {
+		return false
+	}
+	return ytRegexp().MatchString(text)
 }
 
-func GetYouTubeID(text string) (string, error) {
-	if !IsValidYouTubeURL(text) {
+func GetID(text string) (string, error) {
+	if !IsValidURL(text) {
 		return "", errors.New("no valid URL found")
 	}
-
-	re := getYouTubeRegexp()
-	matches := re.FindStringSubmatch(text)
+	matches := ytRegexp().FindStringSubmatch(text)
 	if len(matches) == 0 {
 		return "", errors.New("YouTube ID not found")
 	}
 	return matches[1], nil
 }
 
-// ExtractAllYouTubeURLs extracts all YouTube URLs from the given text.
+// ExtractURLs extracts all YouTube URLs from the given text.
 // It uses a regular expression to find all matching URLs.
 //
 // Parameters:
@@ -53,20 +53,18 @@ func GetYouTubeID(text string) (string, error) {
 //
 // Example:
 //
-//	urls, err := ExtractAllYouTubeURLs("Check out this video: https://www.youtube.com/watch?v=dQw4w9WgXcQ and another one at https://youtu.be/abcdefg123")
+//	urls, err := ExtractURLs("Check out this video: https://www.youtube.com/watch?v=dQw4w9WgXcQ and another one at https://youtu.be/abcdefg123")
 //	if err != nil {
 //	    log.Errorf("Error extracting URLs: %v", err)
 //	}
 //	fmt.Println("URLs:", urls)
-func ExtractAllYouTubeURLs(text string) ([]string, error) {
-	if !IsValidYouTubeURL(text) {
+func ExtractURLs(text string) ([]string, error) {
+	if !IsValidURL(text) {
 		return nil, errors.New("no valid URL found")
 	}
-
-	re := getYouTubeRegexp()
-	return re.FindAllString(text, -1), nil
+	return ytRegexp().FindAllString(text, -1), nil
 }
 
-func getYouTubeRegexp() *regexp.Regexp {
+func ytRegexp() *regexp.Regexp {
 	return regexp.MustCompile(youtubeURLPattern)
 }
