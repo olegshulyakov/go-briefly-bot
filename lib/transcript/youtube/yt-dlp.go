@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/utils"
@@ -128,7 +129,7 @@ func Transcript(videoURL string, languageCode string) (string, error) {
 			"--write-auto-subs",
 			"--convert-subs", extension,
 			"--sub-lang", fmt.Sprintf("%s,%s_auto,-live_chat", languageCode, languageCode),
-			"--output", fmt.Sprintf("subtitles_%s.%%(ext)s", videoID),
+			"--output", filepath.Join(os.TempDir(), fmt.Sprintf("subtitles_%s.%%(ext)s", videoID)),
 		},
 		videoURL,
 	)
@@ -137,7 +138,7 @@ func Transcript(videoURL string, languageCode string) (string, error) {
 	}
 
 	// Read the transcript file
-	if transcript, err = utils.ReadAndRemoveFile(fmt.Sprintf("subtitles_%s.%s.%s", videoID, languageCode, extension)); err != nil {
+	if transcript, err = utils.ReadAndRemoveFile(filepath.Join(os.TempDir(), fmt.Sprintf("subtitles_%s.%s.%s", videoID, languageCode, extension))); err != nil {
 		return "", err
 	}
 
@@ -165,6 +166,7 @@ func execYtDlp(arguments []string, url string) ([]byte, error) {
 	args = append(args, url)
 
 	// Execute with retry
+	slog.Debug("Executing yt-dlp", "args", args)
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		if output, err = exec.Command("yt-dlp", args...).Output(); err == nil {
 			break
