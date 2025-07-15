@@ -42,7 +42,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: .build/Telegram.Dockerfile
+          file: .devops/Telegram.Dockerfile
           platforms: ${{ matrix.platform }}
           push: false
           cache-from: type=gha

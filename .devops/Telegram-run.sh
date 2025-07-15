@@ -3,7 +3,7 @@
 image_name="go-briefly-telegram"
 container_name="go-briefly-telegram"
 
-docker build -t "$image_name" --file .build/Telegram.Dockerfile .
+docker build -t "$image_name" --file .devops/Telegram.Dockerfile .
 docker stop "$container_name" &>/dev/null || true
 docker rm "$container_name" &>/dev/null || true
 
