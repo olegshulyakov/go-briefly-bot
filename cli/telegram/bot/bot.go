@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	// maxLength defines the maximum length for a single Telegram message
+	// maxLength defines the maximum length for a single Telegram message.
 	maxLength = 4000
 )
 
@@ -49,10 +49,10 @@ var (
 
 // New initializes a new Telegram bot instance with the provided API token.
 // It sets the global Bot variable and returns the initialized bot instance.
-func New(token string) (bot *tgbotapi.BotAPI, err error) {
-	bot, err = tgbotapi.NewBotAPI(token)
-	Bot = bot
-	return
+func New(token string) (*tgbotapi.BotAPI, error) {
+	var err error
+	Bot, err = tgbotapi.NewBotAPI(token)
+	return Bot, err
 }
 
 // Handle processes incoming Telegram updates, routing them to appropriate handlers.
@@ -61,7 +61,7 @@ func New(token string) (bot *tgbotapi.BotAPI, err error) {
 // - Bot user detection
 // - Rate limiting enforcement
 // - Command handling (currently only "/start")
-// - Regular message processing
+// - Regular message processing.
 func Handle(update tgbotapi.Update) {
 	message := update.Message
 	if message == nil {
@@ -191,20 +191,10 @@ func isUserRateLimited(userID int64) bool {
 // 3. Fetches video transcript
 // 4. Generates a summary
 // 5. Sends the results back to the user
-// 6. Cleans up progress messages
+// 6. Cleans up progress messages.
 func handle(message *tgbotapi.Message) {
 	text := message.Text
-	slog.Debug(
-		"Telegram: Request",
-		"userId",
-		message.From.ID,
-		"user",
-		message.From,
-		"language",
-		message.From.LanguageCode,
-		"text",
-		text,
-	)
+	slog.Debug("Telegram: Request", "userId", message.From.ID, "user", message.From, "language", message.From.LanguageCode, "text", text)
 
 	// Check if the message contains a YouTube link and extract URL
 	videoURLs, err := youtube.ExtractURLs(text)
@@ -224,20 +214,12 @@ func handle(message *tgbotapi.Message) {
 
 	// Check if there are multiple URLs
 	if len(videoURLs) > 1 {
-		processingMsg, _ = edit(
-			message,
-			processingMsg,
-			lib.MustLocalize(message.From.LanguageCode, "telegram.error.multiple_urls"),
-		)
+		processingMsg, _ = edit(message, processingMsg, lib.MustLocalize(message.From.LanguageCode, "telegram.error.multiple_urls"))
 	}
 	videoURL := videoURLs[0]
 
 	// Fetch video info
-	processingMsg, err = edit(
-		message,
-		processingMsg,
-		lib.MustLocalize(message.From.LanguageCode, "telegram.progress.fetching_info"),
-	)
+	processingMsg, err = edit(message, processingMsg, lib.MustLocalize(message.From.LanguageCode, "telegram.progress.fetching_info"))
 	if err != nil {
 		slog.Error("Failed to update progress message: %v", "error", err)
 		return
@@ -246,20 +228,12 @@ func handle(message *tgbotapi.Message) {
 	videoTranscript, err := transcript.Transcript(videoURL)
 	if err != nil {
 		slog.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
-		_, _ = edit(
-			message,
-			processingMsg,
-			lib.MustLocalize(message.From.LanguageCode, "telegram.error.transcript_failed"),
-		)
+		_, _ = edit(message, processingMsg, lib.MustLocalize(message.From.LanguageCode, "telegram.error.transcript_failed"))
 		return
 	}
 
 	// Summarize transcript
-	processingMsg, err = edit(
-		message,
-		processingMsg,
-		processingMsg.Text+"\n"+lib.MustLocalize(message.From.LanguageCode, "telegram.progress.summarizing"),
-	)
+	processingMsg, err = edit(message, processingMsg, lib.MustLocalize(message.From.LanguageCode, "telegram.progress.summarizing"))
 	if err != nil {
 		slog.Error("Failed to update progress message", "userId", message.From.ID, "error", err)
 		return
@@ -268,11 +242,7 @@ func handle(message *tgbotapi.Message) {
 	summary, err := summarization.SummarizeText(videoTranscript.Transcript, message.From.LanguageCode)
 	if err != nil {
 		slog.Error("Failed to summarize transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
-		_, _ = edit(
-			message,
-			processingMsg,
-			lib.MustLocalize(message.From.LanguageCode, "telegram.error.summary_failed"),
-		)
+		_, _ = edit(message, processingMsg, lib.MustLocalize(message.From.LanguageCode, "telegram.error.summary_failed"))
 		return
 	}
 
@@ -291,17 +261,7 @@ func handle(message *tgbotapi.Message) {
 		slog.Debug("Attempt to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL)
 		_, err = sendFormatted(message, chunk)
 		if err != nil {
-			slog.Error(
-				"Failed to send chunk",
-				"chunk",
-				i+1,
-				"userId",
-				message.From.ID,
-				"videoURL",
-				videoURL,
-				"error",
-				err,
-			)
+			slog.Error("Failed to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		}
 	}
 

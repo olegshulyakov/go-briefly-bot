@@ -25,6 +25,9 @@ import (
 	"github.com/olegshulyakov/go-briefly-bot/cli/telegram/bot"
 )
 
+// Client timeout.
+const timeout = 60
+
 // main is the entry point for the application. It performs the following steps:
 // 1. Validates the presence of the TELEGRAM_BOT_TOKEN environment variable
 // 2. Initializes a new Telegram bot instance
@@ -55,7 +58,7 @@ func main() {
 	slog.Info("Bot started successfully")
 
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	u.Timeout = timeout
 	updates := tgBot.GetUpdatesChan(u)
 
 	// Handle incoming updates
