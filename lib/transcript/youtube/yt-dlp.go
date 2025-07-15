@@ -136,14 +136,17 @@ func Transcript(videoURL string, languageCode string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to download transcript: %w\n%s", err, output)
 	}
-
-	// Read the transcript file
-	if transcript, err = utils.ReadAndRemoveFile(filepath.Join(os.TempDir(), fmt.Sprintf("subtitles_%s.%s.%s", videoID, languageCode, extension))); err != nil {
-		return "", err
-	}
-
 	slog.Debug("Transcript downloaded", "url", videoURL)
 
+	// Read the transcript file
+	filename := filepath.Join(os.TempDir(), fmt.Sprintf("subtitles_%s.%s.%s", videoID, languageCode, extension))
+	text, err := os.ReadFile(filename)
+	if err != nil {
+		return "", fmt.Errorf("no subtitles found: %w", err)
+	}
+	_ = os.Remove(filename)
+
+	transcript = string(text)
 	if transcript, err = utils.CleanSRT(transcript); err != nil {
 		return "", fmt.Errorf("failed to clean transcript file: %w", err)
 	}

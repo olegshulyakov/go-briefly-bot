@@ -1,8 +1,6 @@
 package utils_test
 
 import (
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/utils"
@@ -70,57 +68,4 @@ Another line`,
 			}
 		})
 	}
-}
-
-// TestReadAndRemoveFile verifies the ReadAndRemoveFile function's behavior.
-func TestReadAndRemoveFile(t *testing.T) {
-	t.Run("valid file", func(t *testing.T) {
-		content := "Test content"
-		tmpFile, err := os.CreateTemp(t.TempDir(), "testfile.*.txt")
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer os.Remove(tmpFile.Name()) // Cleanup in case of test failure
-
-		// Write content to the temporary file
-		if _, err = tmpFile.WriteString(content); err != nil {
-			t.Fatal(err)
-		}
-		if err = tmpFile.Close(); err != nil {
-			t.Fatal(err)
-		}
-
-		actualContent, err := utils.ReadAndRemoveFile(tmpFile.Name())
-		if err != nil {
-			t.Errorf("Unexpected error: %v", err)
-		}
-		if actualContent != content {
-			t.Errorf("Expected %q, got %q", content, actualContent)
-		}
-
-		// Check if the file was deleted
-		if _, err = os.Stat(tmpFile.Name()); !os.IsNotExist(err) {
-			t.Errorf("File was not deleted")
-		}
-	})
-
-	t.Run("empty filename", func(t *testing.T) {
-		_, err := utils.ReadAndRemoveFile("")
-		if err == nil {
-			t.Error("Expected error for empty filename, got none")
-		}
-		if err.Error() != "file name is empty" {
-			t.Errorf("Unexpected error message: %v", err)
-		}
-	})
-
-	t.Run("non-existent file", func(t *testing.T) {
-		_, err := utils.ReadAndRemoveFile("nonexistentfile.txt")
-		if err == nil {
-			t.Error("Expected error for non-existent file, got none")
-		}
-		if !strings.Contains(err.Error(), "no file found") {
-			t.Errorf("Error message does not contain 'no file found': %v", err)
-		}
-	})
 }

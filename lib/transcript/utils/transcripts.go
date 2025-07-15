@@ -1,9 +1,6 @@
 package utils
 
 import (
-	"errors"
-	"fmt"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -96,22 +93,4 @@ func CleanSRT(text string) (string, error) {
 		}
 	}
 	return sb.String(), nil
-}
-
-func ReadAndRemoveFile(fileName string) (string, error) {
-	if fileName == "" {
-		return "", errors.New("file name is empty")
-	}
-
-	text, err := os.ReadFile(fileName)
-	if err != nil {
-		return "", fmt.Errorf("no file found: %w", err)
-	}
-
-	err = os.Remove(fileName)
-	if err != nil {
-		return "", fmt.Errorf("failed to delete file: %w", err)
-	}
-
-	return string(text), nil
 }
