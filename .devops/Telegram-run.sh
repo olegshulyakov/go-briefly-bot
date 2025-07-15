@@ -9,6 +9,7 @@ docker rm "$container_name" &>/dev/null || true
 
 docker run -d \
     --env-file .env \
+    --volume "./data:/app/data" \
     --name "$container_name" \
     "$image_name"
 

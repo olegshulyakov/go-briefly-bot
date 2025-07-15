@@ -27,6 +27,12 @@ RUN apk add --no-cache yt-dlp=2025.06.25-r0 ffmpeg=6.1.2-r2
 # Set the working directory
 WORKDIR /app
 
+# Create the data directory
+RUN mkdir -p /app/data
+
+# Add volume
+VOLUME ["/app/data"]
+
 # Copy the built binary from the builder stage
 COPY --from=builder /app/go-briefly-telegram /usr/bin/
 
