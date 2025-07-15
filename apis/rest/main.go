@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/olegshulyakov/go-briefly-bot/briefly"
-	"github.com/olegshulyakov/go-briefly-bot/briefly/summarization"
-	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript"
-	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
+	"github.com/olegshulyakov/go-briefly-bot/lib"
+	"github.com/olegshulyakov/go-briefly-bot/lib/summarization"
+	"github.com/olegshulyakov/go-briefly-bot/lib/transcript"
+	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/youtube"
 )
 
 // Web server port
@@ -96,7 +96,7 @@ func getLocaleMessage(c *gin.Context) {
 	messageID := c.Query("messageId")
 	languageCode := c.DefaultQuery("languageCode", "en")
 
-	message, err := briefly.Localize(languageCode, messageID)
+	message, err := lib.Localize(languageCode, messageID)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return

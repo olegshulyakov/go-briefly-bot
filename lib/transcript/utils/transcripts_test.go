@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/utils"
+	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/utils"
 )
 
 // TestCleanSRT verifies that the CleanSRT function correctly processes SRT text.

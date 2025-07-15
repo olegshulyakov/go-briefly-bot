@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/utils"
+	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/utils"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/olegshulyakov/go-briefly-bot/briefly"
+	briefly "github.com/olegshulyakov/go-briefly-bot/lib"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 )

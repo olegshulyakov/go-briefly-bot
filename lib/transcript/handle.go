@@ -3,7 +3,7 @@ package transcript
 import (
 	"fmt"
 
-	"github.com/olegshulyakov/go-briefly-bot/briefly/transcript/youtube"
+	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/youtube"
 )
 
 // VideoTranscript represents metadata about a YouTube video transcript.
