@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/olegshulyakov/go-briefly-bot/clients/telegram/bot"
+	"github.com/olegshulyakov/go-briefly-bot/cli/telegram/bot"
 )
 
 // main is the entry point for the application.

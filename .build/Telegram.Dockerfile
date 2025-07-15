@@ -16,7 +16,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux go build -o go-briefly-telegram ./clients/telegram
+RUN CGO_ENABLED=0 GOOS=linux go build -o go-briefly-telegram ./cli/telegram
 
 # Stage 2: Create a lightweight runtime image
 FROM alpine:latest
