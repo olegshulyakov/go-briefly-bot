@@ -5,18 +5,18 @@ import (
 	"unicode/utf8"
 )
 
-// SplitStringIntoChunks splits a string into chunks of specified rune count.
+// ToChunks splits a string into chunks of specified rune count.
 //
 // The function takes a string and a chunkSize parameter, and returns a slice of strings
 // where each string (except possibly the last one) contains exactly chunkSize runes.
-// If chunkSize is less than or equal to 0, the original string is returned as a single chunk.
+// If chunkSize is less than or equal to 0, the empty chunk.
 //
 // This function properly handles UTF-8 encoded strings, counting runes rather than bytes,
 // ensuring that multi-byte characters are not split across chunks.
 //
 // Example:
 //
-//	chunks := SplitStringIntoChunks("Hello, 世界", 3)
+//	chunks := ToChunks("Hello, 世界", 3)
 //	// chunks will be []string{"Hel", "lo,", " 世", "界"}
 //
 // Parameters:
@@ -25,9 +25,9 @@ import (
 //
 // Returns:
 //   - A slice of strings containing the chunks.
-func SplitStringIntoChunks(text string, chunkSize int) []string {
+func ToChunks(text string, chunkSize int) []string {
 	if chunkSize <= 0 {
-		return []string{text} // Return the original string as a single chunk if chunkSize is not positive.
+		return []string{} // Return the original string as a single chunk if chunkSize is not positive.
 	}
 
 	var (
