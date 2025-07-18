@@ -24,7 +24,7 @@
       "label": "go: test",
       "type": "shell",
       "command": "go",
-      "args": ["test", "-v", "./..."],
+      "args": ["test", "./..."],
       "group": "test",
       "problemMatcher": ["$go"],
       "detail": "Run all Go tests in the project.",
