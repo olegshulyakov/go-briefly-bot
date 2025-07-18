@@ -16,11 +16,11 @@ A Telegram bot written in Go that retells YouTube videos. It uses `yt-dlp` to fe
 
 ## Prerequisites
 
-- Go 1.20 or higher
+- Go 1.21 or higher
 - Docker (optional, for containerized deployment)
 - yt-dlp
 - A Telegram bot token (get it from [BotFather](https://core.telegram.org/bots#botfather))
-- OpenRouter API key (optional, if using OpenRouter for summarization)
+- LLM API key (OpenAI, OpenRouter,..)
 
 ---
 
@@ -29,8 +29,8 @@ A Telegram bot written in Go that retells YouTube videos. It uses `yt-dlp` to fe
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/olegshulyakov/youtube-briefly-bot.git
-cd youtube-briefly-bot
+git clone https://github.com/olegshulyakov/go-briefly-bot.git
+cd go-briefly-bot
 ```
 
 ### 2. Set Up Environment Variables
@@ -47,37 +47,34 @@ TELEGRAM_BOT_TOKEN=<your_telegram_bot_token>
 
 ```env
 # yt-dlp options
-YT_DLP_PROXY=socks5://user:pass@127.0.0.1:1080/
+YT_DLP_ADDITIONAL_OPTIONS=--proxy socks5://user:pass@127.0.0.1:1080/ --cookies ./cookies.txt
 ```
 
 #### OpenAI
 
 ```env
-# Summarizer
-SUMMARIZER_PROVIDER_TYPE=openai
-SUMMARIZER_API_URL=https://api.openai.com/v1
-SUMMARIZER_API_TOKEN=your_open_ai_provider_api_token
-SUMMARIZER_MODEL=GPT-4o-mini
+# OpenAI API
+OPENAI_BASE_URL=https://api.openai.com/v1/
+OPENAI_API_KEY=your_open_ai_provider_api_token
+OPENAI_MODEL=GPT-4o-mini
 ```
 
 #### LM Studio
 
 ```env
-# Summarizer
-SUMMARIZER_PROVIDER_TYPE=openai
-SUMMARIZER_API_URL=http://127.0.0.1:1234/v1
-SUMMARIZER_API_TOKEN=not-needed
-SUMMARIZER_MODEL=qwen2.5-3b-instruct
+# OpenAI API
+OPENAI_BASE_URL=http://127.0.0.1:1234/v1/
+OPENAI_API_KEY=not-needed
+OPENAI_MODEL=qwen2.5-3b-instruct
 ```
 
 #### Ollama
 
 ```env
-# Summarizer
-SUMMARIZER_PROVIDER_TYPE=ollama
-SUMMARIZER_API_URL=http://127.0.0.1:11434/
-SUMMARIZER_API_TOKEN=not-needed
-SUMMARIZER_MODEL=llama3.1:8b
+# OpenAI API
+OPENAI_BASE_URL=http://localhost:11434/v1/
+OPENAI_API_KEY=not-needed
+OPENAI_MODEL=llama3.1:8b
 ```
 
 ### 3. Install Dependencies
@@ -92,8 +89,16 @@ Install `yt-dlp`
 
 ### 4. Build and Run Locally
 
+**REST API:**
+
 ```bash
-go run main.go
+go run cli/apis/rest/main.go
+```
+
+**Telegram Bot:**
+
+```bash
+go run cli/telegram/main.go
 ```
 
 ---
@@ -103,13 +108,13 @@ go run main.go
 ### 1. Build the Docker Image
 
 ```bash
-./scripts/build.sh
+./.devops/Telegram-build.sh
 ```
 
 ### 2. Run the Docker Container
 
 ```bash
-./scripts/run.sh
+./.devops/Telegram-run.sh
 ```
 
 ---
@@ -119,33 +124,6 @@ go run main.go
 1. Start the bot by sending the `/start` command.
 2. Send a YouTube video link to the bot.
 3. The bot will fetch the transcript, summarize it, and send the summary back to you.
-
----
-
-## Project Structure
-
-```
-go-briefly-bot/
-├── .env
-├── .gitignore
-├── .golangci.yml
-├── Dockerfile
-├── go.mod
-├── go.sum
-├── main.go
-├── config/
-│   ├── config.go
-│   ├── i18n.go
-├── handlers/
-│   ├── telegram_bot.go
-├── locales/
-├── scripts/
-├── services/
-│   ├── youtube.go
-│   ├── summarizer.go
-└── utils/
-    └── string_utils.go
-```
 
 ---
 
