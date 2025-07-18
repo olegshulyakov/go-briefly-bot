@@ -21,8 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/olegshulyakov/go-briefly-bot/lib"
 	"github.com/olegshulyakov/go-briefly-bot/lib/summarization"
-	"github.com/olegshulyakov/go-briefly-bot/lib/transcript"
-	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/youtube"
+	"github.com/olegshulyakov/go-briefly-bot/lib/video/youtube/ytdlp"
 )
 
 // Web server port.
@@ -88,7 +87,7 @@ func postSummarizeText(c *gin.Context) {
 func getVideoInfo(c *gin.Context) {
 	url := c.Query("url")
 
-	videoInfo, err := youtube.VideoInfo(url)
+	videoInfo, err := ytdlp.New().VideoInfo(url)
 
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
@@ -104,7 +103,7 @@ func getVideoInfo(c *gin.Context) {
 func getVideoTranscript(c *gin.Context) {
 	url := c.Query("url")
 
-	videoTranscript, err := transcript.Transcript(url)
+	videoTranscript, err := ytdlp.New().Transcript(url)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return

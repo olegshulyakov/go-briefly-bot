@@ -27,8 +27,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/olegshulyakov/go-briefly-bot/lib"
 	"github.com/olegshulyakov/go-briefly-bot/lib/summarization"
-	"github.com/olegshulyakov/go-briefly-bot/lib/transcript"
-	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/youtube"
+	"github.com/olegshulyakov/go-briefly-bot/lib/video/youtube"
+	"github.com/olegshulyakov/go-briefly-bot/lib/video/youtube/ytdlp"
 )
 
 const (
@@ -225,7 +225,7 @@ func handle(message *tgbotapi.Message) {
 		return
 	}
 
-	videoTranscript, err := transcript.Transcript(videoURL)
+	videoTranscript, err := ytdlp.New().Transcript(videoURL)
 	if err != nil {
 		slog.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		_, _ = edit(message, processingMsg, lib.MustLocalize(message.From.LanguageCode, "telegram.error.transcript_failed"))

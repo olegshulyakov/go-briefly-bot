@@ -3,7 +3,7 @@ package utils_test
 import (
 	"testing"
 
-	"github.com/olegshulyakov/go-briefly-bot/lib/transcript/utils"
+	"github.com/olegshulyakov/go-briefly-bot/lib/video/utils"
 )
 
 // TestCleanSRT verifies that the CleanSRT function correctly processes SRT text.
