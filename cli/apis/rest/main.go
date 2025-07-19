@@ -20,8 +20,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olegshulyakov/go-briefly-bot/lib"
-	"github.com/olegshulyakov/go-briefly-bot/lib/summarization"
-	"github.com/olegshulyakov/go-briefly-bot/lib/video/youtube/ytdlp"
+	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube/ytdlp"
+	"github.com/olegshulyakov/go-briefly-bot/lib/transformers/summarization"
 )
 
 // Web server port.

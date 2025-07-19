@@ -3,7 +3,7 @@ package youtube_test
 import (
 	"testing"
 
-	"github.com/olegshulyakov/go-briefly-bot/lib/video/youtube"
+	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube"
 )
 
 func TestIsValidURL(t *testing.T) {
