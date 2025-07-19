@@ -15,15 +15,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-telegram:
+  telegram-build-telegram:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64
 
     steps:
       - name: Checkout repository
@@ -43,7 +36,5 @@ jobs:
         with:
           context: .
           file: .devops/Telegram.Dockerfile
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64,linux/arm64
           push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
