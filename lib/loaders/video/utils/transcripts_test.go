@@ -21,7 +21,7 @@ Hello
 2
 00:00:00,002 --> 00:00:00,003
 World`,
-			expected: "Hello World ",
+			expected: "Hello World",
 		},
 		{
 			name: "duplicates",
@@ -31,7 +31,7 @@ Line
 2
 00:00:00,002 --> 00:00:00,003
 Line`,
-			expected: "Line ",
+			expected: "Line",
 		},
 		{
 			name: "all_skipped",
@@ -44,7 +44,15 @@ Line`,
 			name: "leading_and_trailing_spaces",
 			input: `   Text
  Text  `,
-			expected: "   Text ",
+			expected: "Text",
+		},
+		{
+			name: "special_symbols",
+			input: `
+Some text\h\h
+
+Another line\h`,
+			expected: "Some text Another line",
 		},
 		{
 			name: "empty_lines",
@@ -52,7 +60,7 @@ Line`,
 Some text
 
 Another line`,
-			expected: "Some text Another line ",
+			expected: "Some text Another line",
 		},
 	}
 

@@ -25,19 +25,14 @@ import (
 //	cleaned, err := CleanSRT("1\n00:00:00,000 --> 00:00:02,000\nHello\nHello\n\n2\n00:00:03,000 --> 00:00:05,000\nWorld")
 //	// Returns: "Hello World", nil
 func CleanSRT(text string) (string, error) {
-	var sb strings.Builder
-	seen := make(map[string]bool)
 	timelineRegex := regexp.MustCompile(`^\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}$`)
 	numericLinesRegex := regexp.MustCompile(`^\d+$`)
-	lines := strings.Split(text, "\n")
+	specialCharactersAtEndRegex := regexp.MustCompile(`(\\\w)+$`)
 
-	for _, line := range lines {
+	var sb strings.Builder
+	seen := make(map[string]bool)
+	for _, line := range strings.Split(text, "\n") {
 		trimmed := strings.TrimSpace(line)
-
-		// Skip empty lines
-		if trimmed == "" {
-			continue
-		}
 
 		// Skip timeline lines (00:00:00,000 --> 00:00:00,000 format)
 		if timelineRegex.MatchString(trimmed) {
@@ -49,6 +44,16 @@ func CleanSRT(text string) (string, error) {
 			continue
 		}
 
+		// Replace special characters in lines (subtitle sequence numbers)
+		if specialCharactersAtEndRegex.MatchString(trimmed) {
+			trimmed = specialCharactersAtEndRegex.ReplaceAllString(trimmed, "")
+		}
+
+		// Skip empty lines
+		if trimmed == "" {
+			continue
+		}
+
 		// Skip duplicate lines
 		if seen[trimmed] {
 			continue
@@ -56,10 +61,10 @@ func CleanSRT(text string) (string, error) {
 
 		// Write the line to output
 		seen[trimmed] = true
-		_, err := sb.WriteString(line + " ")
+		_, err := sb.WriteString(trimmed + " ")
 		if err != nil {
 			return "", err
 		}
 	}
-	return sb.String(), nil
+	return strings.TrimSpace(sb.String()), nil
 }
