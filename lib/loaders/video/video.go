@@ -30,11 +30,11 @@ type InfoLoader interface {
 
 // TranscriptLoader represents loader interface for a video transcript.
 type TranscriptLoader interface {
-	Transcript(videoURL string, languageCode string) (*Transcript, error)
+	Transcript(videoURL string) (*Transcript, error)
 }
 
 // DataLoader represents loader interface for a video.
 type DataLoader interface {
 	VideoInfo(videoURL string) (*Info, error)
-	Transcript(videoURL string, languageCode string) (*Transcript, error)
+	Transcript(videoURL string) (*Transcript, error)
 }
