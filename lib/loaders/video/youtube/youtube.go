@@ -76,11 +76,7 @@ func New(url string) (*DataLoader, error) {
 		return nil, err
 	}
 
-	return &DataLoader{
-		url:     url,
-		isValid: true,
-		id:      id,
-	}, nil
+	return &DataLoader{url: fmt.Sprintf("https://www.youtube.com/watch?v=%s", id), isValid: true, id: id}, nil
 }
 
 // VideoInfo returns the video metadata after successful loading.
