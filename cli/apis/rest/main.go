@@ -122,7 +122,29 @@ func getVideoTranscript(c *gin.Context) {
 // getVideoSummarize is a placeholder endpoint for video summarization.
 // Currently returns 501 Not Implemented status.
 func getVideoSummarize(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "")
+	url := c.Query("url")
+	languageCode := c.Query("languageCode")
+
+	loader, err := loaders.VideoLoader(url)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	if err = loader.Load(); err != nil {
+		_ = c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	summary, err := summarization.SummarizeText(loader.Transcript().Transcript, languageCode)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"summary":      summary,
+		"languageCode": languageCode,
+	})
 }
 
 // getLocaleMessage retrieves a localized message by ID.
