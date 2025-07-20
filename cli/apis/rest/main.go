@@ -20,7 +20,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olegshulyakov/go-briefly-bot/lib"
-	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube/ytdlp"
+	"github.com/olegshulyakov/go-briefly-bot/lib/loaders"
 	"github.com/olegshulyakov/go-briefly-bot/lib/transformers/summarization"
 )
 
@@ -87,14 +87,17 @@ func postSummarizeText(c *gin.Context) {
 func getVideoInfo(c *gin.Context) {
 	url := c.Query("url")
 
-	videoInfo, err := ytdlp.New().VideoInfo(url)
-
+	loader, err := loaders.VideoLoader(url)
 	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	if err = loader.Load(); err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, videoInfo)
+	c.IndentedJSON(http.StatusOK, loader.VideoInfo())
 }
 
 // getVideoTranscript retrieves the transcript for a video.
@@ -103,13 +106,17 @@ func getVideoInfo(c *gin.Context) {
 func getVideoTranscript(c *gin.Context) {
 	url := c.Query("url")
 
-	videoTranscript, err := ytdlp.New().Transcript(url)
+	loader, err := loaders.VideoLoader(url)
 	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	if err = loader.Load(); err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, videoTranscript)
+	c.IndentedJSON(http.StatusOK, loader.Transcript())
 }
 
 // getVideoSummarize is a placeholder endpoint for video summarization.

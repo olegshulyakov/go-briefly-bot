@@ -25,16 +25,30 @@ type Transcript struct {
 
 // InfoLoader represents loader interface for a video metadata.
 type InfoLoader interface {
-	VideoInfo(videoURL string) (*Info, error)
+	// VideoInfo returns metadata for the video.
+	// Returns nil if metadata could not be retrieved.
+	VideoInfo() *Info
 }
 
 // TranscriptLoader represents loader interface for a video transcript.
 type TranscriptLoader interface {
-	Transcript(videoURL string) (*Transcript, error)
+	// Transcript returns the transcript text for the video.
+	// Returns nil if the transcript could not be retrieved.
+	Transcript() *Transcript
 }
 
 // DataLoader represents loader interface for a video.
 type DataLoader interface {
-	VideoInfo(videoURL string) (*Info, error)
-	Transcript(videoURL string) (*Transcript, error)
+	// Load initializes the video data. This method must be called
+	// before accessing VideoInfo or Transcript. Returns an error if
+	// data loading fails.
+	Load() error
+
+	// VideoInfo returns metadata for the video.
+	// Returns nil if Load() was not called or failed.
+	VideoInfo() *Info
+
+	// Transcript returns the transcript text for the video.
+	// Returns nil if Load() was not called or failed.
+	Transcript() *Transcript
 }

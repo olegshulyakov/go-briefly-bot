@@ -26,8 +26,8 @@ import (
 	tg_md2html "github.com/PaulSonOfLars/gotg_md2html"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/olegshulyakov/go-briefly-bot/lib"
+	"github.com/olegshulyakov/go-briefly-bot/lib/loaders"
 	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube"
-	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube/ytdlp"
 	"github.com/olegshulyakov/go-briefly-bot/lib/transformers/summarization"
 )
 
@@ -225,12 +225,16 @@ func handle(message *tgbotapi.Message) {
 		return
 	}
 
-	videoTranscript, err := ytdlp.New().Transcript(videoURL)
+	loader, err := loaders.VideoLoader(videoURL)
+	if err == nil {
+		err = loader.Load()
+	}
 	if err != nil {
 		slog.Error("Failed to get transcript", "userId", message.From.ID, "videoURL", videoURL, "error", err)
 		_, _ = edit(message, processingMsg, lib.MustLocalize(message.From.LanguageCode, "telegram.error.transcript_failed"))
 		return
 	}
+	videoTranscript := loader.Transcript()
 
 	// Summarize transcript
 	processingMsg, err = edit(message, processingMsg, lib.MustLocalize(message.From.LanguageCode, "telegram.progress.summarizing"))
