@@ -28,8 +28,8 @@ import (
 )
 
 const (
-	maxRetries = 3                // Maximum number of retry attempts for API calls
-	maxTimeout = 60 * time.Second // Maximum duration for API requests
+	maxRetries = 3                 // Maximum number of retry attempts for API calls
+	maxTimeout = 300 * time.Second // Maximum duration for API requests
 )
 
 var (
