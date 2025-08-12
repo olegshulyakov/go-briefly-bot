@@ -117,7 +117,7 @@ func sendRetry(msg tgbotapi.Chattable) (tgbotapi.Message, error) {
 	var err error
 	var sentMsg tgbotapi.Message
 
-	for i := 0; i < maxRetries; i++ {
+	for i := range maxRetries {
 		sentMsg, err = Bot.Send(msg)
 		if err == nil {
 			return sentMsg, nil // Success

@@ -37,7 +37,7 @@ func Exec(arguments []string, url string) ([]byte, error) {
 
 	// Execute with retry
 	slog.Debug("Executing yt-dlp", "args", args)
-	for attempt := 0; attempt < maxAttempts; attempt++ {
+	for range maxAttempts {
 		if output, err = exec.Command("yt-dlp", args...).Output(); err == nil {
 			break
 		}
