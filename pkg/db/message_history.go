@@ -7,7 +7,7 @@ import (
 
 // InsertMessageHistory inserts a new message history record into the sharded database.
 func InsertMessageHistory(manager *DBManager, message MessageHistory) error {
-	db, err := manager.GetDBForClient(message.ClientAppID)
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return fmt.Errorf("failed to get DB for client %d: %w", message.ClientAppID, err)
 	}
@@ -45,7 +45,7 @@ func GetMessageHistoryCount(manager *DBManager) (int, error) {
 	// For this implementation, let's assume it's tracked in shared DB or we query one shard.
 	// A more robust solution would involve a global counter or querying all shards.
 	// We'll query the shared DB as a placeholder.
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -77,7 +77,7 @@ func GetMessageHistoryCount(manager *DBManager) (int, error) {
 
 // GetMessageHistory retrieves message history for a specific client and user (example query).
 func GetMessageHistory(manager *DBManager, clientAppID int8, userID int64, limit int) ([]MessageHistory, error) {
-	db, err := manager.GetDBForClient(clientAppID)
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DB for client %d: %w", clientAppID, err)
 	}

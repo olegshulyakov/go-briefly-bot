@@ -8,7 +8,7 @@ import (
 
 // InsertSummary inserts a new summary into the Summaries table.
 func InsertSummary(manager *DBManager, summary Summary) error {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -32,7 +32,7 @@ func InsertSummary(manager *DBManager, summary Summary) error {
 
 // GetSummary retrieves a summary by URL and language.
 func GetSummary(manager *DBManager, url string, language string) (*Summary, error) {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -57,7 +57,7 @@ func GetSummary(manager *DBManager, url string, language string) (*Summary, erro
 
 // GetSummariesForClient retrieves summaries for items in the ProcessingQueue with 'summarized' status for a specific client.
 func GetSummariesForClient(manager *DBManager, clientAppID int8, limit int) ([]ProcessingQueue, error) {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -122,7 +122,7 @@ func GetSummariesForClient(manager *DBManager, clientAppID int8, limit int) ([]P
 
 // GetSummariesCount gets the total count of summaries.
 func GetSummariesCount(manager *DBManager) (int, error) {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -137,7 +137,7 @@ func GetSummariesCount(manager *DBManager) (int, error) {
 
 // DeleteExpiredSummaries deletes summaries older than the specified number of days.
 func DeleteExpiredSummaries(manager *DBManager, days int) error {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return fmt.Errorf("failed to get shared DB: %w", err)
 	}

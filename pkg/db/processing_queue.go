@@ -12,7 +12,7 @@ func InsertProcessingQueueItem(manager *DBManager, item ProcessingQueue) error {
 	// ProcessingQueue is likely in a shared database or a specific shard.
 	// Based on the design, it seems to be in a shared context.
 	// Let's use the shared DB.
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -63,7 +63,7 @@ func InsertProcessingQueueItem(manager *DBManager, item ProcessingQueue) error {
 
 // GetProcessingQueueItemsByStatus retrieves items from the ProcessingQueue with a specific status.
 func GetProcessingQueueItemsByStatus(manager *DBManager, statusID int8, limit int) ([]ProcessingQueue, error) {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -127,7 +127,7 @@ func UpdateProcessingQueueStatus(manager *DBManager, clientAppID int8, messageID
 
 // UpdateProcessingQueueStatusWithDetails updates the status and potentially other fields of an item.
 func UpdateProcessingQueueStatusWithDetails(manager *DBManager, clientAppID int8, messageID int64, userID int64, url string, statusID int8, processedAt *string, errorMessage *string) error {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -180,7 +180,7 @@ func UpdateProcessingQueueStatusWithDetails(manager *DBManager, clientAppID int8
 
 // GetProcessingQueueCountByStatus gets counts of items grouped by status.
 func GetProcessingQueueCountByStatus(manager *DBManager) (map[string]int, error) {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -218,7 +218,7 @@ func GetProcessingQueueCountByStatus(manager *DBManager) (map[string]int, error)
 
 // GetProcessingQueueItemsByStatusAndCondition retrieves items based on status and additional conditions.
 func GetProcessingQueueItemsByStatusAndCondition(manager *DBManager, statusID int8, condition string, limit int) ([]ProcessingQueue, error) {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -291,7 +291,7 @@ func MarkProcessingQueueItemsAsCompleted(manager *DBManager, items []ProcessingQ
 		return nil
 	}
 
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return fmt.Errorf("failed to get shared DB: %w", err)
 	}

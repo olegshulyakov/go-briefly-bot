@@ -8,7 +8,7 @@ import (
 
 // InsertSource inserts a new source into the Sources table.
 func InsertSource(manager *DBManager, source Source) error {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -32,7 +32,7 @@ func InsertSource(manager *DBManager, source Source) error {
 
 // GetSource retrieves a source by URL and language.
 func GetSource(manager *DBManager, url string, language string) (*Source, error) {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -57,7 +57,7 @@ func GetSource(manager *DBManager, url string, language string) (*Source, error)
 
 // GetSourcesCount gets the total count of sources.
 func GetSourcesCount(manager *DBManager) (int, error) {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get shared DB: %w", err)
 	}
@@ -72,7 +72,7 @@ func GetSourcesCount(manager *DBManager) (int, error) {
 
 // DeleteExpiredSources deletes sources older than the specified number of days.
 func DeleteExpiredSources(manager *DBManager, days int) error {
-	db, err := manager.GetSharedDB()
+	db, err := manager.GetPrimaryDB()
 	if err != nil {
 		return fmt.Errorf("failed to get shared DB: %w", err)
 	}
