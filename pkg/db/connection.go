@@ -14,7 +14,7 @@ const defaultDatabaseName = "primary"
 
 // DBManager manages connections to potentially sharded databases.
 type DBManager struct {
-	basePath string
+	basePath string //TODO use Config
 	dbs   map[string]*sql.DB
 	mutex sync.RWMutex
 	primaryDB *sql.DB
@@ -119,9 +119,6 @@ func (dm *DBManager) GetDBForClient(clientAppName string) (*sql.DB, error) {
 // GetPrimaryDB retrieves a connection to the primary database.
 // This provides a clear interface for accessing the primary database.
 func (dm *DBManager) GetPrimaryDB() (*sql.DB, error) {
-	// Use the dedicated identifier for the primary DB
-	// We need to ensure this identifier matches the one used in GetDBForClient when it detects primary DB access.
-	// From the logic above, we used "primary".
 	return dm.GetDBForClient(defaultDatabaseName)
 }
 
