@@ -1,113 +1,71 @@
 package utils
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
+	"strings"
 )
 
 // LogLevel represents the severity of a log message.
-type LogLevel int
+// Using slog's levels: Debug(-4), Info(0), Warn(4), Error(8)
+// We can alias them for clarity if needed, but using slog's constants is standard.
+// type LogLevel slog.Level
 
-const (
-	DEBUG LogLevel = iota
-	INFO
-	WARN
-	ERROR
-)
-
-// String returns the string representation of the LogLevel.
-func (l LogLevel) String() string {
-	switch l {
-	case DEBUG:
-		return "DEBUG"
-	case INFO:
-		return "INFO"
-	case WARN:
-		return "WARN"
-	case ERROR:
-		return "ERROR"
-	default:
-		return "UNKNOWN"
-	}
-}
-
-// Logger is a simple structured logger.
+// Logger wraps slog.Logger to provide a consistent interface.
 type Logger struct {
-	level   LogLevel
-	out     *log.Logger
-	err     *log.Logger
+	*slog.Logger
 	appName string
 }
 
-// NewLogger creates a new logger instance.
+// NewLogger creates a new structured logger instance using slog.
 func NewLogger(config *Config) *Logger {
-	logLevel := INFO
-	switch config.LogLevel {
+	// Determine log level from config
+	var level slog.Level
+	switch strings.ToLower(config.LogLevel) {
 	case "debug":
-		logLevel = DEBUG
+		level = slog.LevelDebug
 	case "info":
-		logLevel = INFO
+		level = slog.LevelInfo
 	case "warn":
-		logLevel = WARN
+		level = slog.LevelWarn
 	case "error":
-		logLevel = ERROR
+		level = slog.LevelError
+	default:
+		// Default to info level if invalid or not set
+		level = slog.LevelInfo
+		fmt.Printf("WARNING: Invalid or unspecified LOG_LEVEL '%s', defaulting to 'info'\n", config.LogLevel)
 	}
 
-	// For simplicity, using standard log package.
-	// A more advanced logger like Zap or Logrus could be used.
-	outLogger := log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
-	errLogger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
+	// Determine log format (handler)
+	var handler slog.Handler
+	switch strings.ToLower(config.LogFormat) {
+	case "json":
+		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})
+	case "text":
+		fallthrough // Default to text
+	default:
+		// Text handler is good for development, JSON for production
+		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level})
+	}
+
+	// Create the base slog logger
+	slogLogger := slog.New(handler)
+
+	// Add common attributes, like app name
+	appName := "Briefly" //TODO Get from config
+	slogLogger = slogLogger.With(slog.String("app", appName))
 
 	return &Logger{
-		level:   logLevel,
-		out:     outLogger,
-		err:     errLogger,
-		appName: "VideoSummaryBot", // Could be made configurable
+		Logger:  slogLogger,
+		appName: appName,
 	}
-}
-
-// logInternal handles the actual logging logic.
-func (l *Logger) logInternal(level LogLevel, format string, args ...interface{}) {
-	if level < l.level {
-		return // Don't log if below the configured level
-	}
-
-	var logger *log.Logger
-	if level >= ERROR {
-		logger = l.err
-	} else {
-		logger = l.out
-	}
-
-	levelStr := level.String()
-	message := fmt.Sprintf(format, args...)
-	// The Lshortfile flag will add the file and line number
-	logger.Printf("[%s] [%s] %s", l.appName, levelStr, message)
-}
-
-// Debug logs a debug message.
-func (l *Logger) Debug(format string, args ...interface{}) {
-	l.logInternal(DEBUG, format, args...)
-}
-
-// Info logs an informational message.
-func (l *Logger) Info(format string, args ...interface{}) {
-	l.logInternal(INFO, format, args...)
-}
-
-// Warn logs a warning message.
-func (l *Logger) Warn(format string, args ...interface{}) {
-	l.logInternal(WARN, format, args...)
-}
-
-// Error logs an error message.
-func (l *Logger) Error(format string, args ...interface{}) {
-	l.logInternal(ERROR, format, args...)
 }
 
 // Fatal logs a fatal error message and exits the program.
-func (l *Logger) Fatal(format string, args ...interface{}) {
-	l.logInternal(ERROR, format, args...)
+// slog doesn't have a Fatal level, so we implement it using Error + os.Exit.
+func (l *Logger) Fatal(msg string, args ...interface{}) {
+	l.Logger.ErrorContext(context.Background(), msg, args...)
 	os.Exit(1)
 }
