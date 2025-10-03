@@ -90,7 +90,10 @@ func SummarizeText(text string, lang string) (string, error) {
 	slog.Debug("Localizing prompts...")
 	body := openai.ChatCompletionNewParams{
 		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.UserMessage(briefly.MustLocalizeTemplate(
+			openai.SystemMessage(briefly.MustLocalize(
+				lang,
+				"llm.system",
+			)),openai.UserMessage(briefly.MustLocalizeTemplate(
 				lang,
 				"llm.prompt",
 				map[string]string{
