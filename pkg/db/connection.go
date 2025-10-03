@@ -14,9 +14,9 @@ const defaultDatabaseName = "primary"
 
 // DBManager manages connections to potentially sharded databases.
 type DBManager struct {
-	basePath string //TODO use Config
-	dbs   map[string]*sql.DB
-	mutex sync.RWMutex
+	basePath  string //TODO use Config
+	dbs       map[string]*sql.DB
+	mutex     sync.RWMutex
 	primaryDB *sql.DB
 }
 
@@ -27,7 +27,7 @@ type Config struct {
 	MaxIdleConns    int
 	ConnMaxLifetime time.Duration
 	ConnMaxIdleTime time.Duration
-	PrimaryDBName    string
+	PrimaryDBName   string
 }
 
 // NewDBManager creates a new database manager with the given configuration.

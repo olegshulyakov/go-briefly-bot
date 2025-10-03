@@ -11,44 +11,44 @@ import (
 // Config holds application configuration loaded from environment variables.
 type Config struct {
 	// Database
-	DatabaseBasePath string
-	DatabaseMaxOpenConns int
-	DatabaseMaxIdleConns int
+	DatabaseBasePath        string
+	DatabaseMaxOpenConns    int
+	DatabaseMaxIdleConns    int
 	DatabaseConnMaxLifetime time.Duration
 	DatabaseConnMaxIdleTime time.Duration
 
 	// API Server
 	APIServerPort string
-	APIKey string
+	APIKey        string
 
 	// Telegram Bot
-	TelegramToken string
+	TelegramToken          string
 	TelegramRateLimitDelay time.Duration
-	TelegramWarmupPeriod time.Duration
+	TelegramWarmupPeriod   time.Duration
 
 	// OpenAI
-	OpenAIAPIKey string
-	OpenAIBaseURL string // For custom endpoints
-	OpenAIModel string
-	OpenAISystemPrompt string
+	OpenAIAPIKey         string
+	OpenAIBaseURL        string // For custom endpoints
+	OpenAIModel          string
+	OpenAISystemPrompt   string
 	OpenAIChunkLimitSize int
 
 	// RabbitMQ
 	RabbitMQURL string
 
 	// Worker Batches and Timeouts
-	LoaderProducerBatchSize int
-	LoaderProducerTimeout time.Duration
+	LoaderProducerBatchSize      int
+	LoaderProducerTimeout        time.Duration
 	TransformerProducerBatchSize int
-	TransformerProducerTimeout time.Duration
-	ResultHandlerBatchSize int
-	ResultHandlerTimeout time.Duration
-	RetryHandlerRetryLimit int
-	RetryHandlerTimeout time.Duration
-	ExpirationHandlerTimeout time.Duration
+	TransformerProducerTimeout   time.Duration
+	ResultHandlerBatchSize       int
+	ResultHandlerTimeout         time.Duration
+	RetryHandlerRetryLimit       int
+	RetryHandlerTimeout          time.Duration
+	ExpirationHandlerTimeout     time.Duration
 
 	// Logging
-	LogLevel string
+	LogLevel  string
 	LogFormat string // json, text
 }
 
@@ -79,7 +79,7 @@ func LoadConfig() (*Config, error) {
 
 	// OpenAI
 	cfg.OpenAIAPIKey = getEnv("OPENAI_API_KEY", "")
-	cfg.OpenAIBaseURL = getEnv("OPENAI_BASE_URL", "") // Default to OpenAI's public API
+	cfg.OpenAIBaseURL = getEnv("OPENAI_BASE_URL", "")         // Default to OpenAI's public API
 	cfg.OpenAIModel = getEnv("OPENAI_MODEL", "gpt-3.5-turbo") // Or gpt-4
 	cfg.OpenAISystemPrompt = getEnv("OPENAI_SYSTEM_PROMPT", "You are a helpful assistant that summarizes video transcripts.")
 	cfg.OpenAIChunkLimitSize = getEnvAsInt("OPENAI_CHUNK_LIMIT_SIZE", 3000)
@@ -145,19 +145,19 @@ func getEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
 
 // getEnvAsBool parses a boolean environment variable.
 func getEnvAsBool(key string, defaultValue bool) bool {
-    valueStr := getEnv(key, "")
-    if valueStr == "" {
-        return defaultValue
-    }
-    // Convert to lowercase for comparison
-    valueStr = strings.ToLower(valueStr)
-    switch valueStr {
-    case "true", "1", "yes", "on":
-        return true
-    case "false", "0", "no", "off":
-        return false
-    default:
-        fmt.Printf("WARNING: Invalid boolean value for %s, using default %v\n", key, defaultValue)
-        return defaultValue
-    }
+	valueStr := getEnv(key, "")
+	if valueStr == "" {
+		return defaultValue
+	}
+	// Convert to lowercase for comparison
+	valueStr = strings.ToLower(valueStr)
+	switch valueStr {
+	case "true", "1", "yes", "on":
+		return true
+	case "false", "0", "no", "off":
+		return false
+	default:
+		fmt.Printf("WARNING: Invalid boolean value for %s, using default %v\n", key, defaultValue)
+		return defaultValue
+	}
 }

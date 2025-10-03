@@ -119,7 +119,6 @@ func GetSummariesForClient(manager *DBManager, clientAppID int8, limit int) ([]P
 	return items, nil
 }
 
-
 // GetSummariesCount gets the total count of summaries.
 func GetSummariesCount(manager *DBManager) (int, error) {
 	db, err := manager.GetPrimaryDB()

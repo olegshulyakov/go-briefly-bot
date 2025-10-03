@@ -119,7 +119,6 @@ func GetProcessingQueueItemsByStatus(manager *DBManager, statusID int8, limit in
 	return items, nil
 }
 
-
 // UpdateProcessingQueueStatus updates the status of an item in the ProcessingQueue.
 func UpdateProcessingQueueStatus(manager *DBManager, clientAppID int8, messageID int64, userID int64, url string, statusID int8) error {
 	return UpdateProcessingQueueStatusWithDetails(manager, clientAppID, messageID, userID, url, statusID, nil, nil)
@@ -176,7 +175,6 @@ func UpdateProcessingQueueStatusWithDetails(manager *DBManager, clientAppID int8
 
 	return nil
 }
-
 
 // GetProcessingQueueCountByStatus gets counts of items grouped by status.
 func GetProcessingQueueCountByStatus(manager *DBManager) (map[string]int, error) {
