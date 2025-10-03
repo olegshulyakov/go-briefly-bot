@@ -93,13 +93,7 @@ func SummarizeText(text string, lang string) (string, error) {
 			openai.SystemMessage(briefly.MustLocalize(
 				lang,
 				"llm.system",
-			)),openai.UserMessage(briefly.MustLocalizeTemplate(
-				lang,
-				"llm.prompt",
-				map[string]string{
-					"text": text,
-				},
-			)),
+			)), openai.UserMessage(text),
 		},
 		Model: openAiModel,
 	}
