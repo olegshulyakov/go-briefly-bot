@@ -26,8 +26,8 @@ import (
 // Returns:
 //   - A slice of strings containing the chunks.
 func ToChunks(text string, chunkSize int) []string {
-	if chunkSize <= 0 {
-		return []string{} // Return the original string as a single chunk if chunkSize is not positive.
+	if chunkSize <= 0 || len(text) <= chunkSize {
+		return []string{text} // Return the original string as a single chunk if chunkSize is not positive.
 	}
 
 	var (
