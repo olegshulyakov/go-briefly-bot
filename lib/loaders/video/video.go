@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/utils"
-	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube/ytdlp"
+	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/ytdlp"
 )
 
 // extension defines the subtitle format used for transcript conversion.
