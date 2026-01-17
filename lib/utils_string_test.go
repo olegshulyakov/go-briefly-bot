@@ -216,6 +216,12 @@ func TestToParagraphsAndChunks(t *testing.T) {
 			expected:  []string{"Hello Ben,", "How are", "you?"},
 		},
 		{
+			name:      "UTF-8 characters",
+			text:      "Hello Ben,\n\nHow are you?",
+			chunkSize: 50,
+			expected:  []string{"Hello Ben,\n\nHow are you?"},
+		},
+		{
 			name:      "Long UTF-8 paragraph",
 			text:      "Hello Ben, this is a paragraph with UTF-8 characters that needs to be split properly.",
 			chunkSize: 10,
