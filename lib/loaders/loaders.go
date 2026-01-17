@@ -7,7 +7,7 @@ import (
 	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube"
 )
 
-func VideoLoader(url string) (video.DataLoader, error) {
+func VideoLoader(url string) (*video.DataLoader, error) {
 	if youtube.IsValidURL(url) {
 		return youtube.New(url)
 	}
