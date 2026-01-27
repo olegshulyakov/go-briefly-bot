@@ -19,11 +19,23 @@ const extension = "srt"
 
 // Info represents metadata about a video.
 type Info struct {
-	ID        string `json:"id"`        // The unique identifier of the video.
-	Language  string `json:"language"`  // The video language.
-	Uploader  string `json:"uploader"`  // The name of the video uploader.
-	Title     string `json:"title"`     // The title of the video.
-	Thumbnail string `json:"thumbnail"` // The URL of the video's thumbnail.
+	ID          string                `json:"id"`           // Unique identifier
+	Language    string                `json:"language"`     // Language code
+	Uploader    string                `json:"uploader"`     // Name of uploader/channel
+	Title       string                `json:"title"`        // Title of the video
+	Thumbnail   string                `json:"thumbnail"`    // Thumbnail URL
+	Description string                `json:"description"`  // Description of the video
+	Duration    int                   `json:"duration"`     // Duration
+	Timestamp   int64                 `json:"timestamp"`    // Creation date
+	IsLive      bool                  `json:"is_live"`      // Is video live one
+	OriginalURL string                `json:"original_url"` // Original URL
+	Extractor   string                `json:"extractor"`    // Extractor
+	Subtitles   map[string][]Subtitle `json:"subtitles"`    // Subtitles map
+}
+
+type Subtitle struct {
+	Ext string `json:"ext"` // File extension, e.g. 'vtt', 'srt', 'json3', 'ttml'
+	URL string `json:"url"` // File download URL
 }
 
 // Transcript represents the complete transcript information for a video,
@@ -115,6 +127,25 @@ func (loader *DataLoader) Load() error {
 	slog.Debug("VideoInfo downloaded", "url", loader.url)
 	slog.Debug("Transcript load", "url", loader.url)
 
+	lang := loader.info.Language
+	if lang == "" {
+		subtitlesMap := loader.info.Subtitles
+		if len(subtitlesMap) == 0 {
+			return fmt.Errorf("No subtitles available")
+		}
+
+		// Fallback to English if exists
+		if _, exists := subtitlesMap["en"]; exists {
+			lang = "en"
+		} else {
+			// Get first available language
+			for subtitleLang := range subtitlesMap {
+				lang = subtitleLang
+				break
+			}
+		}
+	}
+
 	execOutput, err = ytdlp.Exec(
 		[]string{
 			"--no-progress",
@@ -122,7 +153,7 @@ func (loader *DataLoader) Load() error {
 			"--write-subs",
 			"--write-auto-subs",
 			"--convert-subs", extension,
-			"--sub-lang", fmt.Sprintf("%s,%s_auto,-live_chat", loader.info.Language, loader.info.Language),
+			"--sub-lang", fmt.Sprintf("%s,%s_auto,-live_chat", lang, lang),
 			"--output", filepath.Join(os.TempDir(), fmt.Sprintf("subtitles_%s.%%(ext)s", loader.id)),
 		},
 		loader.url,
@@ -133,7 +164,7 @@ func (loader *DataLoader) Load() error {
 	slog.Debug("Transcript downloaded", "url", loader.url)
 
 	// Read the transcript file
-	filename := filepath.Join(os.TempDir(), fmt.Sprintf("subtitles_%s.%s.%s", loader.id, loader.info.Language, extension))
+	filename := filepath.Join(os.TempDir(), fmt.Sprintf("subtitles_%s.%s.%s", loader.id, lang, extension))
 	text, err := os.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("no subtitles found: %w", err)
@@ -148,7 +179,7 @@ func (loader *DataLoader) Load() error {
 	loader.transcript = &Transcript{
 		ID:         loader.info.ID,
 		Uploader:   loader.info.Uploader,
-		Language:   loader.info.Language,
+		Language:   lang,
 		Title:      loader.info.Title,
 		Thumbnail:  loader.info.Thumbnail,
 		Transcript: transcript,
