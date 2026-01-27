@@ -260,7 +260,7 @@ func handle(message *tgbotapi.Message) {
 		),
 		summary,
 	)
-	chunks := lib.ToParagraphsAndChunks(response, maxLength)
+	chunks := lib.ToChunks(response, maxLength)
 	for i, chunk := range chunks {
 		slog.Debug("Attempt to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL)
 		_, err = sendFormatted(message, chunk)
