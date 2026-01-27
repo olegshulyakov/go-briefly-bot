@@ -26,51 +26,37 @@ import (
 // Returns:
 //   - A slice of strings containing the chunks.
 func ToChunks(text string, chunkSize int) []string {
-	// Handle edge cases
-	if chunkSize <= 0 {
-		return []string{text}
-	}
-	if text == "" {
-		return []string{""}
+	if chunkSize <= 0 || text == "" || len(text) <= chunkSize {
+		return []string{text} // Return the original string as a single chunk.
 	}
 
-	var chunks []string
-	var current string
+	var (
+		chunks       []string
+		currentChunk strings.Builder
+		runeCount    = 0
+		runeIndex    = 0 // Track rune index within the text for slicing
+	)
 
-	for _, word := range strings.Fields(text) {
-		// Handle long words
-		if utf8.RuneCountInString(word) > chunkSize {
-			if current != "" {
-				chunks = append(chunks, current)
-				current = ""
-			}
+	for index := 0; index < len(text); {
+		_, size := utf8.DecodeRuneInString(text[index:]) // Get the rune and its size in bytes
 
-			// Split long word
-			runes := []rune(word)
-			for i := 0; i < len(runes); i += chunkSize {
-				end := min(i+chunkSize, len(runes))
-				chunks = append(chunks, string(runes[i:end]))
-			}
-			continue
+		if runeCount+1 > chunkSize {
+			// Chunk is full, finalize and start a new one
+			chunks = append(chunks, strings.TrimSpace(currentChunk.String()))
+			currentChunk.Reset()
+			runeCount = 0
 		}
 
-		// Try to add word to current chunk
-		withSpace := ""
-		if current != "" {
-			withSpace = current + " "
-		}
-		if utf8.RuneCountInString(withSpace+word) <= chunkSize {
-			current = withSpace + word
-		} else {
-			if current != "" {
-				chunks = append(chunks, current)
-			}
-			current = word
-		}
+		// Append the rune to the current chunk
+		currentChunk.WriteString(text[index : index+size]) // Append the rune as bytes
+		runeCount++
+		index += size
+		runeIndex++
 	}
 
-	if current != "" {
-		chunks = append(chunks, current)
+	// Append the last chunk if it's not empty
+	if currentChunk.Len() > 0 {
+		chunks = append(chunks, currentChunk.String())
 	}
 
 	return chunks
@@ -94,34 +80,34 @@ func ToChunks(text string, chunkSize int) []string {
 //
 // Returns:
 //   - A slice of strings containing the paragraphs or chunks.
-func ToParagraphsAndChunks(text string, chunkSize int) []string {
-	if chunkSize <= 0 || len(text) <= chunkSize {
-		return []string{strings.TrimSpace(text)} // Return the original string as a single chunk if chunkSize is not positive.
-	}
+// func ToParagraphsAndChunks(text string, chunkSize int) []string {
+// 	if chunkSize <= 0 || len(text) <= chunkSize {
+// 		return []string{strings.TrimSpace(text)} // Return the original string as a single chunk if chunkSize is not positive.
+// 	}
 
-	// Split by paragraphs first
-	paragraphs := strings.Split(text, "\n\n")
+// 	// Split by paragraphs first
+// 	paragraphs := strings.Split(text, "\n\n")
 
-	var result []string
+// 	var result []string
 
-	for _, paragraph := range paragraphs {
-		// Trim leading/trailing whitespace from each paragraph
-		trimmedParagraph := strings.TrimSpace(paragraph)
+// 	for _, paragraph := range paragraphs {
+// 		// Trim leading/trailing whitespace from each paragraph
+// 		trimmedParagraph := strings.TrimSpace(paragraph)
 
-		// If the paragraph is empty after trimming, skip it
-		if trimmedParagraph == "" {
-			continue
-		}
+// 		// If the paragraph is empty after trimming, skip it
+// 		if trimmedParagraph == "" {
+// 			continue
+// 		}
 
-		// If the paragraph length is within the chunk size, add it directly
-		if utf8.RuneCountInString(trimmedParagraph) <= chunkSize {
-			result = append(result, trimmedParagraph)
-		} else {
-			// If the paragraph is too long, split it using the existing ToChunks function
-			chunks := ToChunks(trimmedParagraph, chunkSize)
-			result = append(result, chunks...)
-		}
-	}
+// 		// If the paragraph length is within the chunk size, add it directly
+// 		if utf8.RuneCountInString(trimmedParagraph) <= chunkSize {
+// 			result = append(result, trimmedParagraph)
+// 		} else {
+// 			// If the paragraph is too long, split it using the existing ToChunks function
+// 			chunks := ToChunks(trimmedParagraph, chunkSize)
+// 			result = append(result, chunks...)
+// 		}
+// 	}
 
-	return result
-}
+// 	return result
+// }
