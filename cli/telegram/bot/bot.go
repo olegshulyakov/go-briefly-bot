@@ -27,7 +27,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/olegshulyakov/go-briefly-bot/lib"
 	"github.com/olegshulyakov/go-briefly-bot/lib/loaders"
-	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube"
 	"github.com/olegshulyakov/go-briefly-bot/lib/transformers/summarization"
 )
 
@@ -197,7 +196,7 @@ func handle(message *tgbotapi.Message) {
 	slog.Debug("Telegram: Request", "userId", message.From.ID, "user", message.From, "language", message.From.LanguageCode, "text", text)
 
 	// Check if the message contains a YouTube link and extract URL
-	videoURLs := youtube.ExtractURLs(text)
+	videoURLs := loaders.ExtractURLs(text)
 	if len(videoURLs) == 0 {
 		slog.Error("Got invalid processing message", "userId", message.From.ID, "user", message.From, "text", text)
 		sendQuite(message, lib.MustLocalize(message.From.LanguageCode, "telegram.error.no_url_found"))

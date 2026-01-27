@@ -1,12 +1,12 @@
-package youtube_test
+package provider_test
 
 import (
 	"testing"
 
-	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/youtube"
+	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/provider"
 )
 
-func TestIsValidURL(t *testing.T) {
+func TestYoutube_IsValidURL(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input string
@@ -39,7 +39,7 @@ func TestIsValidURL(t *testing.T) {
 		},
 		{
 			name:  "invalid: different domain",
-			input: "https://vimeo.com/123",
+			input: "https://video.com/123",
 			valid: false,
 		},
 		{
@@ -61,14 +61,14 @@ func TestIsValidURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := youtube.IsValidURL(tc.input); got != tc.valid {
+			if got := provider.Youtube.IsValidURL(tc.input); got != tc.valid {
 				t.Errorf("IsValidURL(%q) = %v, want %v", tc.input, got, tc.valid)
 			}
 		})
 	}
 }
 
-func TestGetID(t *testing.T) {
+func TestYoutube_GetID(t *testing.T) {
 	testCases := []struct {
 		name      string
 		input     string
@@ -106,7 +106,7 @@ func TestGetID(t *testing.T) {
 		},
 		{
 			name:      "invalid: different domain",
-			input:     "https://vimeo.com/123 ",
+			input:     "https://video.com/123 ",
 			expectErr: true,
 		},
 		{
@@ -138,7 +138,7 @@ func TestGetID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := youtube.GetID(tc.input)
+			got, err := provider.Youtube.GetID(tc.input)
 			if (err != nil) != tc.expectErr {
 				t.Errorf("GetID(%q) got error: %v, expected error: %v", tc.input, err, tc.expectErr)
 			}
@@ -149,7 +149,7 @@ func TestGetID(t *testing.T) {
 	}
 }
 
-func TestExtractURLs(t *testing.T) {
+func TestYoutube_ExtractURLs(t *testing.T) {
 	testCases := []struct {
 		name     string
 		input    string
@@ -172,7 +172,7 @@ func TestExtractURLs(t *testing.T) {
 		},
 		{
 			name:     "mixed valid and invalid URLs",
-			input:    "invalid.com/123 and youtu.be/validID1234 and  https://vimeo.com/456 ",
+			input:    "invalid.com/123 and youtu.be/validID1234 and  https://video.com/456 ",
 			expected: []string{"youtu.be/validID1234"},
 		},
 		{
@@ -194,7 +194,7 @@ func TestExtractURLs(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := youtube.ExtractURLs(tc.input)
+			got := provider.Youtube.ExtractURLs(tc.input)
 			if len(got) != len(tc.expected) {
 				t.Errorf("ExtractURLs(%q) got %d URLs, want %d", tc.input, len(got), len(tc.expected))
 				return
