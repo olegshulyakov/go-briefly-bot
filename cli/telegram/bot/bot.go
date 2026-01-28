@@ -32,7 +32,7 @@ import (
 
 const (
 	// maxLength defines the maximum length for a single Telegram message.
-	maxLength = 4000
+	maxLength = 3500
 )
 
 var (
@@ -259,7 +259,7 @@ func handle(message *tgbotapi.Message) {
 		),
 		summary,
 	)
-	chunks := lib.ToChunks(response, maxLength)
+	chunks := lib.ToLexicalChunks(response, maxLength)
 	for i, chunk := range chunks {
 		slog.Debug("Attempt to send chunk", "chunk", i+1, "userId", message.From.ID, "videoURL", videoURL)
 		_, err = sendFormatted(message, chunk)

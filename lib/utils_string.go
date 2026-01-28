@@ -42,7 +42,7 @@ func ToChunks(text string, chunkSize int) []string {
 
 		if runeCount+1 > chunkSize {
 			// Chunk is full, finalize and start a new one
-			chunks = append(chunks, strings.TrimSpace(currentChunk.String()))
+			chunks = appendWithTrimSpace(chunks, currentChunk.String())
 			currentChunk.Reset()
 			runeCount = 0
 		}
@@ -56,58 +56,107 @@ func ToChunks(text string, chunkSize int) []string {
 
 	// Append the last chunk if it's not empty
 	if currentChunk.Len() > 0 {
-		chunks = append(chunks, currentChunk.String())
+		chunks = appendWithTrimSpace(chunks, currentChunk.String())
+		currentChunk.Reset()
 	}
 
 	return chunks
 }
 
-// ToParagraphsAndChunks splits a string by paragraphs first (\n\n), then by chunk size if needed.
+// ToLexicalChunks splits a text string into semantically meaningful chunks of approximately
+// the specified size, prioritizing natural language boundaries over arbitrary cuts.
 //
-// The function takes a string and a chunkSize parameter, and returns a slice of strings
-// where each string contains paragraphs or chunks of text. Paragraphs are defined as text
-// separated by double newlines (\n\n). If a paragraph exceeds the chunkSize, it will be
-// further divided into chunks of the specified size.
+// The function respects this priority order for break points:
+//   - Paragraph boundaries (newlines) are preferred
+//   - Sentence boundaries (., !, ?) are next
+//   - Word boundaries (spaces) are last resort
+//
+// If no natural break point exists within chunkSize characters, the chunk
+// will be cut at exactly chunkSize characters, even mid-word.
 //
 // Example:
 //
-//	result := ToChunksAndParagraphs("Hello Ben,\n\nHow are you?", 20)
-//	// result will be []string{"Hello Ben,", "How are you?"}
+//	text := "First sentence. Second!\n\nNew paragraph here."
+//	chunks := ToLexicalChunks(text, 25)
 //
 // Parameters:
-//   - text: The input string to be split by paragraphs and chunks
-//   - chunkSize: The maximum number of runes per chunk (when needed)
+//   - text: The input string to be split into chunks
+//   - chunkSize: The maximum number of runes per chunk
 //
 // Returns:
-//   - A slice of strings containing the paragraphs or chunks.
-// func ToParagraphsAndChunks(text string, chunkSize int) []string {
-// 	if chunkSize <= 0 || len(text) <= chunkSize {
-// 		return []string{strings.TrimSpace(text)} // Return the original string as a single chunk if chunkSize is not positive.
-// 	}
+//
+//	A slice of strings containing the lexical chunks.
+func ToLexicalChunks(text string, chunkSize int) []string {
+	if chunkSize <= 0 || len(text) <= chunkSize {
+		return []string{strings.TrimSpace(text)} // Return the original string as a single chunk if chunkSize is not positive.
+	}
 
-// 	// Split by paragraphs first
-// 	paragraphs := strings.Split(text, "\n\n")
+	var chunks []string
+	runes := []rune(text)
 
-// 	var result []string
+	for left := 0; left < len(runes); {
+		right := min(left+chunkSize, len(runes))
 
-// 	for _, paragraph := range paragraphs {
-// 		// Trim leading/trailing whitespace from each paragraph
-// 		trimmedParagraph := strings.TrimSpace(paragraph)
+		// If we're at the end of the text
+		if right == len(runes) {
+			currentChunk := string(runes[left:right])
+			chunks = appendWithTrimSpace(chunks, currentChunk)
+			break
+		}
 
-// 		// If the paragraph is empty after trimming, skip it
-// 		if trimmedParagraph == "" {
-// 			continue
-// 		}
+		// Find natural break points
+		textPiece := string(runes[left:right])
 
-// 		// If the paragraph length is within the chunk size, add it directly
-// 		if utf8.RuneCountInString(trimmedParagraph) <= chunkSize {
-// 			result = append(result, trimmedParagraph)
-// 		} else {
-// 			// If the paragraph is too long, split it using the existing ToChunks function
-// 			chunks := ToChunks(trimmedParagraph, chunkSize)
-// 			result = append(result, chunks...)
-// 		}
-// 	}
+		// 1. Find index of end of last paragraph (newline)
+		if runes[right] == '\n' {
+			// We are at the end of paragraph - do nothing
+		} else {
+			lastParagraphIdx := strings.LastIndex(textPiece, "\n")
+			if lastParagraphIdx > 0 {
+				right = left + lastParagraphIdx + 1 // Include the newline
+			} else {
+				// 2. Find index of end of last sentence
+				lastSentenceIdx := max(strings.LastIndex(textPiece, "."), strings.LastIndex(textPiece, "!"), strings.LastIndex(textPiece, "?"))
+				if lastSentenceIdx > 0 {
+					right = left + lastSentenceIdx + 1 // Include the punctuation
+				} else {
+					// 3. Find index of end of last word (last whitespace before boundary)
+					if runes[right] == ' ' {
+						// We are at the end of word - do nothing
+					} else {
+						lastWordIdx := strings.LastIndex(textPiece, " ")
+						if lastWordIdx > 0 {
+							right = left + lastWordIdx + 1
+						}
+					}
+					// If no word break found, use the original right boundary
+				}
+			}
+		}
 
-// 	return result
-// }
+		// Ensure we don't go past the text length
+		if right > len(runes) {
+			right = len(runes)
+		}
+
+		// Append to chunk array
+		currentChunk := string(runes[left:right])
+		chunks = appendWithTrimSpace(chunks, currentChunk)
+		left = right
+
+		// Skip whitespace at the beginning of next chunk
+		for left < len(runes) && (runes[left] == ' ' || runes[left] == '\n') {
+			left++
+		}
+	}
+
+	return chunks
+}
+
+func appendWithTrimSpace(arr []string, text string) []string {
+	cleaned := strings.TrimSpace(text)
+	if len(cleaned) == 0 {
+		return arr
+	}
+	return append(arr, cleaned)
+}
