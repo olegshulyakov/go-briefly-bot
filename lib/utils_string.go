@@ -104,40 +104,10 @@ func ToLexicalChunks(text string, chunkSize int) []string {
 			break
 		}
 
-		// Find natural break points
-		textPiece := string(runes[left:right])
-
-		// 1. Find index of end of last paragraph (newline)
-		if runes[right] == '\n' {
-			// We are at the end of paragraph - do nothing
-		} else {
-			lastParagraphIdx := strings.LastIndex(textPiece, "\n")
-			if lastParagraphIdx > 0 {
-				right = left + lastParagraphIdx + 1 // Include the newline
-			} else {
-				// 2. Find index of end of last sentence
-				lastSentenceIdx := max(strings.LastIndex(textPiece, "."), strings.LastIndex(textPiece, "!"), strings.LastIndex(textPiece, "?"))
-				if lastSentenceIdx > 0 {
-					right = left + lastSentenceIdx + 1 // Include the punctuation
-				} else {
-					// 3. Find index of end of last word (last whitespace before boundary)
-					if runes[right] == ' ' {
-						// We are at the end of word - do nothing
-					} else {
-						lastWordIdx := strings.LastIndex(textPiece, " ")
-						if lastWordIdx > 0 {
-							right = left + lastWordIdx + 1
-						}
-					}
-					// If no word break found, use the original right boundary
-				}
-			}
-		}
+		right = findNaturalBreakpoint(runes, left, right)
 
 		// Ensure we don't go past the text length
-		if right > len(runes) {
-			right = len(runes)
-		}
+		right = min(right, len(runes))
 
 		// Append to chunk array
 		currentChunk := string(runes[left:right])
@@ -159,4 +129,36 @@ func appendWithTrimSpace(arr []string, text string) []string {
 		return arr
 	}
 	return append(arr, cleaned)
+}
+
+// findNaturalBreakpoint finds natural right break point
+// 1. Find index of end of last paragraph (newline), if we are at the end of paragraph - do nothing
+// 2. Find index of end of last sentence
+// 3. Find index of end of last word (last whitespace before boundary), if we are at the end of word - do nothing
+// If no word break found, use the original right boundary.
+func findNaturalBreakpoint(runes []rune, left int, right int) int {
+	if runes[right] == '\n' {
+		return right
+	}
+
+	textPiece := string(runes[left:right])
+
+	lastParagraphIdx := strings.LastIndex(textPiece, "\n")
+	if lastParagraphIdx > 0 {
+		return left + lastParagraphIdx + 1 // Include the newline
+	}
+
+	lastSentenceIdx := max(strings.LastIndex(textPiece, "."), strings.LastIndex(textPiece, "!"), strings.LastIndex(textPiece, "?"))
+	if lastSentenceIdx > 0 {
+		return left + lastSentenceIdx + 1 // Include the punctuation
+	}
+
+	if runes[right] != ' ' {
+		lastWordIdx := strings.LastIndex(textPiece, " ")
+		if lastWordIdx > 0 {
+			return left + lastWordIdx + 1
+		}
+	}
+
+	return right
 }

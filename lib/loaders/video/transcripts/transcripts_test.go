@@ -1,9 +1,9 @@
-package utils_test
+package transcripts_test
 
 import (
 	"testing"
 
-	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/utils"
+	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/transcripts"
 )
 
 // TestCleanSRT verifies that the CleanSRT function correctly processes SRT text.
@@ -66,7 +66,7 @@ Another line`,
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, err := utils.CleanSRT(tc.input)
+			actual, err := transcripts.CleanSRT(tc.input)
 			if err != nil {
 				t.Errorf("Unexpected error in test %s: %v", tc.name, err)
 				return

@@ -1,4 +1,4 @@
-package utils
+package transcripts
 
 import (
 	"regexp"

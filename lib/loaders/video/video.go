@@ -5,12 +5,13 @@ package video
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
 
-	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/utils"
+	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/transcripts"
 	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/ytdlp"
 )
 
@@ -131,7 +132,7 @@ func (loader *DataLoader) Load() error {
 	if lang == "" {
 		subtitlesMap := loader.info.Subtitles
 		if len(subtitlesMap) == 0 {
-			return fmt.Errorf("No subtitles available")
+			return errors.New("no subtitles available")
 		}
 
 		// Fallback to English if exists
@@ -172,7 +173,7 @@ func (loader *DataLoader) Load() error {
 	_ = os.Remove(filename)
 
 	transcript := string(text)
-	if transcript, err = utils.CleanSRT(transcript); err != nil {
+	if transcript, err = transcripts.CleanSRT(transcript); err != nil {
 		return fmt.Errorf("failed to clean transcript file: %w", err)
 	}
 

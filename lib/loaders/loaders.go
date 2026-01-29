@@ -8,23 +8,27 @@ import (
 )
 
 func VideoLoader(url string) (*video.DataLoader, error) {
-	if provider.Youtube.IsValidURL(url) {
+	switch {
+	case provider.Youtube.IsValidURL(url):
 		return provider.Youtube.BuildDataLoader(url)
-	} else if provider.YoutubeShort.IsValidURL(url) {
+	case provider.YoutubeShort.IsValidURL(url):
 		return provider.YoutubeShort.BuildDataLoader(url)
-	} else if provider.VkVideo.IsValidURL(url) {
+	case provider.VkVideo.IsValidURL(url):
 		return provider.VkVideo.BuildDataLoader(url)
+	default:
+		return nil, errors.New("no valid URL found")
 	}
-	return nil, errors.New("no valid URL found")
 }
 
 func ExtractURLs(text string) []string {
-	if provider.Youtube.IsValidURL(text) {
+	switch {
+	case provider.Youtube.IsValidURL(text):
 		return provider.Youtube.ExtractURLs(text)
-	} else if provider.YoutubeShort.IsValidURL(text) {
+	case provider.YoutubeShort.IsValidURL(text):
 		return provider.YoutubeShort.ExtractURLs(text)
-	} else if provider.VkVideo.IsValidURL(text) {
+	case provider.VkVideo.IsValidURL(text):
 		return provider.VkVideo.ExtractURLs(text)
+	default:
+		return make([]string, 0)
 	}
-	return make([]string, 0)
 }
