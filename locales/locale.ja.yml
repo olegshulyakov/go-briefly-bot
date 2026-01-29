@@ -8,7 +8,7 @@ telegram:
     summarizing: 🤖 要約中...
   error:
     general: 😔 申し訳ありません。お手伝いできませんでした。
-    rate_limited: ⏱️ 30秒待ってから再度リクエストしてください。
+    rate_limited: ⏱️ {{.rateLimitWindow}}秒待ってから再度リクエストしてください。
     multiple_urls: ⚠️ 複数のURLが見つかりました。最初のURLのみを処理します。
     no_url_found: ❌ 動画URLが見つかりませんでした。
     info_failed: ❌ 申し訳ありません。この動画の情報を取得できませんでした。

@@ -8,7 +8,7 @@ telegram:
     summarizing: 🤖 Résumé en cours...
   error:
     general: 😔 Excusez-moi. Je n'ai pas pu vous aider cette fois.
-    rate_limited: ⏱️ Veuillez attendre 30 secondes avant de faire une autre requête.
+    rate_limited: ⏱️ Veuillez attendre {{.rateLimitWindow}} secondes avant de faire une autre requête.
     multiple_urls: ⚠️ Plusieurs URL détectées, traitement de la première uniquement.
     no_url_found: ❌ Aucun URL de vidéo trouvé.
     info_failed: ❌ Désolé, je n'ai pas pu obtenir les informations pour cette vidéo.

@@ -20,6 +20,7 @@ package bot
 import (
 	"fmt"
 	"log/slog"
+	"strconv"
 	"sync"
 	"time"
 
@@ -33,6 +34,8 @@ import (
 const (
 	// maxLength defines the maximum length for a single Telegram message.
 	maxLength = 3500
+	// rateLimitWindow defines rate limit window between the requests.
+	rateLimitWindow = 10
 )
 
 var (
@@ -94,7 +97,10 @@ func Handle(update tgbotapi.Update) {
 			"language",
 			message.From.LanguageCode,
 		)
-		sendQuite(message, lib.MustLocalize(message.From.LanguageCode, "telegram.error.rate_limited"))
+		sendQuite(message, lib.MustLocalizeTemplate(
+			message.From.LanguageCode,
+			"telegram.error.rate_limited",
+			map[string]string{"rateLimitWindow": strconv.Itoa(rateLimitWindow)}))
 		return
 	}
 
@@ -167,7 +173,7 @@ func deleteQuite(userMessage *tgbotapi.Message, message tgbotapi.Message) {
 	_, _ = Bot.Send(deleteMsg)
 }
 
-// isUserRateLimited checks if a user has made a request within the rate limit window (30 seconds).
+// isUserRateLimited checks if a user has made a request within the rate limit window.
 // Updates the last request time if the user is not rate-limited.
 // Returns true if the user should be rate-limited.
 func isUserRateLimited(userID int64) bool {
@@ -175,7 +181,7 @@ func isUserRateLimited(userID int64) bool {
 	defer userMutex.Unlock()
 
 	lastRequest, exists := userLastRequest[userID]
-	if exists && time.Since(lastRequest) < 30*time.Second {
+	if exists && time.Since(lastRequest) < rateLimitWindow*time.Second {
 		return true // User is rate-limited
 	}
 
