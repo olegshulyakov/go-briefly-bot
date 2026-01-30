@@ -13,6 +13,7 @@ import (
 
 	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/transcripts"
 	"github.com/olegshulyakov/go-briefly-bot/lib/loaders/video/ytdlp"
+	"golang.org/x/text/language"
 )
 
 // extension defines the subtitle format used for transcript conversion.
@@ -128,8 +129,12 @@ func (loader *DataLoader) Load() error {
 	slog.Debug("VideoInfo downloaded", "url", loader.url)
 	slog.Debug("Transcript load", "url", loader.url)
 
-	lang := loader.info.Language
-	if lang == "" {
+	var lang string
+	if loader.info.Language != "" {
+		tag := language.Make(loader.info.Language)
+		base, _ := tag.Base()
+		lang = base.String()
+	} else {
 		subtitlesMap := loader.info.Subtitles
 		if len(subtitlesMap) == 0 {
 			return errors.New("no subtitles available")
@@ -168,6 +173,7 @@ func (loader *DataLoader) Load() error {
 	filename := filepath.Join(os.TempDir(), fmt.Sprintf("subtitles_%s.%s.%s", loader.id, lang, extension))
 	text, err := os.ReadFile(filename)
 	if err != nil {
+		slog.Error("Subtitles not found", "execOutput", string(execOutput), "err", err)
 		return fmt.Errorf("no subtitles found: %w", err)
 	}
 	_ = os.Remove(filename)
