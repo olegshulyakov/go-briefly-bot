@@ -15,7 +15,7 @@ telegram:
     transcript_failed: ❌ Извините, я не смог получить транскрипт для этого видео.
     summary_failed: ❌ Извините, я не смог пересказать транскрипт.
   response:
-    title: 📖 **{{.title}}**
+    title: 📖 **[{{.title}}]({{.url}})**
 
 llm:
   system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Russian.

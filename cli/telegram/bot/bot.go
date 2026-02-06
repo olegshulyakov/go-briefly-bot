@@ -149,7 +149,7 @@ func sendFormatted(userMessage *tgbotapi.Message, text string) (tgbotapi.Message
 
 	msg := tgbotapi.NewMessage(userMessage.Chat.ID, escapedMessageText)
 	msg.ParseMode = tgbotapi.ModeHTML
-	msg.DisableWebPagePreview = true
+	msg.DisableWebPagePreview = false
 	return sendRetry(msg)
 }
 
@@ -261,7 +261,7 @@ func handle(message *tgbotapi.Message) {
 		lib.MustLocalizeTemplate(
 			message.From.LanguageCode,
 			"telegram.response.title",
-			map[string]string{"title": videoTranscript.Title},
+			map[string]string{"title": videoTranscript.Title, "url": videoURL},
 		),
 		summary,
 	)
