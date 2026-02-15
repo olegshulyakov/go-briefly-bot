@@ -3,14 +3,12 @@ services:
   go-briefly-bot:
     image: ghcr.io/olegshulyakov/go-briefly-bot:latest
     container_name: go-briefly-bot
-    mem_limit: 256m
+    mem_limit: 512m
     environment:
-      - TELEGRAM_BOT_TOKEN= # your_telegram_bot_token
-      - LLM_PROVIDER_TYPE=openai # openai/ollama
-      - OPEN_AI_API_URL= #your_open_ai_provider_api_url
-      - OPEN_AI_API_TOKEN= # your_open_ai_provider_api_token
-      - OPEN_AI_MODEL= # your_open_ai_provider_model
-      - OLLAMA_API_URL= # your_ollama_api_url
-      - OLLAMA_API_TOKEN= # your_ollama_api_token
-      - OLLAMA_MODEL= # your_ollama_model
+      - TELEGRAM_BOT_TOKEN=
+      - YT_DLP_ADDITIONAL_OPTIONS=
+      - OPENAI_BASE_URL=https://api.openai.com/v1/
+      - OPENAI_API_KEY=
+      - OPENAI_MODEL=gpt-4o-mini
+      - LOG_LEVEL=INFO
     restart: unless-stopped

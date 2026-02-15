@@ -1,18 +1,14 @@
 #!/bin/sh
 
-# Run tests
-echo "Running tests..."
-go test -v ./...
+set -e
 
-# Capture the exit code
-RESULT=$?
+echo "Running Python checks..."
+python3 -m compileall -q src tests
 
-# Abort the commit if tests fail
-if [ $RESULT -ne 0 ]; then
-  echo "❌ Tests failed. Commit aborted."
-  exit $RESULT
+if python3 -c "import pytest" >/dev/null 2>&1; then
+  python3 -m pytest -q
 else
-  echo "✅ Tests passed. Commit proceeding."
-  exit 0
+  echo "pytest is not installed, skipping tests."
 fi
 
+echo "✅ Checks passed. Commit proceeding."

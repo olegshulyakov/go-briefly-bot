@@ -2,32 +2,19 @@
 
 echo "Executing steps after checkout..."
 
-# Checking Go version
-go version
-
-# Capture the exit code
+python3 --version >/dev/null 2>&1
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
-  echo "❌ GoLang is not installed, see https://go.dev/doc/install for instructions."
+  echo "❌ Python 3 is not installed."
   exit $RESULT
 fi
 
-# Download dependencies
-echo "Downloading dependencies..."
-go mod download
-
-# Run build
-echo "Running build..."
-go build -v ./...
-
-# Capture the exit code
-RESULT=$?
-
-# Provide feedback based on the result
-if [ $RESULT -ne 0 ]; then
-  echo "❌ Build failed after checkout."
-  exit $RESULT
-else
-  echo "✅ Build passed after checkout."
-  exit 0
+if [ -f requirements.txt ]; then
+  echo "Installing dependencies from requirements.txt..."
+  python3 -m pip install -r requirements.txt
 fi
+
+echo "Running syntax check..."
+python3 -m compileall -q src tests
+
+echo "✅ Post-checkout checks passed."

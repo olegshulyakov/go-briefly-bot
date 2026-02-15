@@ -5,26 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run: REST API",
-      "type": "go",
+      "name": "Python: Run",
+      "type": "python",
       "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceFolder}/cli/apis/rest",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "envFile": "${workspaceFolder}/.env",
-      "preLaunchTask": "go: build"
-    },
-    {
-      "name": "Run: Telegram Bot",
-      "type": "go",
-      "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceFolder}/cli/telegram",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "envFile": "${workspaceFolder}/.env",
-      "preLaunchTask": "go: build"
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${fileDirname}"
     }
   ]
 }

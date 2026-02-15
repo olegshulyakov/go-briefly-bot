@@ -8,14 +8,14 @@ telegram:
     summarizing: 🤖 正在总结...
   error:
     general: 😔 很抱歉，我无法帮您解决这个问题。
-    rate_limited: ⏱️ 请等待 {{.rateLimitWindow}} 秒后再发起请求。
+    rate_limited: ⏱️ 请等待 %{rateLimitWindow} 秒后再发起请求。
     multiple_urls: ⚠️ 发现了多个 URL，仅处理第一个。
     no_url_found: ❌ 未找到视频 URL。
     info_failed: ❌ 抱歉，我无法获取此视频的信息。
     transcript_failed: ❌ 抱歉，我无法获取此视频的文字稿。
     summary_failed: ❌ 抱歉，我无法总结文字稿。
   response:
-    title: 📖 **[{{.title}}]({{.url}})**
+    title: 📖 %{title} (%{url})
 
 llm:
   system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Chinese.
