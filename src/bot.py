@@ -5,7 +5,14 @@ import logging
 import time
 
 from telegram import Update
-from telegram.ext import Application, ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import (
+    Application,
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
 from .config import Settings
 from .localization import translate
@@ -98,7 +105,10 @@ class TelegramBrieflyBot:
         await processing_message.edit_text(translate("telegram.progress.fetching_info", locale=language))
 
         try:
-            loader = VideoDataLoader(video_url, yt_dlp_additional_options=self.settings.yt_dlp_additional_options)
+            loader = VideoDataLoader(
+                video_url,
+                yt_dlp_additional_options=self.settings.yt_dlp_additional_options,
+            )
             await asyncio.to_thread(loader.load)
         except Exception as exc:
             logger.exception("Failed to load transcript", extra={"url": video_url, "error": str(exc)})
@@ -118,7 +128,10 @@ class TelegramBrieflyBot:
                 language,
             )
         except Exception as exc:
-            logger.exception("Failed to summarize transcript", extra={"url": video_url, "error": str(exc)})
+            logger.exception(
+                "Failed to summarize transcript",
+                extra={"url": video_url, "error": str(exc)},
+            )
             await processing_message.edit_text(translate("telegram.error.summary_failed", locale=language))
             return
 

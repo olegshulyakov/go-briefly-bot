@@ -40,7 +40,10 @@ class OpenAISummarizer:
                 return content
             except Exception as exc:  # pragma: no cover - upstream SDK/runtime errors
                 last_error = exc
-                logger.warning("OpenAI summarization attempt failed", extra={"attempt": attempt + 1, "error": str(exc)})
+                logger.warning(
+                    "OpenAI summarization attempt failed",
+                    extra={"attempt": attempt + 1, "error": str(exc)},
+                )
                 time.sleep(1)
 
         raise RuntimeError(f"failed to summarize text: {last_error}")
