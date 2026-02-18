@@ -1,6 +1,6 @@
 from unittest.mock import patch, MagicMock
 from pathlib import Path
-from src.video_loader import VideoDataLoader, VideoInfo, VideoTranscript
+from src.load.video_loader import VideoDataLoader, VideoInfo, VideoTranscript
 
 
 def test_video_info_creation() -> None:
@@ -40,7 +40,7 @@ def test_video_transcript_creation() -> None:
 
 
 def test_video_data_loader_initialization() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -53,7 +53,7 @@ def test_video_data_loader_initialization() -> None:
 
 
 def test_video_data_loader_initialization_with_options() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test", yt_dlp_additional_options=("--format", "mp4"))
@@ -62,7 +62,7 @@ def test_video_data_loader_initialization_with_options() -> None:
 
 
 def test_video_data_loader_subtitle_template_path() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
         with patch("tempfile.gettempdir") as mock_temp:
             mock_temp.return_value = "/tmp"
@@ -74,7 +74,7 @@ def test_video_data_loader_subtitle_template_path() -> None:
 
 
 def test_video_data_loader_subtitle_prefix() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
         with patch("tempfile.gettempdir") as mock_temp:
             mock_temp.return_value = "/tmp"
@@ -86,7 +86,7 @@ def test_video_data_loader_subtitle_prefix() -> None:
 
 
 def test_detect_language_with_video_info_language() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -105,7 +105,7 @@ def test_detect_language_with_video_info_language() -> None:
 
 
 def test_detect_language_with_subtitles_en_priority() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -124,7 +124,7 @@ def test_detect_language_with_subtitles_en_priority() -> None:
 
 
 def test_detect_language_with_subtitles_first_available() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -143,7 +143,7 @@ def test_detect_language_with_subtitles_first_available() -> None:
 
 
 def test_detect_language_no_subtitles_or_language() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -168,7 +168,7 @@ def test_detect_language_no_subtitles_or_language() -> None:
 def test_extract_json_payload_simple() -> None:
     output = '{"id": "test", "title": "Test Video"}'
 
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -182,7 +182,7 @@ def test_extract_json_payload_with_extra_lines() -> None:
 {"id": "test", "title": "Test Video"}
 [download] Completed download"""
 
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -192,7 +192,7 @@ def test_extract_json_payload_with_extra_lines() -> None:
 
 
 def test_extract_json_payload_empty_output() -> None:
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -208,7 +208,7 @@ def test_extract_json_payload_last_json_object() -> None:
 {"version": "1.0"}
 {"id": "test", "title": "Test Video"}"""
 
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -225,7 +225,7 @@ def test_exec_success_single_attempt(mock_run) -> None:
     mock_result.returncode = 0
     mock_run.return_value = mock_result
 
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -246,7 +246,7 @@ def test_exec_success_with_additional_options(mock_run) -> None:
     mock_result.stderr = ""
     mock_run.return_value = mock_result
 
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test", yt_dlp_additional_options=("--format", "mp4"))
@@ -285,7 +285,7 @@ def test_exec_failure_eventually_succeeds(mock_run) -> None:
     run_side_effect.call_count = 1
     mock_run.side_effect = run_side_effect
 
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")
@@ -305,7 +305,7 @@ def test_exec_failure_all_attempts(mock_run) -> None:
 
     mock_run.side_effect = run_side_effect
 
-    with patch("src.video_loader.build_video_source") as mock_build:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader("https://youtu.be/test")

@@ -1,4 +1,4 @@
-from src.transcripts import clean_srt
+from src.load.transcripts import clean_srt
 
 
 def test_clean_srt_basic() -> None:

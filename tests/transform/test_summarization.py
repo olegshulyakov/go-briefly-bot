@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-from src.summarization import OpenAISummarizer
+from src.transform.summarization import OpenAISummarizer
 from src.config import Settings
 
 
@@ -9,7 +9,7 @@ def test_openai_summarizer_initialization() -> None:
     mock_settings.openai_api_key = "test-key"
     mock_settings.openai_max_retries = 3
 
-    with patch("src.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_openai_class.return_value = mock_client_instance
 
@@ -32,7 +32,7 @@ def test_summarizer_summarize_text_success() -> None:
     mock_settings.openai_timeout_seconds = 300
     mock_settings.openai_max_retries = 3
 
-    with patch("src.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_response = MagicMock()
         mock_choice = MagicMock()
@@ -44,7 +44,7 @@ def test_summarizer_summarize_text_success() -> None:
         mock_openai_class.return_value = mock_client_instance
 
         # Mock the translate function to return a fixed system prompt
-        with patch("src.summarization.translate") as mock_translate:
+        with patch("src.transform.summarization.translate") as mock_translate:
             mock_translate.return_value = "You are a helpful assistant."
 
             summarizer = OpenAISummarizer(mock_settings)
@@ -71,19 +71,25 @@ def test_summarizer_summarize_text_empty_response() -> None:
     mock_settings.openai_timeout_seconds = 300
     mock_settings.openai_max_retries = 3
 
-    with patch("src.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_response = MagicMock()
         mock_choice = MagicMock()
+        mock_message = MagicMock()
 
-        mock_choice.message.content = None  # Empty response
+        mock_message.content = None  # Empty response
+        mock_choice.message = mock_message
         mock_response.choices = [mock_choice]
+        # Set response attributes to avoid dynamic mock creation during logging
+        mock_response.id = "test_response_id"
+        mock_response.model = "gpt-3.5-turbo"
+        mock_response.message = None  # Explicitly set to None to avoid mock creation
         mock_client_instance.chat.completions.create.return_value = mock_response
 
         mock_openai_class.return_value = mock_client_instance
 
         # Mock the translate function
-        with patch("src.summarization.translate") as mock_translate:
+        with patch("src.transform.summarization.translate") as mock_translate:
             mock_translate.return_value = "You are a helpful assistant."
 
             summarizer = OpenAISummarizer(mock_settings)
@@ -103,7 +109,7 @@ def test_summarizer_summarize_text_with_retry_success() -> None:
     mock_settings.openai_timeout_seconds = 300
     mock_settings.openai_max_retries = 3
 
-    with patch("src.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_response = MagicMock()
         mock_choice = MagicMock()
@@ -120,7 +126,7 @@ def test_summarizer_summarize_text_with_retry_success() -> None:
         mock_openai_class.return_value = mock_client_instance
 
         # Mock the translate function
-        with patch("src.summarization.translate") as mock_translate:
+        with patch("src.transform.summarization.translate") as mock_translate:
             mock_translate.return_value = "You are a helpful assistant."
 
             summarizer = OpenAISummarizer(mock_settings)
@@ -139,7 +145,7 @@ def test_summarizer_summarize_text_with_retry_failure() -> None:
     mock_settings.openai_timeout_seconds = 300
     mock_settings.openai_max_retries = 2  # Limit retries to 2
 
-    with patch("src.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
 
         # All calls raise exceptions
@@ -151,7 +157,7 @@ def test_summarizer_summarize_text_with_retry_failure() -> None:
         mock_openai_class.return_value = mock_client_instance
 
         # Mock the translate function
-        with patch("src.summarization.translate") as mock_translate:
+        with patch("src.transform.summarization.translate") as mock_translate:
             mock_translate.return_value = "You are a helpful assistant."
 
             summarizer = OpenAISummarizer(mock_settings)

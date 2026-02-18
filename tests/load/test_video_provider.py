@@ -1,4 +1,4 @@
-from src.video_provider import (
+from src.load.video_provider import (
     build_video_source,
     extract_urls,
     YOUTUBE,

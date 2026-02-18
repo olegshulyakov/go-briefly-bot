@@ -5,8 +5,8 @@ import time
 
 from openai import OpenAI
 
-from .config import Settings
-from .localization import translate
+from ..config import Settings
+from ..localization import translate
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class OpenAISummarizer:
                 if not content:
                     logger.warning(
                         "OpenAI returned empty response",
-                        extra={"response_id": getattr(response, "id", None), "model": getattr(response, "model", None), "message": getattr(response, "message", None)},
+                        extra={"response_id": getattr(response, "id", None), "model": getattr(response, "model", None), "choices": getattr(response, "choices", None)},
                     )
                     raise RuntimeError("empty OpenAI response")
                 return content

@@ -15,11 +15,11 @@ from telegram.ext import (
 )
 
 from .config import Settings
+from .load.video_loader import VideoDataLoader
+from .load.video_provider import extract_urls
 from .localization import translate
-from .summarization import OpenAISummarizer
-from .text_utils import to_lexical_chunks
-from .video_loader import VideoDataLoader
-from .video_provider import extract_urls
+from .transform.summarization import OpenAISummarizer
+from .utils.text import to_lexical_chunks
 
 logger = logging.getLogger(__name__)
 

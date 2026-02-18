@@ -1,4 +1,4 @@
-from src.text_utils import to_lexical_chunks
+from src.utils.text import to_lexical_chunks
 
 
 def test_to_lexical_chunks_handles_empty_text() -> None:

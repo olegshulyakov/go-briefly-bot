@@ -58,15 +58,14 @@ def test_telegram_briefly_bot_initialization() -> None:
     mock_settings.openai_api_key = "test_key"
     mock_settings.openai_model = "gpt-3.5-turbo"
 
-    with patch("src.bot.ApplicationBuilder") as mock_builder:
-        mock_app_instance = MagicMock()
-        mock_builder.return_value.token.return_value.build.return_value = mock_app_instance
+    with patch("src.bot.OpenAISummarizer") as mock_summarizer_class:
+        mock_summarizer_instance = MagicMock()
+        mock_summarizer_class.return_value = mock_summarizer_instance
 
         bot = TelegramBrieflyBot(mock_settings)
 
         # Verify initialization
         assert bot.settings == mock_settings
         assert bot.rate_limiter.cooldown_seconds == 10
-        mock_builder.assert_called_once()
-        mock_builder.return_value.token.assert_called_once_with("test_token")
-        mock_builder.return_value.token.return_value.build.assert_called_once()
+        # Verify OpenAISummarizer was initialized with settings
+        mock_summarizer_class.assert_called_once_with(mock_settings)
