@@ -34,8 +34,19 @@ class OpenAISummarizer:
                     ],
                     timeout=self.settings.openai_timeout_seconds,
                 )
+                if not response or not response.choices:
+                    logger.warning(
+                        "OpenAI returned no response",
+                        extra={"response_id": getattr(response, "id", None), "model": getattr(response, "model", None)},
+                    )
+                    raise RuntimeError("no OpenAI response")
+
                 content = response.choices[0].message.content
                 if not content:
+                    logger.warning(
+                        "OpenAI returned empty response",
+                        extra={"response_id": getattr(response, "id", None), "model": getattr(response, "model", None), "message": getattr(response, "message", None)},
+                    )
                     raise RuntimeError("empty OpenAI response")
                 return content
             except Exception as exc:  # pragma: no cover - upstream SDK/runtime errors

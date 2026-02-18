@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 
-from telegram import Update
+from telegram import Update, User
 from telegram.ext import (
     Application,
     ApplicationBuilder,
@@ -47,13 +47,12 @@ class TelegramBrieflyBot:
         self.rate_limiter = UserRateLimiter(settings.rate_limit_window_seconds)
         self.summarizer = OpenAISummarizer(settings)
 
-        self.application: Application = ApplicationBuilder().token(settings.telegram_bot_token).build()
-        self.application.add_handler(CommandHandler("start", self._start))
-        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message))
-        self.application.add_error_handler(self._on_error)
-
     def run(self) -> None:
-        self.application.run_polling(drop_pending_updates=True)
+        application: Application = ApplicationBuilder().token(self.settings.telegram_bot_token).build()
+        application.add_handler(CommandHandler("start", self._start))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message))
+        application.add_error_handler(self._on_error)
+        application.run_polling(drop_pending_updates=True)
 
     async def _start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         del context
@@ -62,21 +61,23 @@ class TelegramBrieflyBot:
         if message is None:
             return
 
-        language = self._language(update)
+        language = self._language(update.effective_user)
         await message.reply_text(translate("telegram.welcome.message", locale=language))
 
     async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         del context
 
-        message = update.effective_message
         user = update.effective_user
-        if message is None or user is None:
+        if user is None:
             return
 
-        language = self._language(update)
-
+        language = self._language(user)
         if user.is_bot:
             logger.warning("Ignored bot message", extra={"user_id": user.id, "language": language})
+            return
+
+        message = update.effective_message
+        if message is None:
             return
 
         if await self.rate_limiter.is_limited(user.id):
@@ -161,13 +162,12 @@ class TelegramBrieflyBot:
         if message is None:
             return
 
-        language = self._language(update)
+        language = self._language(update.effective_user)
         try:
             await message.reply_text(translate("telegram.error.general", locale=language))
         except Exception:
             logger.debug("Failed to send generic error", exc_info=True)
 
     @staticmethod
-    def _language(update: Update) -> str | None:
-        user = update.effective_user
+    def _language(user: User | None) -> str | None:
         return user.language_code if user else None
