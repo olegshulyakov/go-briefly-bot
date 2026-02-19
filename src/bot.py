@@ -274,7 +274,6 @@ class TelegramBrieflyBot:
                 text=markdown_to_telegram_html(chunk),
                 message_thread_id=message.message_thread_id,
                 reply_to_message_id=message.id,
-                disable_web_page_preview=False,
                 link_preview_options=LinkPreviewOptions(is_disabled=False, url=video_url, show_above_text=True),
             )
 
