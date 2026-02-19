@@ -17,5 +17,5 @@ telegram:
   response:
     title: 📖 **[%{title}](%{url})**
 
-llm:
-  system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Russian.
+openai:
+  prompt: <task>Напишите краткое резюме представленной информации.</task>\n<instructions>\n- Сосредоточьтесь на ключевых моментах.\n- Сохраняйте исходную структуру и выделяйте основные идеи в каждом разделе.\n- Напишите резюме на русском языке.\n</instructions>\n<data id="text">\n%{text}\n</data>

@@ -45,7 +45,7 @@ def test_summarizer_summarize_text_success() -> None:
 
         # Mock the translate function to return a fixed system prompt
         with patch("src.transform.summarization.translate") as mock_translate:
-            mock_translate.return_value = "You are a helpful assistant."
+            mock_translate.return_value = "Input text to summarize"
 
             summarizer = OpenAISummarizer(mock_settings)
             result = summarizer.summarize_text("Input text to summarize", "en")
@@ -54,7 +54,6 @@ def test_summarizer_summarize_text_success() -> None:
             mock_client_instance.chat.completions.create.assert_called_once_with(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": "Input text to summarize"},
                 ],
                 timeout=300,

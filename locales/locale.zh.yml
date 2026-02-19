@@ -17,5 +17,5 @@ telegram:
   response:
     title: 📖 **[%{title}](%{url})**
 
-llm:
-  system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Chinese.
+openai:
+  prompt: <task>请对所提供的信息进行简明扼要的总结。</task>\n<instructions>\n- 重点突出关键点。\n- 保持原文结构，并在每个部分中突出主要观点。\n- 用中文撰写总结。\n</instructions>\n<data id="text">\n%{text}\n</data>
