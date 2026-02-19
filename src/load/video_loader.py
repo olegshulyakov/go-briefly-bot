@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-import json
 import logging
-import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+
+import yt_dlp
 
 from .transcripts import clean_srt
 from .video_provider import build_video_source
 
 logger = logging.getLogger(__name__)
+max_attempts = 3
 
 
 @dataclass(frozen=True)
@@ -48,37 +49,64 @@ class VideoDataLoader:
                 "video_id": self.video_id,
             },
         )
-        dump_output = self._exec(["--dump-json"], self.url)
-        payload = self._extract_json_payload(dump_output)
 
-        raw_info = json.loads(payload)
-        self.info = VideoInfo(
-            id=str(raw_info.get("id", "")),
-            language=str(raw_info.get("language", "") or ""),
-            uploader=str(raw_info.get("uploader", "") or ""),
-            title=str(raw_info.get("title", "") or ""),
-            thumbnail=str(raw_info.get("thumbnail", "") or ""),
-            subtitles=dict(raw_info.get("subtitles", {}) or {}),
-        )
+        # Extract video info with retries
+        last_error: Exception | None = None
+        for attempt in range(max_attempts):
+            try:
+                ydl_opts = self._build_ydl_opts(
+                    {
+                        "dumpjson": True,
+                    }
+                )
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    raw_info = ydl.extract_info(self.url, download=False)
+                    self.info = VideoInfo(
+                        id=str(raw_info.get("id", "")),
+                        language=str(raw_info.get("language", "") or ""),
+                        uploader=str(raw_info.get("uploader", "") or ""),
+                        title=str(raw_info.get("title", "") or ""),
+                        thumbnail=str(raw_info.get("thumbnail", "") or ""),
+                        subtitles=dict(raw_info.get("subtitles", {}) or {}),
+                    )
+                break
+            except Exception as exc:
+                last_error = exc
+                logger.warning(
+                    "Failed to load video info",
+                    extra={"attempt": attempt + 1, "url": self.url, "error": str(exc)},
+                )
+        else:
+            raise RuntimeError(f"Failed to load video info after {max_attempts} attempts: {last_error}")
 
         language = self._detect_language(self.info)
         logger.debug("Detected transcript language", extra={"url": self.url, "language": language})
 
-        self._exec(
-            [
-                "--no-progress",
-                "--skip-download",
-                "--write-subs",
-                "--write-auto-subs",
-                "--convert-subs",
-                "srt",
-                "--sub-lang",
-                f"{language},{language}_auto,-live_chat",
-                "--output",
-                self._subtitle_template_path,
-            ],
-            self.url,
-        )
+        # Download subtitles with retries
+        for attempt in range(max_attempts):
+            try:
+                ydl_opts = self._build_ydl_opts(
+                    {
+                        "no_progress": True,
+                        "skip_download": True,
+                        "writesubtitles": True,
+                        "writeautomaticsub": True,
+                        "subtitleslangs": [language, f"{language}_auto", "-live_chat"],
+                        "subtitlesformat": "srt",
+                        "outtmpl": self._subtitle_template_path,
+                    }
+                )
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.extract_info(self.url, download=True)
+                break
+            except Exception as exc:
+                last_error = exc
+                logger.warning(
+                    "Failed to download subtitles",
+                    extra={"attempt": attempt + 1, "url": self.url, "error": str(exc)},
+                )
+        else:
+            raise RuntimeError(f"Failed to download subtitles after {max_attempts} attempts: {last_error}")
 
         subtitle_file = self._find_subtitle_file(language)
         if subtitle_file is None:
@@ -100,6 +128,32 @@ class VideoDataLoader:
         logger.info("Transcript loaded successfully", extra={"url": self.url, "length": len(transcript_text)})
 
         self._cleanup_subtitle_files()
+
+    def _build_ydl_opts(self, extra_options: dict | None = None) -> dict:
+        """Build yt-dlp options with additional user options."""
+        opts = {
+            "quiet": True,
+            "no_warnings": True,
+            "extract_flat": False,
+        }
+        if extra_options:
+            opts.update(extra_options)
+        # Add user-provided options as keyword arguments
+        i = 0
+        while i < len(self.yt_dlp_additional_options):
+            opt = self.yt_dlp_additional_options[i]
+            if opt.startswith("--"):
+                key = opt[2:].replace("-", "_")
+                # Check if next option is a value (not another flag)
+                if i + 1 < len(self.yt_dlp_additional_options) and not self.yt_dlp_additional_options[i + 1].startswith(
+                    "--"
+                ):
+                    opts[key] = self.yt_dlp_additional_options[i + 1]
+                    i += 1
+                else:
+                    opts[key] = True
+            i += 1
+        return opts
 
     @property
     def _subtitle_template_path(self) -> str:
@@ -139,41 +193,3 @@ class VideoDataLoader:
                 path.unlink(missing_ok=True)
             except OSError:
                 logger.warning("Failed to cleanup temp subtitle file", extra={"path": str(path)})
-
-    def _exec(self, arguments: list[str], url: str) -> str:
-        max_attempts = 3
-        args = [*self.yt_dlp_additional_options, *arguments, url]
-
-        last_error: Exception | None = None
-        last_output = ""
-
-        for attempt in range(max_attempts):
-            try:
-                result = subprocess.run(
-                    ["yt-dlp", *args],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                return (result.stdout or result.stderr or "").strip()
-            except subprocess.CalledProcessError as exc:
-                last_error = exc
-                last_output = f"{exc.stdout or ''}\n{exc.stderr or ''}".strip()
-                logger.warning(
-                    "yt-dlp failed",
-                    extra={"attempt": attempt + 1, "url": url, "returncode": exc.returncode},
-                )
-
-        raise RuntimeError(f"yt-dlp failed after {max_attempts} attempts: {last_error}\n{last_output}")
-
-    @staticmethod
-    def _extract_json_payload(output: str) -> str:
-        lines = [line.strip() for line in output.splitlines() if line.strip()]
-        if not lines:
-            raise ValueError("empty yt-dlp metadata output")
-
-        for line in reversed(lines):
-            if line.startswith("{") and line.endswith("}"):
-                return line
-
-        return lines[-1]
