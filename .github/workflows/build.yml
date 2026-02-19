@@ -1,5 +1,5 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+# This workflow will build a Python project
+# For more information see: https://docs.github.com/en/actions/tutorials/build-and-test-code/python
 
 name: Build
 
@@ -19,21 +19,44 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        go-version:
-          - 1.21
-          - "stable"
+        python-version:
+          - "3.11"
+          - "3.x"
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          go-version: ${{ matrix.go-version }}
-          cache-dependency-path: go.sum
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
 
-      - name: Build
-        run: go build -v ./...
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
 
-      - name: Test
-        run: go test -v ./...
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Lint code with Ruff
+        run: |
+          ruff check --output-format=github --target-version=py311
+
+      - name: Check code formatting with Ruff
+        run: |
+          ruff format --diff --target-version=py311
+
+      - name: Test with pytest
+        run: |
+          pytest tests/ --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}.xml
+
+
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-${{ matrix.python-version }}
+          path: junit/test-results-${{ matrix.python-version }}.xml
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}
