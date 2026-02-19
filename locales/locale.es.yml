@@ -8,14 +8,14 @@ telegram:
     summarizing: 🤖 Resumiendo...
   error:
     general: 😔 Disculpa. No pude ayudarte con esto.
-    rate_limited: ⏱️ Por favor, espera {{.rateLimitWindow}} segundos antes de hacer otra solicitud.
+    rate_limited: ⏱️ Por favor, espera %{rateLimitWindow} segundos antes de hacer otra solicitud.
     multiple_urls: ⚠️ Se encontraron múltiples URLs, procesando solo la primera.
     no_url_found: ❌ No se encontró ninguna URL de video.
     info_failed: ❌ Lo siento, no pude obtener la información para este video.
     transcript_failed: ❌ Lo siento, no pude obtener la transcripción para este video.
     summary_failed: ❌ Lo siento, no pude resumir la transcripción.
   response:
-    title: 📖 **[{{.title}}]({{.url}})**
+    title: 📖 **[%{title}](%{url})**
 
 llm:
   system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Spanish.

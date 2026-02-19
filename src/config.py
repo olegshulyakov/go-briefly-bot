@@ -1,0 +1,86 @@
+"""
+Configuration module for loading application settings.
+
+Loads settings from environment variables with validation.
+Uses dataclass for immutable, type-safe configuration.
+"""
+
+from __future__ import annotations
+
+import os
+import shlex
+from dataclasses import dataclass
+
+from dotenv import load_dotenv
+
+
+@dataclass(frozen=True)
+class Settings:
+    """
+    Application settings loaded from environment variables.
+
+    Immutable configuration class (frozen dataclass) that ensures
+    settings cannot be modified after initialization.
+
+    Attributes:
+        telegram_bot_token: Telegram Bot API token.
+        openai_base_url: Base URL for OpenAI-compatible API.
+        openai_api_key: API key for LLM service.
+        openai_model: Model name to use for summarization.
+        yt_dlp_additional_options: Additional yt-dlp CLI options.
+        rate_limit_window_seconds: Cooldown between user requests.
+        max_telegram_message_length: Maximum message length before chunking.
+        openai_timeout_seconds: Timeout for LLM API requests.
+        openai_max_retries: Maximum retry attempts for LLM API.
+    """
+
+    telegram_bot_token: str
+    openai_base_url: str
+    openai_api_key: str
+    openai_model: str
+    yt_dlp_additional_options: tuple[str, ...]
+    rate_limit_window_seconds: int = 10
+    max_telegram_message_length: int = 3500
+    openai_timeout_seconds: int = 300
+    openai_max_retries: int = 3
+
+    @classmethod
+    def from_env(cls) -> "Settings":
+        """
+        Load settings from environment variables.
+
+        Validates that all required environment variables are present.
+
+        Returns:
+            Settings instance populated with environment values.
+
+        Raises:
+            RuntimeError: If required environment variables are missing.
+        """
+
+        load_dotenv()
+
+        telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+        openai_base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1/").strip()
+        openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        openai_model = os.getenv("OPENAI_MODEL", "").strip()
+        yt_dlp_additional_options = tuple(shlex.split(os.getenv("YT_DLP_ADDITIONAL_OPTIONS", "")))
+
+        missing = []
+        if not telegram_bot_token:
+            missing.append("TELEGRAM_BOT_TOKEN")
+        if not openai_api_key:
+            missing.append("OPENAI_API_KEY")
+        if not openai_model:
+            missing.append("OPENAI_MODEL")
+
+        if missing:
+            raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
+
+        return cls(
+            telegram_bot_token=telegram_bot_token,
+            openai_base_url=openai_base_url,
+            openai_api_key=openai_api_key,
+            openai_model=openai_model,
+            yt_dlp_additional_options=yt_dlp_additional_options,
+        )

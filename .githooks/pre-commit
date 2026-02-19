@@ -1,18 +1,24 @@
 #!/bin/sh
 
-# Run tests
-echo "Running tests..."
-go test -v ./...
+set -e
 
-# Capture the exit code
-RESULT=$?
+echo "Running Python checks..."
 
-# Abort the commit if tests fail
-if [ $RESULT -ne 0 ]; then
-  echo "❌ Tests failed. Commit aborted."
-  exit $RESULT
+# Compile check
+python3 -m compileall -q src tests
+
+# Run tests if pytest is available
+if python3 -c "import pytest" >/dev/null 2>&1; then
+  python3 -m pytest -q
 else
-  echo "✅ Tests passed. Commit proceeding."
-  exit 0
+  echo "⚠️  pytest is not installed, skipping tests."
 fi
 
+# Run linter if ruff is available
+if python3 -c "import ruff" >/dev/null 2>&1; then
+  python3 -m ruff check src/ tests/
+else
+  echo "⚠️  ruff is not installed, skipping lint."
+fi
+
+echo "✅ Checks passed. Commit proceeding."

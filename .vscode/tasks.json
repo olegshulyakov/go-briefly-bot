@@ -2,74 +2,49 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "go: build",
+      "label": "python: install",
       "type": "shell",
-      "command": "go",
-      "args": ["build", "./..."],
+      "command": "${workspaceFolder}/.venv/bin/pip",
+      "args": ["install", "-e", "\".[dev]\""],
       "group": "build",
-      "problemMatcher": ["$go"],
-      "detail": "Build the Go application.",
-      "dependsOn": ["go: fmt", "go: test"]
+      "problemMatcher": [],
+      "detail": "Install Python dependencies from pyproject.toml"
     },
     {
-      "label": "go: run",
+      "label": "python: run",
       "type": "shell",
-      "command": "go",
-      "args": ["run", "."],
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["-m", "src.main"],
       "group": "none",
-      "problemMatcher": ["$go"],
-      "detail": "Run the Go application."
+      "problemMatcher": [],
+      "detail": "Run the Python bot application."
     },
     {
-      "label": "go: test",
+      "label": "python: test",
       "type": "shell",
-      "command": "go",
-      "args": ["test", "./..."],
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["-m", "pytest", "tests/", "-v"],
       "group": "test",
-      "problemMatcher": ["$go"],
-      "detail": "Run all Go tests in the project.",
-      "dependsOn": ["go: fmt"]
+      "problemMatcher": [],
+      "detail": "Run all Python tests using pytest."
     },
     {
-      "label": "go: clean",
+      "label": "python: lint",
       "type": "shell",
-      "command": "go",
-      "args": ["clean"],
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["-m", "ruff", "check", "--fix"],
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Run ruff linter for Python code."
+    },
+    {
+      "label": "python: format",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["-m", "ruff", "format"],
       "group": "none",
       "problemMatcher": [],
-      "detail": "Clean Go build files."
-    },
-    {
-      "label": "go: lint",
-      "type": "shell",
-      "command": "golangci-lint",
-      "args": ["run", "--fix", "./..."],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": ["$golangci-lint"],
-      "detail": "Run golangci-lint for static code analysis.",
-      "dependsOn": ["go: build"]
-    },
-    {
-      "label": "go: fmt",
-      "type": "shell",
-      "command": "go",
-      "args": ["fmt", "./..."],
-      "group": "none",
-      "problemMatcher": [],
-      "detail": "Format Go code using go fmt.",
-      "dependsOn": ["go: mod tidy"]
-    },
-    {
-      "label": "go: mod tidy",
-      "type": "shell",
-      "command": "go",
-      "args": ["mod", "tidy"],
-      "group": "none",
-      "problemMatcher": [],
-      "detail": "Run go mod tidy to clean up dependencies."
+      "detail": "Format Python code using ruff."
     }
   ]
 }

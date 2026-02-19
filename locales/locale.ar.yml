@@ -8,14 +8,14 @@ telegram:
     summarizing: 🤖 جارٍ التلخيص...
   error:
     general: 😔 عذرًا. لم أتمكن من مساعدتك في ذلك.
-    rate_limited: ⏱️ يرجى الانتظار {{.rateLimitWindow}} ثانية قبل تقديم طلب آخر.
+    rate_limited: ⏱️ يرجى الانتظار %{rateLimitWindow} ثانية قبل تقديم طلب آخر.
     multiple_urls: ⚠️ تم العثور على عناوين URL متعددة، تتم معالجة العنوان الأول فقط.
     no_url_found: ❌ لم يتم العثور على عنوان URL للفيديو.
     info_failed: ❌ عذرًا، لم أتمكن من جلب معلومات هذا الفيديو.
     transcript_failed: ❌ عذرًا، لم أتمكن من جلب نسخة هذا الفيديو.
     summary_failed: ❌ عذرًا، لم أتمكن من تلخيص النسخة.
   response:
-    title: 📖 **[{{.title}}]({{.url}})**
+    title: 📖 **[%{title}](%{url})**
 
 llm:
   system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Arabic.

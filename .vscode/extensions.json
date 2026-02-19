@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    // Python support
+    "ms-python.python", // Python language support
+    "ms-python.vscode-pylance", // Fast Python type checker
+    "ms-python.debugpy", // Python debugger
+    "ms-python.isort", // Import sorting
+
+    // Linting & Formatting
+    "charliermarsh.ruff", // Ruff linter and formatter
+
+    // Configuration files
+    "tamasfe.even-better-toml", // TOML syntax support (pyproject.toml)
+    "redhat.vscode-yaml" // YAML support (locales, compose.yml)
+  ]
+}
