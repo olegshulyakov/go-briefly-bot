@@ -15,7 +15,7 @@ telegram:
     transcript_failed: ❌ Désolé, je n'ai pas pu obtenir la transcription pour cette vidéo.
     summary_failed: ❌ Désolé, je n'ai pas pu résumer la transcription.
   response:
-    title: 📖 [%{title}](%{url})
+    title: 📖 **[%{title}](%{url})**
 
 llm:
   system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in French.

@@ -15,7 +15,7 @@ telegram:
     transcript_failed: ❌ 申し訳ありません。この動画の字幕を取得できませんでした。
     summary_failed: ❌ 申し訳ありません。字幕を要約できませんでした。
   response:
-    title: 📖 [%{title}](%{url})
+    title: 📖 **[%{title}](%{url})**
 
 llm:
   system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Japanese.

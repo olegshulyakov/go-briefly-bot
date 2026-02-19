@@ -15,7 +15,7 @@ telegram:
     transcript_failed: ❌ क्षमा करें, मैं इस वीडियो के लिए ट्रांसक्रिप्ट प्राप्त नहीं कर सका।
     summary_failed: ❌ क्षमा करें, मैं ट्रांसक्रिप्ट को संक्षेप में नहीं बता सका।
   response:
-    title: 📖 [%{title}](%{url})
+    title: 📖 **[%{title}](%{url})**
 
 llm:
   system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Hindi.
