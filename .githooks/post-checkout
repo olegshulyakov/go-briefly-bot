@@ -2,6 +2,7 @@
 
 echo "Executing steps after checkout..."
 
+# Check Python is installed
 python3 --version >/dev/null 2>&1
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
@@ -9,12 +10,16 @@ if [ $RESULT -ne 0 ]; then
   exit $RESULT
 fi
 
-if [ -f requirements.txt ]; then
-  echo "Installing dependencies from requirements.txt..."
-  python3 -m pip install -r requirements.txt
+echo "🐍 Python $(python3 --version)"
+
+# Install dependencies from pyproject.toml
+if [ -f pyproject.toml ]; then
+  echo "📦 Installing dependencies from pyproject.toml..."
+  python3 -m pip install -e ".[dev]" --quiet
 fi
 
-echo "Running syntax check..."
+# Run syntax check
+echo "🔍 Running syntax check..."
 python3 -m compileall -q src tests
 
 echo "✅ Post-checkout checks passed."

@@ -3,12 +3,22 @@
 set -e
 
 echo "Running Python checks..."
+
+# Compile check
 python3 -m compileall -q src tests
 
+# Run tests if pytest is available
 if python3 -c "import pytest" >/dev/null 2>&1; then
   python3 -m pytest -q
 else
-  echo "pytest is not installed, skipping tests."
+  echo "⚠️  pytest is not installed, skipping tests."
+fi
+
+# Run linter if ruff is available
+if python3 -c "import ruff" >/dev/null 2>&1; then
+  python3 -m ruff check src/ tests/
+else
+  echo "⚠️  ruff is not installed, skipping lint."
 fi
 
 echo "✅ Checks passed. Commit proceeding."

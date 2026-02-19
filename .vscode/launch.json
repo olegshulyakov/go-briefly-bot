@@ -1,30 +1,55 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  // VS Code launch configurations for go-briefly-bot
+  // https://code.visualstudio.com/docs/python/debugging
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Bot",
-      "type": "python",
+      "name": "🐍 Run Bot",
+      "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/src/main.py",
+      "module": "src.main",
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",
-      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": false,
       "env": {
         "PYTHONPATH": "${workspaceFolder}"
       }
     },
     {
-      "name": "Python: Tests",
-      "type": "python",
+      "name": "🧪 Test All",
+      "type": "debugpy",
       "request": "launch",
       "module": "pytest",
-      "args": ["tests/"],
+      "args": ["tests/", "-v"],
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",
-      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "🧪 Test Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${file}", "-v"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "🧪 Test with Coverage",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "--cov=src", "--cov-report=term-missing"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "justMyCode": false,
       "env": {
         "PYTHONPATH": "${workspaceFolder}"
       }

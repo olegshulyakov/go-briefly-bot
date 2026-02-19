@@ -5,10 +5,10 @@
       "label": "python: install",
       "type": "shell",
       "command": "${workspaceFolder}/.venv/bin/pip",
-      "args": ["install", "-r", "requirements.txt"],
-      "group": "none",
+      "args": ["install", "-e", "\".[dev]\""],
+      "group": "build",
       "problemMatcher": [],
-      "detail": "Install Python dependencies from requirements.txt."
+      "detail": "Install Python dependencies from pyproject.toml"
     },
     {
       "label": "python: run",
@@ -23,7 +23,7 @@
       "label": "python: test",
       "type": "shell",
       "command": "${workspaceFolder}/.venv/bin/python",
-      "args": ["-m", "pytest"],
+      "args": ["-m", "pytest", "tests/", "-v"],
       "group": "test",
       "problemMatcher": [],
       "detail": "Run all Python tests using pytest."
@@ -31,20 +31,17 @@
     {
       "label": "python: lint",
       "type": "shell",
-      "command": "${workspaceFolder}/.venv/bin/ruff",
-      "args": ["check", "--fix"],
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["-m", "ruff", "check", "--fix"],
+      "group": "build",
       "problemMatcher": [],
       "detail": "Run ruff linter for Python code."
     },
     {
       "label": "python: format",
       "type": "shell",
-      "command": "${workspaceFolder}/.venv/bin/ruff",
-      "args": ["format"],
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["-m", "ruff", "format"],
       "group": "none",
       "problemMatcher": [],
       "detail": "Format Python code using ruff."

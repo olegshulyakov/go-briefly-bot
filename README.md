@@ -51,15 +51,94 @@ LOG_LEVEL=INFO
 
 ### 3. Install Dependencies
 
+**Option A: Using pip (recommended)**
+
+```bash
+python3 -m pip install -e ".[dev]"
+```
+
+**Option B: From requirements.txt**
+
 ```bash
 python3 -m pip install -r requirements.txt
 ```
 
-### 4. Run the Bot
+### 4. Install Git Hooks (optional)
+
+```bash
+chmod +x install-hooks.sh
+./install-hooks.sh
+```
+
+This enables pre-commit hooks that run tests and linting before each commit.
+
+### 5. Run the Bot
 
 ```bash
 python3 -m src.main
 ```
+
+Or if installed as a package:
+
+```bash
+go-briefly-bot
+```
+
+## VS Code Setup
+
+This project includes pre-configured VS Code settings for optimal Python development.
+
+### Recommended Extensions
+
+Install the recommended extensions:
+
+```bash
+# Open the Command Palette (Cmd+Shift+P) and run:
+# "Extensions: Show Recommended Extensions"
+```
+
+Or install via CLI:
+
+```bash
+code --install-extension ms-python.python
+code --install-extension ms-python.vscode-pylance
+code --install-extension charliermarsh.ruff
+code --install-extension tamasfe.even-better-toml
+```
+
+### Available Tasks
+
+Open the Command Palette (`Cmd+Shift+P` or `Ctrl+Shift+P`) → **Tasks: Run Task**:
+
+| Task | Description |
+|------|-------------|
+| `📦 Install Dependencies` | Install from pyproject.toml |
+| `▶️ Run Bot` | Run the bot application |
+| `🧪 Run All Tests` | Run pytest suite |
+| `🧪 Run Tests with Coverage` | Run tests with coverage report |
+| `🔍 Lint (Ruff Check)` | Run linter |
+| `✨ Format (Ruff Format)` | Format code |
+| `🔧 Lint & Fix (Ruff)` | Auto-fix lint issues |
+| `🧹 Clean Python Cache` | Remove __pycache__ |
+| `🔒 Install Git Hooks` | Setup git hooks |
+
+### Debug Configurations
+
+Press `F5` to start debugging. Available configurations:
+
+| Configuration | Description |
+|---------------|-------------|
+| `🐍 Run Bot` | Debug the bot |
+| `🧪 Test All` | Debug all tests |
+| `🧪 Test Current File` | Debug current test file |
+| `🧪 Test with Coverage` | Run tests with coverage |
+
+### Keyboard Shortcuts
+
+- **Run Bot**: `Cmd+Shift+B` (macOS) / `Ctrl+Shift+B` (Windows/Linux)
+- **Run Tests**: Open Command Palette → Tasks → Run Task → Tests
+- **Format Code**: `Shift+Alt+F` (default)
+- **Quick Fix**: `Cmd+.` (macOS) / `Ctrl+.` (Windows/Linux)
 
 ## Environment Variables
 
