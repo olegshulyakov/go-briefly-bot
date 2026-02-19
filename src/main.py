@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
+    """
+    Main entry point of the application.
+    Configures logging, loads settings, initializes and runs the Telegram bot.
+    """
     configure_logging()
     logger.info("Starting application")
     settings = Settings.from_env()

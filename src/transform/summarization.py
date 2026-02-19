@@ -1,3 +1,10 @@
+"""
+Text summarization module using OpenAI-compatible APIs.
+
+Provides LLM-based text summarization with retry logic,
+timeout handling, and localization support.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -12,7 +19,27 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAISummarizer:
+    """
+    Summarizes text using OpenAI-compatible API.
+
+    Features:
+    - Configurable base URL for custom LLM endpoints
+    - Automatic retries with exponential backoff
+    - Timeout handling
+    - Locale-aware system prompts
+
+    Attributes:
+        settings: Application configuration.
+        client: OpenAI API client instance.
+    """
+
     def __init__(self, settings: Settings) -> None:
+        """
+        Initialize the summarizer with API client.
+
+        Args:
+            settings: Application settings with API credentials.
+        """
         self.settings = settings
         self.client = OpenAI(
             base_url=settings.openai_base_url,
@@ -21,6 +48,19 @@ class OpenAISummarizer:
         )
 
     def summarize_text(self, text: str, locale: str | None) -> str:
+        """
+        Summarize text using the configured LLM model.
+
+        Args:
+            text: Input text to summarize.
+            locale: Target locale for system prompt localization.
+
+        Returns:
+            Generated summary text.
+
+        Raises:
+            RuntimeError: If summarization fails after all retries.
+        """
         logger.info(
             "Summarizing text",
             extra={"locale": locale, "text_length": len(text), "model": self.settings.openai_model},

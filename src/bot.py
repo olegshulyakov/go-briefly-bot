@@ -1,3 +1,13 @@
+"""
+Telegram bot implementation for video summarization.
+
+Handles:
+- User rate limiting
+- URL extraction from messages
+- Video transcript loading and summarization
+- Response formatting and delivery
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -28,12 +38,30 @@ logger = logging.getLogger(__name__)
 
 
 class UserRateLimiter:
+    """Limits the rate of requests for individual users."""
+
     def __init__(self, cooldown_seconds: int) -> None:
+        """
+        Initializes the UserRateLimiter.
+
+        Args:
+            cooldown_seconds: The cooldown period in seconds for each user.
+        """
+
         self.cooldown_seconds = cooldown_seconds
         self._last_request: dict[int, float] = {}
         self._lock = asyncio.Lock()
 
     async def is_limited(self, user_id: int) -> bool:
+        """
+        Checks if a user is rate-limited. If not, records the current request time.
+
+        Args:
+            user_id: The ID of the user to check.
+
+        Returns:
+            True if the user is rate-limited, False otherwise.
+        """
         async with self._lock:
             now = time.monotonic()
             last_request = self._last_request.get(user_id)
@@ -45,7 +73,16 @@ class UserRateLimiter:
 
 
 class TelegramBrieflyBot:
+    """A Telegram bot that summarizes video content from provided URLs."""
+
     def __init__(self, settings: Settings) -> None:
+        """
+        Initializes the TelegramBrieflyBot.
+
+        Args:
+            settings: Application settings.
+        """
+
         self.settings = settings
         self.rate_limiter = UserRateLimiter(settings.rate_limit_window_seconds)
         self.summarizer = OpenAISummarizer(settings)
@@ -56,12 +93,16 @@ class TelegramBrieflyBot:
         self.application.add_error_handler(self._on_error)
 
     def run(self) -> None:
+        """Starts the bot and runs it indefinitely using polling."""
+
         logger.info("Starting Telegram bot")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.application.run_polling(drop_pending_updates=True)
 
     async def _start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handles the /start command, sending a welcome message to the user."""
+
         del context
 
         message = update.effective_message
@@ -81,6 +122,8 @@ class TelegramBrieflyBot:
         await message.reply_text(translate("telegram.welcome.message", locale=language))
 
     async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handles incoming text messages, extracts URLs, loads video transcripts, summarizes them, and sends the summary back to the user."""
+
         del context
 
         user = update.effective_user
@@ -291,7 +334,7 @@ class TelegramBrieflyBot:
             await processing_message.delete()
         except Exception as exc:
             logger.exception(
-                "Failed to summarize transcript",
+                "Failed to delete processing message",
                 extra={
                     "userID": user.id,
                     "username": user.username,
@@ -301,6 +344,8 @@ class TelegramBrieflyBot:
             )
 
     async def _on_error(self, update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handles errors during Telegram update processing, logging the exception and notifying the user."""
+
         logger.exception(
             "Telegram update handling failed",
             extra={"error": str(context.error)},
@@ -328,4 +373,6 @@ class TelegramBrieflyBot:
 
     @staticmethod
     def _language(user: User | None) -> str | None:
+        """Retrieves the language code for a given user, if available."""
+
         return user.language_code if user else None

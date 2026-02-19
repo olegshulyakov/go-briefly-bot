@@ -1,3 +1,10 @@
+"""
+Configuration module for loading application settings.
+
+Loads settings from environment variables with validation.
+Uses dataclass for immutable, type-safe configuration.
+"""
+
 from __future__ import annotations
 
 import os
@@ -9,6 +16,24 @@ from dotenv import load_dotenv
 
 @dataclass(frozen=True)
 class Settings:
+    """
+    Application settings loaded from environment variables.
+
+    Immutable configuration class (frozen dataclass) that ensures
+    settings cannot be modified after initialization.
+
+    Attributes:
+        telegram_bot_token: Telegram Bot API token.
+        openai_base_url: Base URL for OpenAI-compatible API.
+        openai_api_key: API key for LLM service.
+        openai_model: Model name to use for summarization.
+        yt_dlp_additional_options: Additional yt-dlp CLI options.
+        rate_limit_window_seconds: Cooldown between user requests.
+        max_telegram_message_length: Maximum message length before chunking.
+        openai_timeout_seconds: Timeout for LLM API requests.
+        openai_max_retries: Maximum retry attempts for LLM API.
+    """
+
     telegram_bot_token: str
     openai_base_url: str
     openai_api_key: str
@@ -21,6 +46,18 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
+        """
+        Load settings from environment variables.
+
+        Validates that all required environment variables are present.
+
+        Returns:
+            Settings instance populated with environment values.
+
+        Raises:
+            RuntimeError: If required environment variables are missing.
+        """
+
         load_dotenv()
 
         telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()

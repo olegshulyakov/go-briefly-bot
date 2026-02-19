@@ -1,3 +1,12 @@
+"""
+Video loader module for downloading and extracting video transcripts.
+
+This module provides functionality to:
+- Extract video information from URLs (YouTube, VK Video)
+- Download subtitles/transcripts using yt-dlp
+- Clean and process SRT subtitle format
+"""
+
 from __future__ import annotations
 
 import logging
@@ -14,8 +23,39 @@ logger = logging.getLogger(__name__)
 max_attempts = 3
 
 
+def _is_safe_option_value(value: str) -> bool:
+    """
+    Check if an option value is safe (no shell injection or path traversal).
+
+    Args:
+        value: The option value to validate.
+
+    Returns:
+        True if safe, False otherwise.
+    """
+    # Block path traversal
+    if ".." in value or value.startswith("/"):
+        return False
+    # Block shell metacharacters
+    if any(char in value for char in (";", "|", "&", "$", "`", "(", ")", "<", ">", "\\", "\n", "\r")):
+        return False
+    return True
+
+
 @dataclass(frozen=True)
 class VideoInfo:
+    """
+    Video metadata extracted from the source.
+
+    Attributes:
+        id: Unique video identifier.
+        language: Detected language code.
+        uploader: Channel/user who uploaded the video.
+        title: Video title.
+        thumbnail: URL to video thumbnail.
+        subtitles: Dictionary of available subtitle tracks.
+    """
+
     id: str
     language: str
     uploader: str
@@ -26,6 +66,18 @@ class VideoInfo:
 
 @dataclass(frozen=True)
 class VideoTranscript:
+    """
+    Processed video transcript data.
+
+    Attributes:
+        id: Unique video identifier.
+        language: Transcript language code.
+        uploader: Channel/user who uploaded the video.
+        title: Video title.
+        thumbnail: URL to video thumbnail.
+        transcript: Cleaned transcript text.
+    """
+
     id: str
     language: str
     uploader: str
@@ -35,13 +87,41 @@ class VideoTranscript:
 
 
 class VideoDataLoader:
+    """
+    Loads video information and transcripts from supported platforms.
+
+    Supports YouTube and VK Video platforms. Handles retries,
+    temporary file management, and subtitle cleaning.
+    """
+
     def __init__(self, url: str, yt_dlp_additional_options: tuple[str, ...] = ()) -> None:
+        """
+        Initialize the video loader.
+
+        Args:
+            url: Video URL to process.
+            yt_dlp_additional_options: Additional yt-dlp CLI options.
+        """
         self.url, self.video_id = build_video_source(url)
         self.yt_dlp_additional_options = yt_dlp_additional_options
         self.info: VideoInfo | None = None
         self.transcript: VideoTranscript | None = None
 
     def load(self) -> None:
+        """
+        Load video info and download transcript.
+
+        Performs the following steps:
+        1. Extract video metadata with retries
+        2. Detect subtitle language
+        3. Download subtitles with retries
+        4. Clean and process SRT content
+        5. Cleanup temporary files
+
+        Raises:
+            RuntimeError: If video info or subtitles cannot be loaded after retries.
+            FileNotFoundError: If no subtitles are available.
+        """
         logger.info(
             "Loading video info",
             extra={
@@ -130,7 +210,19 @@ class VideoDataLoader:
         self._cleanup_subtitle_files()
 
     def _build_ydl_opts(self, extra_options: dict | None = None) -> dict:
-        """Build yt-dlp options with additional user options."""
+        """
+        Build yt-dlp options with additional user options.
+
+        Args:
+            extra_options: Additional options to merge with defaults.
+
+        Returns:
+            Dictionary of yt-dlp options.
+
+        Note:
+            User-provided options are filtered to prevent injection attacks.
+            Only safe options (starting with --) are allowed.
+        """
         opts = {
             "quiet": True,
             "no_warnings": True,
@@ -148,7 +240,16 @@ class VideoDataLoader:
                 if i + 1 < len(self.yt_dlp_additional_options) and not self.yt_dlp_additional_options[i + 1].startswith(
                     "--"
                 ):
-                    opts[key] = self.yt_dlp_additional_options[i + 1]
+                    value = self.yt_dlp_additional_options[i + 1]
+                    # Validate value to prevent injection attacks
+                    if not _is_safe_option_value(value):
+                        logger.warning(
+                            "Skipping unsafe yt-dlp option value",
+                            extra={"key": key, "value_length": len(value)},
+                        )
+                        i += 2
+                        continue
+                    opts[key] = value
                     i += 1
                 else:
                     opts[key] = True
@@ -157,14 +258,33 @@ class VideoDataLoader:
 
     @property
     def _subtitle_template_path(self) -> str:
+        """Generate template path for subtitle files in temp directory."""
         temp_dir = Path(tempfile.gettempdir())
         return str(temp_dir / f"subtitles_{self.video_id}.%(ext)s")
 
     @property
     def _subtitle_prefix(self) -> Path:
+        """Get prefix for subtitle file names in temp directory."""
         return Path(tempfile.gettempdir()) / f"subtitles_{self.video_id}"
 
     def _detect_language(self, info: VideoInfo) -> str:
+        """
+        Detect the best available subtitle language.
+
+        Priority:
+        1. Video's native language
+        2. English if available
+        3. First available subtitle track
+
+        Args:
+            info: VideoInfo object with subtitle information.
+
+        Returns:
+            Language code (e.g., 'en', 'ru').
+
+        Raises:
+            RuntimeError: If no subtitles are available.
+        """
         if info.language:
             return info.language.split("-", maxsplit=1)[0]
 
@@ -176,6 +296,20 @@ class VideoDataLoader:
         raise RuntimeError("no subtitles available")
 
     def _find_subtitle_file(self, language: str) -> Path | None:
+        """
+        Find downloaded subtitle file for the given language.
+
+        Searches in order:
+        1. Exact language match (.en.srt)
+        2. Auto-generated subtitles (.en_auto.srt)
+        3. Any matching file
+
+        Args:
+            language: Language code to search for.
+
+        Returns:
+            Path to subtitle file or None if not found.
+        """
         exact = self._subtitle_prefix.with_suffix(f".{language}.srt")
         if exact.exists():
             return exact
@@ -188,6 +322,7 @@ class VideoDataLoader:
         return candidates[0] if candidates else None
 
     def _cleanup_subtitle_files(self) -> None:
+        """Remove temporary subtitle files for this video."""
         for path in Path(tempfile.gettempdir()).glob(f"subtitles_{self.video_id}*"):
             try:
                 path.unlink(missing_ok=True)
