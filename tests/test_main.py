@@ -6,41 +6,185 @@ from src.main import configure_logging, main
 
 def test_configure_logging_default() -> None:
     # Ensure no LOG_LEVEL is set
-    if "LOG_LEVEL" in os.environ:
-        del os.environ["LOG_LEVEL"]
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        patch("src.logger.logging.getLogger") as mock_get_logger,
+        patch("src.logger.logging.StreamHandler") as mock_handler_class,
+        patch("src.logger.os.getenv", return_value="INFO"),
+    ):
+        mock_root_logger = MagicMock()
+        mock_httpx_logger = MagicMock()
+        mock_handler = MagicMock()
 
-    # Capture the basicConfig call
-    with patch("logging.basicConfig") as mock_basic_config:
+        # Return different loggers based on name
+        def get_logger_side_effect(name=None):
+            if name == "httpx":
+                return mock_httpx_logger
+            return mock_root_logger
+
+        mock_get_logger.side_effect = get_logger_side_effect
+        mock_handler_class.return_value = mock_handler
+        mock_root_logger.handlers = []
+
         configure_logging()
 
-        # Verify basicConfig was called with default INFO level
-        mock_basic_config.assert_called_once()
-        args, kwargs = mock_basic_config.call_args
-        assert kwargs["level"] == logging.INFO
+        # Verify root logger level was set to INFO (20)
+        mock_root_logger.setLevel.assert_called_with(logging.INFO)
+        # Verify handler was added
+        mock_root_logger.addHandler.assert_called_once_with(mock_handler)
+        # Verify handler level was set
+        mock_handler.setLevel.assert_called_with(logging.INFO)
+        # Verify formatter was set
+        mock_handler.setFormatter.assert_called_once()
+        # Verify httpx logger level was set to WARNING
+        mock_httpx_logger.setLevel.assert_called_with(logging.WARNING)
 
 
 def test_configure_logging_custom_level() -> None:
     # Set a custom log level
-    with patch.dict(os.environ, {"LOG_LEVEL": "DEBUG"}):
-        with patch("logging.basicConfig") as mock_basic_config:
-            configure_logging()
+    with (
+        patch.dict(os.environ, {"LOG_LEVEL": "DEBUG"}),
+        patch("src.logger.logging.getLogger") as mock_get_logger,
+        patch("src.logger.logging.StreamHandler") as mock_handler_class,
+        patch("src.logger.os.getenv", return_value="DEBUG"),
+    ):
+        mock_root_logger = MagicMock()
+        mock_httpx_logger = MagicMock()
+        mock_handler = MagicMock()
 
-            # Verify basicConfig was called with DEBUG level
-            mock_basic_config.assert_called_once()
-            args, kwargs = mock_basic_config.call_args
-            assert kwargs["level"] == logging.DEBUG
+        # Return different loggers based on name
+        def get_logger_side_effect(name=None):
+            if name == "httpx":
+                return mock_httpx_logger
+            return mock_root_logger
+
+        mock_get_logger.side_effect = get_logger_side_effect
+        mock_handler_class.return_value = mock_handler
+        mock_root_logger.handlers = []
+
+        configure_logging()
+
+        # Verify root logger level was set to DEBUG (10)
+        mock_root_logger.setLevel.assert_called_with(logging.DEBUG)
+        # Verify handler was added
+        mock_root_logger.addHandler.assert_called_once_with(mock_handler)
+        # Verify handler level was set
+        mock_handler.setLevel.assert_called_with(logging.DEBUG)
 
 
 def test_configure_logging_invalid_level() -> None:
     # Set an invalid log level - should default to INFO
-    with patch.dict(os.environ, {"LOG_LEVEL": "INVALID_LEVEL"}):
-        with patch("logging.basicConfig") as mock_basic_config:
-            configure_logging()
+    with (
+        patch.dict(os.environ, {"LOG_LEVEL": "INVALID_LEVEL"}),
+        patch("src.logger.logging.getLogger") as mock_get_logger,
+        patch("src.logger.logging.StreamHandler") as mock_handler_class,
+        patch("src.logger.os.getenv", return_value="INVALID_LEVEL"),
+    ):
+        mock_root_logger = MagicMock()
+        mock_httpx_logger = MagicMock()
+        mock_handler = MagicMock()
 
-            # Verify basicConfig was called with default INFO level
-            mock_basic_config.assert_called_once()
-            args, kwargs = mock_basic_config.call_args
-            assert kwargs["level"] == logging.INFO
+        # Return different loggers based on name
+        def get_logger_side_effect(name=None):
+            if name == "httpx":
+                return mock_httpx_logger
+            return mock_root_logger
+
+        mock_get_logger.side_effect = get_logger_side_effect
+        mock_handler_class.return_value = mock_handler
+        mock_root_logger.handlers = []
+
+        configure_logging()
+
+        # Verify root logger level was set to INFO (default for invalid level)
+        mock_root_logger.setLevel.assert_called_with(logging.INFO)
+        # Verify handler was added
+        mock_root_logger.addHandler.assert_called_once_with(mock_handler)
+
+
+def test_configure_logging_removes_existing_handlers() -> None:
+    # Test that existing handlers are removed before adding new one
+    with (
+        patch("src.logger.logging.getLogger") as mock_get_logger,
+        patch("src.logger.logging.StreamHandler") as mock_handler_class,
+        patch("src.logger.os.getenv", return_value="INFO"),
+    ):
+        mock_root_logger = MagicMock()
+        mock_httpx_logger = MagicMock()
+        mock_existing_handler = MagicMock()
+        mock_handler = MagicMock()
+
+        def get_logger_side_effect(name=None):
+            if name == "httpx":
+                return mock_httpx_logger
+            return mock_root_logger
+
+        mock_get_logger.side_effect = get_logger_side_effect
+        mock_handler_class.return_value = mock_handler
+        mock_root_logger.handlers = [mock_existing_handler]
+
+        configure_logging()
+
+        # Verify existing handler was removed
+        mock_root_logger.removeHandler.assert_called_with(mock_existing_handler)
+        # Verify new handler was added
+        mock_root_logger.addHandler.assert_called_with(mock_handler)
+
+
+def test_configure_logging_uses_custom_formatter() -> None:
+    # Test that CustomFormatter is used
+    with (
+        patch("src.logger.logging.getLogger") as mock_get_logger,
+        patch("src.logger.logging.StreamHandler") as mock_handler_class,
+        patch("src.logger.CustomFormatter") as mock_formatter_class,
+        patch("src.logger.os.getenv", return_value="INFO"),
+    ):
+        mock_root_logger = MagicMock()
+        mock_httpx_logger = MagicMock()
+        mock_handler = MagicMock()
+        mock_formatter = MagicMock()
+
+        def get_logger_side_effect(name=None):
+            if name == "httpx":
+                return mock_httpx_logger
+            return mock_root_logger
+
+        mock_get_logger.side_effect = get_logger_side_effect
+        mock_handler_class.return_value = mock_handler
+        mock_formatter_class.return_value = mock_formatter
+        mock_root_logger.handlers = []
+
+        configure_logging()
+
+        # Verify CustomFormatter was created with correct format
+        mock_formatter_class.assert_called_once()
+        # Verify formatter was set on handler
+        mock_handler.setFormatter.assert_called_once_with(mock_formatter)
+
+
+def test_configure_logging_httpx_warning() -> None:
+    # Test that httpx logger is set to WARNING
+    with (
+        patch("src.logger.logging.getLogger") as mock_get_logger,
+        patch("src.logger.logging.StreamHandler") as mock_handler_class,
+    ):
+        mock_root_logger = MagicMock()
+        mock_httpx_logger = MagicMock()
+        mock_handler = MagicMock()
+
+        def get_logger_side_effect(name=None):
+            if name == "httpx":
+                return mock_httpx_logger
+            return mock_root_logger
+
+        mock_get_logger.side_effect = get_logger_side_effect
+        mock_handler_class.return_value = mock_handler
+        mock_root_logger.handlers = []
+
+        configure_logging()
+
+        # Verify httpx logger level was set to WARNING
+        mock_httpx_logger.setLevel.assert_called_with(logging.WARNING)
 
 
 def test_main_function_calls_configure_and_runs() -> None:
