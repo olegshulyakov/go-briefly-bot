@@ -15,8 +15,7 @@ def main() -> None:
     logger.info("Starting application")
     settings = Settings.from_env()
     telegram = TelegramBrieflyBot(settings)
-    telegram_thread = threading.Thread(target=telegram.run())
-    telegram_thread.start()
+    threading.Thread(target=telegram.run()).start()
 
 
 if __name__ == "__main__":
