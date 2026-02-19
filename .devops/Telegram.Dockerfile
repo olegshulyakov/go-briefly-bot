@@ -4,8 +4,8 @@ WORKDIR /app
 
 RUN apk add --no-cache ffmpeg
 
-COPY requirements.txt ./
-RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml ./
+RUN python -m pip install --no-cache-dir .
 
 COPY src /app/src
 COPY locales /app/locales
