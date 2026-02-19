@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 
 from .bot import TelegramBrieflyBot
 from .config import Settings
@@ -19,8 +20,9 @@ def configure_logging() -> None:
 def main() -> None:
     configure_logging()
     settings = Settings.from_env()
-    bot = TelegramBrieflyBot(settings)
-    bot.run()
+    telegram = TelegramBrieflyBot(settings)
+    telegram_thread = threading.Thread(target=telegram.run())
+    telegram_thread.start()
 
 
 if __name__ == "__main__":

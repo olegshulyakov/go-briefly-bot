@@ -47,12 +47,15 @@ class TelegramBrieflyBot:
         self.rate_limiter = UserRateLimiter(settings.rate_limit_window_seconds)
         self.summarizer = OpenAISummarizer(settings)
 
+        self.application: Application = ApplicationBuilder().token(self.settings.telegram_bot_token).build()
+        self.application.add_handler(CommandHandler("start", self._start))
+        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message))
+        self.application.add_error_handler(self._on_error)
+
     def run(self) -> None:
-        application: Application = ApplicationBuilder().token(self.settings.telegram_bot_token).build()
-        application.add_handler(CommandHandler("start", self._start))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message))
-        application.add_error_handler(self._on_error)
-        application.run_polling(drop_pending_updates=True)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self.application.run_polling(drop_pending_updates=True)
 
     async def _start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         del context
