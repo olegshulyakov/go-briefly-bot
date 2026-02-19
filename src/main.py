@@ -1,22 +1,13 @@
 from __future__ import annotations
 
 import logging
-import os
 import threading
 
 from .bot import TelegramBrieflyBot
 from .config import Settings
+from .logger import configure_logging
 
 logger = logging.getLogger(__name__)
-
-
-def configure_logging() -> None:
-    level_name = os.getenv("LOG_LEVEL", "INFO").upper()
-    level = getattr(logging, level_name, logging.INFO)
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
-    )
 
 
 def main() -> None:
