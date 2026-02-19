@@ -41,7 +41,13 @@ class VideoDataLoader:
         self.transcript: VideoTranscript | None = None
 
     def load(self) -> None:
-        logger.debug("Loading video info", extra={"url": self.url})
+        logger.info(
+            "Loading video info",
+            extra={
+                "url": self.url,
+                "video_id": self.video_id,
+            },
+        )
         dump_output = self._exec(["--dump-json"], self.url)
         payload = self._extract_json_payload(dump_output)
 
@@ -56,7 +62,7 @@ class VideoDataLoader:
         )
 
         language = self._detect_language(self.info)
-        logger.debug("Downloading transcript", extra={"url": self.url, "language": language})
+        logger.debug("Detected transcript language", extra={"url": self.url, "language": language})
 
         self._exec(
             [
@@ -76,6 +82,7 @@ class VideoDataLoader:
 
         subtitle_file = self._find_subtitle_file(language)
         if subtitle_file is None:
+            logger.warning("No subtitles found", extra={"url": self.url, "language": language})
             raise FileNotFoundError("no subtitles found")
 
         raw_transcript = subtitle_file.read_text(encoding="utf-8", errors="ignore")
@@ -89,6 +96,8 @@ class VideoDataLoader:
             thumbnail=self.info.thumbnail,
             transcript=transcript_text,
         )
+
+        logger.info("Transcript loaded successfully", extra={"url": self.url, "length": len(transcript_text)})
 
         self._cleanup_subtitle_files()
 
@@ -152,11 +161,7 @@ class VideoDataLoader:
                 last_output = f"{exc.stdout or ''}\n{exc.stderr or ''}".strip()
                 logger.warning(
                     "yt-dlp failed",
-                    extra={
-                        "attempt": attempt + 1,
-                        "url": url,
-                        "returncode": exc.returncode,
-                    },
+                    extra={"attempt": attempt + 1, "url": url, "returncode": exc.returncode},
                 )
 
         raise RuntimeError(f"yt-dlp failed after {max_attempts} attempts: {last_error}\n{last_output}")

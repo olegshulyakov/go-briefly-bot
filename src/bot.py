@@ -53,6 +53,7 @@ class TelegramBrieflyBot:
         self.application.add_error_handler(self._on_error)
 
     def run(self) -> None:
+        logger.info("Starting Telegram bot")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.application.run_polling(drop_pending_updates=True)
@@ -64,7 +65,16 @@ class TelegramBrieflyBot:
         if message is None:
             return
 
-        language = self._language(update.effective_user)
+        user = update.effective_user
+        language = self._language(user)
+        logger.info(
+            "User started bot",
+            extra={
+                "userID": user.id if user else None,
+                "username": user.username if user else None,
+                "language": language,
+            },
+        )
         await message.reply_text(translate("telegram.welcome.message", locale=language))
 
     async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -76,14 +86,33 @@ class TelegramBrieflyBot:
 
         language = self._language(user)
         if user.is_bot:
-            logger.warning("Ignored bot message", extra={"user_id": user.id, "language": language})
+            logger.warning("Ignored bot message", extra={"userID": user.id})
             return
 
         message = update.effective_message
         if message is None:
+            logger.warning("Got no message from ", extra={"userID": user.id})
             return
 
+        logger.info(
+            "Processing message",
+            extra={
+                "userID": user.id,
+                "username": user.username,
+                "language": language,
+                "message_id": message.message_id,
+            },
+        )
+
         if await self.rate_limiter.is_limited(user.id):
+            logger.warning(
+                "Rate Limit exceeded",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "language": language,
+                },
+            )
             await message.reply_text(
                 translate(
                     "telegram.error.rate_limited",
@@ -96,15 +125,43 @@ class TelegramBrieflyBot:
         text = message.text or ""
         urls = extract_urls(text)
         if not urls:
+            logger.info(
+                "No URL found in message",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "text": message,
+                },
+            )
             await message.reply_text(translate("telegram.error.no_url_found", locale=language))
             return
 
         processing_message = await message.reply_text(translate("telegram.progress.processing", locale=language))
 
         if len(urls) > 1:
+            logger.info(
+                "Multiple URLs detected",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "url_count": len(urls),
+                },
+            )
             await processing_message.edit_text(translate("telegram.error.multiple_urls", locale=language))
+            return
 
         video_url = urls[0]
+        logger.info(
+            "Processing video URL",
+            extra={
+                "userID": user.id,
+                "username": user.username,
+                "message_id": message.message_id,
+                "url": video_url,
+            },
+        )
 
         await processing_message.edit_text(translate("telegram.progress.fetching_info", locale=language))
 
@@ -115,13 +172,40 @@ class TelegramBrieflyBot:
             )
             await asyncio.to_thread(loader.load)
         except Exception as exc:
-            logger.exception("Failed to load transcript", extra={"url": video_url, "error": str(exc)})
+            logger.exception(
+                "Failed to load transcript",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "url": video_url,
+                    "error": str(exc),
+                },
+            )
             await processing_message.edit_text(translate("telegram.error.transcript_failed", locale=language))
             return
 
         if loader.transcript is None:
+            logger.warning(
+                "Transcript is None",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "url": video_url,
+                },
+            )
             await processing_message.edit_text(translate("telegram.error.transcript_failed", locale=language))
             return
+
+        logger.info(
+            "Transcript loaded",
+            extra={
+                "userID": user.id,
+                "username": user.username,
+                "message_id": message.message_id,
+            },
+        )
 
         await processing_message.edit_text(translate("telegram.progress.summarizing", locale=language))
 
@@ -134,10 +218,25 @@ class TelegramBrieflyBot:
         except Exception as exc:
             logger.exception(
                 "Failed to summarize transcript",
-                extra={"url": video_url, "error": str(exc)},
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "error": str(exc),
+                },
             )
             await processing_message.edit_text(translate("telegram.error.summary_failed", locale=language))
             return
+
+        logger.info(
+            "Summary generated",
+            extra={
+                "userID": user.id,
+                "username": user.username,
+                "message_id": message.message_id,
+                "summary_length": len(summary),
+            },
+        )
 
         title = translate(
             "telegram.response.title",
@@ -150,13 +249,39 @@ class TelegramBrieflyBot:
         for chunk in to_lexical_chunks(response, self.settings.max_telegram_message_length):
             await message.reply_text(chunk, disable_web_page_preview=False)
 
+        logger.info(
+            "Response sent",
+            extra={
+                "userID": user.id,
+                "username": user.username,
+                "message_id": message.message_id,
+                "url": video_url,
+            },
+        )
+
         try:
             await processing_message.delete()
-        except Exception:
-            logger.debug("Failed to delete processing message", exc_info=True)
+        except Exception as exc:
+            logger.exception(
+                "Failed to summarize transcript",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "error": str(exc),
+                },
+            )
 
     async def _on_error(self, update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-        logger.exception("Telegram update handling failed", exc_info=context.error)
+        logger.exception(
+            "Telegram update handling failed",
+            extra={
+                "userID": update.user.id,
+                "username": update.user.username,
+                "message_id": update.message.message_id,
+                "error": str(context.error),
+            },
+        )
 
         if not isinstance(update, Update):
             return
@@ -168,8 +293,16 @@ class TelegramBrieflyBot:
         language = self._language(update.effective_user)
         try:
             await message.reply_text(translate("telegram.error.general", locale=language))
-        except Exception:
-            logger.debug("Failed to send generic error", exc_info=True)
+        except Exception as exc:
+            logger.exception(
+                "Failed to send generic error",
+                extra={
+                    "userID": update.user.id,
+                    "username": update.user.username,
+                    "message_id": update.message.message_id,
+                    "error": str(exc),
+                },
+            )
 
     @staticmethod
     def _language(user: User | None) -> str | None:

@@ -7,6 +7,8 @@ import threading
 from .bot import TelegramBrieflyBot
 from .config import Settings
 
+logger = logging.getLogger(__name__)
+
 
 def configure_logging() -> None:
     level_name = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -19,6 +21,7 @@ def configure_logging() -> None:
 
 def main() -> None:
     configure_logging()
+    logger.info("Starting application")
     settings = Settings.from_env()
     telegram = TelegramBrieflyBot(settings)
     telegram_thread = threading.Thread(target=telegram.run())
