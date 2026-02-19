@@ -257,7 +257,7 @@ class TelegramBrieflyBot:
             title=loader.transcript.title,
             url=video_url,
         )
-        response = f"{title}\n{summary}".strip()
+        response = f"# {title}\n{summary}".strip()
         chunks = to_lexical_chunks(response, self.settings.max_telegram_message_length)
         for i, chunk in enumerate(chunks):
             logger.debug(
