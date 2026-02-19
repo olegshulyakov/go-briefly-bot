@@ -17,5 +17,5 @@ telegram:
   response:
     title: 📖 **[%{title}](%{url})**
 
-llm:
-  system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Hindi.
+openai:
+  prompt: <task>दी गई जानकारी की छोटी समरी लिखें।</task>\n<instructions>\n- खास बातों पर ध्यान दें।\n- ओरिजिनल स्ट्रक्चर बनाए रखें और हर सेक्शन के तहत मुख्य आइडिया को हाईलाइट करें।\n- समरी हिंदी में लिखें।\n</instructions>\n<data id="text">\n%{text}\n</data>

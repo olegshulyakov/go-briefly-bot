@@ -17,5 +17,5 @@ telegram:
   response:
     title: 📖 **[%{title}](%{url})**
 
-llm:
-  system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Italian.
+openai:
+  prompt: <task>Scrivi un riassunto conciso delle informazioni presentate.</task>\n<istruzioni>\n- Concentrati sui punti chiave.\n- Mantieni la struttura originale ed evidenzia le idee principali in ogni sezione.\n- Scrivi il riassunto in italiano.\n</istruzioni>\n<data id="text">\n%{text}\n</data>

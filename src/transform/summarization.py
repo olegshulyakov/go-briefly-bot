@@ -65,7 +65,7 @@ class OpenAISummarizer:
             "Summarizing text",
             extra={"locale": locale, "text_length": len(text), "model": self.settings.openai_model},
         )
-        system_prompt = translate("llm.system", locale=locale)
+        prompt = translate("openai.prompt", locale=locale, text=text)
 
         last_error: Exception | None = None
         for attempt in range(self.settings.openai_max_retries):
@@ -74,8 +74,7 @@ class OpenAISummarizer:
                 response = self.client.chat.completions.create(
                     model=self.settings.openai_model,
                     messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": text},
+                        {"role": "user", "content": prompt},
                     ],
                     timeout=self.settings.openai_timeout_seconds,
                 )

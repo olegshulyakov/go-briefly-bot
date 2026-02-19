@@ -17,5 +17,5 @@ telegram:
   response:
     title: 📖 **[%{title}](%{url})**
 
-llm:
-  system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Korean.
+openai:
+  prompt: <task>제시된 정보를 간결하게 요약하세요.</task>\n<instructions>\n- 핵심 사항에 집중하세요.\n- 원래의 구조를 유지하고 각 섹션의 주요 아이디어를 강조하세요.\n- 요약은 한국어로 작성하세요.\n</instructions>\n<data id="text">\n%{text}\n</data>

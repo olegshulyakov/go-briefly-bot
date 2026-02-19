@@ -17,5 +17,5 @@ telegram:
   response:
     title: 📖 **[%{title}](%{url})**
 
-llm:
-  system: I want you to act as a video summarizer. Write a concise summary of the information presented. Focus on key points and omitting timestamps. Maintain the original structure and highlight main ideas under each section. Write the summary in Japanese.
+openai:
+  prompt: <task>提示された情報の簡潔な要約を記述してください。</task>\n<instructions>\n- 重要なポイントに焦点を当ててください。\n- 元の構造を維持し、各セクションの主要なアイデアを強調してください。\n- 要約を日本語で記述してください。\n</instructions>\n<data id="text">\n%{text}\n</data>
