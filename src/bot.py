@@ -245,8 +245,17 @@ class TelegramBrieflyBot:
             url=video_url,
         )
         response = f"{title}\n{summary}".strip()
-
-        for chunk in to_lexical_chunks(response, self.settings.max_telegram_message_length):
+        chunks = to_lexical_chunks(response, self.settings.max_telegram_message_length)
+        for i, chunk in enumerate(chunks):
+            logger.debug(
+                "Sending response chunk",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "chunk_index": i,
+                },
+            )
             await message.reply_text(chunk, disable_web_page_preview=False)
 
         logger.info(
@@ -275,12 +284,7 @@ class TelegramBrieflyBot:
     async def _on_error(self, update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.exception(
             "Telegram update handling failed",
-            extra={
-                "userID": update.user.id,
-                "username": update.user.username,
-                "message_id": update.message.message_id,
-                "error": str(context.error),
-            },
+            extra={"error": str(context.error)},
         )
 
         if not isinstance(update, Update):
@@ -296,12 +300,7 @@ class TelegramBrieflyBot:
         except Exception as exc:
             logger.exception(
                 "Failed to send generic error",
-                extra={
-                    "userID": update.user.id,
-                    "username": update.user.username,
-                    "message_id": update.message.message_id,
-                    "error": str(exc),
-                },
+                extra={"error": str(exc)},
             )
 
     @staticmethod
