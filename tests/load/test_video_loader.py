@@ -173,9 +173,11 @@ def test_find_subtitle_file_exact_match() -> None:
 
             loader = VideoDataLoader("https://youtu.be/test")
 
-            with patch.object(Path, "exists", return_value=True):
-                result = loader._find_subtitle_file("en")
-                assert result is not None
+            with patch("tempfile.gettempdir", return_value="/tmp"):
+                with patch.object(Path, "exists", return_value=True):
+                    result = loader._find_subtitle_file("en")
+                    expected_path = Path("/tmp") / "subtitles_test.en.srt"
+                    assert result == expected_path
 
 
 def test_build_ydl_opts_base_options() -> None:
@@ -291,8 +293,8 @@ def test_load_retry_on_info_failure(mock_youtube_dl_class) -> None:
                 loader = VideoDataLoader("https://youtu.be/test")
                 loader.load()
 
-                # Should have been called 3 times (2 failures + 1 success)
-                assert mock_ydl.extract_info.call_count >= 3
+                # Should have been called 4 times (2 info failures + 1 info success + 1 subtitle download)
+                assert mock_ydl.extract_info.call_count == 4
 
 
 @patch("yt_dlp.YoutubeDL")

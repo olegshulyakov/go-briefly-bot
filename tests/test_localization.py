@@ -47,7 +47,7 @@ def test_setup_i18n_called_once() -> None:
 
         # Check that the setup methods were called only once
         assert mock_i18n.load_path.append.called
-        assert mock_i18n.set.call_count >= 5  # At least 5 set calls
+        assert mock_i18n.set.call_count == 6  # Exactly 6 set calls
 
 
 def test_translate_basic() -> None:
