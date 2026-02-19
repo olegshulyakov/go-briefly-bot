@@ -4,7 +4,8 @@ import asyncio
 import logging
 import time
 
-from telegram import Update, User
+from telegram import LinkPreviewOptions, Update, User
+from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
     ApplicationBuilder,
@@ -13,6 +14,8 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+
+from src.utils.markdown import markdown_to_telegram_html
 
 from .config import Settings
 from .load.video_loader import VideoDataLoader
@@ -119,6 +122,8 @@ class TelegramBrieflyBot:
                     locale=language,
                     rateLimitWindow=self.settings.rate_limit_window_seconds,
                 ),
+                message_thread_id=message.message_thread_id,
+                reply_to_message_id=message.id,
             )
             return
 
@@ -134,10 +139,18 @@ class TelegramBrieflyBot:
                     "text": message,
                 },
             )
-            await message.reply_text(translate("telegram.error.no_url_found", locale=language))
+            await message.reply_text(
+                translate("telegram.error.no_url_found", locale=language),
+                message_thread_id=message.message_thread_id,
+                reply_to_message_id=message.id,
+            )
             return
 
-        processing_message = await message.reply_text(translate("telegram.progress.processing", locale=language))
+        processing_message = await message.reply_text(
+            translate("telegram.progress.processing", locale=language),
+            message_thread_id=message.message_thread_id,
+            reply_to_message_id=message.id,
+        )
 
         if len(urls) > 1:
             logger.info(
@@ -256,7 +269,14 @@ class TelegramBrieflyBot:
                     "chunk_index": i,
                 },
             )
-            await message.reply_text(chunk, disable_web_page_preview=False)
+            await message.reply_text(
+                parse_mode=ParseMode.HTML,
+                text=markdown_to_telegram_html(chunk),
+                message_thread_id=message.message_thread_id,
+                reply_to_message_id=message.id,
+                disable_web_page_preview=False,
+                link_preview_options=LinkPreviewOptions(is_disabled=False, url=video_url, show_above_text=True),
+            )
 
         logger.info(
             "Response sent",
@@ -296,7 +316,11 @@ class TelegramBrieflyBot:
 
         language = self._language(update.effective_user)
         try:
-            await message.reply_text(translate("telegram.error.general", locale=language))
+            await message.reply_text(
+                translate("telegram.error.general", locale=language),
+                message_thread_id=message.message_thread_id,
+                reply_to_message_id=message.id,
+            )
         except Exception as exc:
             logger.exception(
                 "Failed to send generic error",
