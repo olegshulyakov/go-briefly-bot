@@ -288,12 +288,15 @@ class VideoDataLoader:
         if info.language:
             return info.language.split("-", maxsplit=1)[0]
 
-        if info.subtitles:
-            if "en" in info.subtitles:
-                return "en"
-            return next(iter(info.subtitles.keys())).split("-", maxsplit=1)[0]
+        if not info.subtitles:
+            raise RuntimeError("no subtitles available")
 
-        raise RuntimeError("no subtitles available")
+        # Fallback to English if exists
+        if "en" in info.subtitles:
+            return "en"
+
+        # Get first available language from subtitles
+        return next(iter(info.subtitles.keys())).split("-", maxsplit=1)[0]
 
     def _find_subtitle_file(self, language: str) -> Path | None:
         """
