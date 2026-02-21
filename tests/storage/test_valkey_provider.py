@@ -92,13 +92,46 @@ async def test_valkey_provider_set_get_summary(provider):
         mock_valkey.from_url.return_value = mock_client
 
         # Test set
-        await provider.set_summary("hash123", "test summary", 3600)
-        mock_client.setex.assert_called_with("summary:hash123", 3600, "test summary")
+        await provider.set_summary("hash123", "en", "test summary", 3600)
+        mock_client.setex.assert_called_with("summary:hash123:en", 3600, "test summary")
 
         # Test get
-        summary = await provider.get_summary("hash123")
+        summary = await provider.get_summary("hash123", "en")
         assert summary == "test summary"
-        mock_client.get.assert_called_with("summary:hash123")
+        mock_client.get.assert_called_with("summary:hash123:en")
+
+
+@pytest.mark.asyncio
+async def test_valkey_provider_set_get_summary_multiple_languages(provider):
+    with patch("src.storage.valkey_provider.Valkey") as mock_valkey:
+        mock_client = AsyncMock()
+
+        # We will mock the .get() method to return different results based on the key
+        def mock_get(key):
+            if key == "summary:hash123:en":
+                return b"english summary"
+            elif key == "summary:hash123:ru":
+                return b"spanish summary"
+            return None
+
+        mock_client.get.side_effect = mock_get
+        mock_valkey.from_url.return_value = mock_client
+
+        # Test set "en"
+        await provider.set_summary("hash123", "en", "english summary", 3600)
+        mock_client.setex.assert_any_call("summary:hash123:en", 3600, "english summary")
+
+        # Test set "ru"
+        await provider.set_summary("hash123", "ru", "spanish summary", 3600)
+        mock_client.setex.assert_any_call("summary:hash123:ru", 3600, "spanish summary")
+
+        # Test get "en"
+        summary_en = await provider.get_summary("hash123", "en")
+        assert summary_en == "english summary"
+
+        # Test get "ru"
+        summary_ru = await provider.get_summary("hash123", "ru")
+        assert summary_ru == "spanish summary"
 
 
 @pytest.mark.asyncio

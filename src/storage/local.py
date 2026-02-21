@@ -33,22 +33,24 @@ class LocalProvider(StorageProvider):
             self._rate_limits[user_id] = now
             return False
 
-    async def get_summary(self, video_hash: str) -> str | None:
+    async def get_summary(self, video_hash: str, language_code: str | None) -> str | None:
+        key = f"{video_hash}:{language_code}"
         async with self._cache_lock:
-            cached = self._summaries.get(video_hash)
+            cached = self._summaries.get(key)
             if cached is None:
                 return None
 
             summary, expires_at = cached
             if time.monotonic() > expires_at:
-                del self._summaries[video_hash]
+                del self._summaries[key]
                 return None
 
             return summary
 
-    async def set_summary(self, video_hash: str, summary: str, ttl_seconds: int) -> None:
+    async def set_summary(self, video_hash: str, language_code: str | None, summary: str, ttl_seconds: int) -> None:
+        key = f"{video_hash}:{language_code}"
         async with self._cache_lock:
-            self._summaries[video_hash] = (summary, time.monotonic() + ttl_seconds)
+            self._summaries[key] = (summary, time.monotonic() + ttl_seconds)
 
     async def get_transcript(self, video_hash: str) -> dict | None:
         async with self._cache_lock:

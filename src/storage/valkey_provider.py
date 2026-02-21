@@ -71,10 +71,10 @@ class ValkeyProvider(StorageProvider):
             lambda: self._local_fallback.is_rate_limited(user_id, window_seconds),
         )
 
-    async def get_summary(self, video_hash: str) -> str | None:
+    async def get_summary(self, video_hash: str, language_code: str | None) -> str | None:
         async def _valkey_get() -> str | None:
             client = await self._get_client()
-            key = f"summary:{video_hash}"
+            key = f"summary:{video_hash}:{language_code}"
             val = await client.get(key)
             if val is not None:
                 return val.decode("utf-8")
@@ -82,18 +82,18 @@ class ValkeyProvider(StorageProvider):
 
         return await self._safe_execute(
             _valkey_get,
-            lambda: self._local_fallback.get_summary(video_hash),
+            lambda: self._local_fallback.get_summary(video_hash, language_code),
         )
 
-    async def set_summary(self, video_hash: str, summary: str, ttl_seconds: int) -> None:
+    async def set_summary(self, video_hash: str, language_code: str | None, summary: str, ttl_seconds: int) -> None:
         async def _valkey_set() -> None:
             client = await self._get_client()
-            key = f"summary:{video_hash}"
+            key = f"summary:{video_hash}:{language_code}"
             await client.setex(key, ttl_seconds, summary)
 
         await self._safe_execute(
             _valkey_set,
-            lambda: self._local_fallback.set_summary(video_hash, summary, ttl_seconds),
+            lambda: self._local_fallback.set_summary(video_hash, language_code, summary, ttl_seconds),
         )
 
     async def get_transcript(self, video_hash: str) -> dict | None:

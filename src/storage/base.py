@@ -23,12 +23,12 @@ class StorageProvider(ABC):
         pass
 
     @abstractmethod
-    async def get_summary(self, video_hash: str) -> str | None:
+    async def get_summary(self, video_hash: str, language_code: str | None) -> str | None:
         """Retrieves a cached summary for a video."""
         pass
 
     @abstractmethod
-    async def set_summary(self, video_hash: str, summary: str, ttl_seconds: int) -> None:
+    async def set_summary(self, video_hash: str, language_code: str | None, summary: str, ttl_seconds: int) -> None:
         """Caches a summary for a video."""
         pass
 

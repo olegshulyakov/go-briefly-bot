@@ -277,7 +277,7 @@ class TelegramBrieflyBot:
             },
         )
 
-        cached_summary = await self.provider.get_summary(video_hash)
+        cached_summary = await self.provider.get_summary(video_hash, language)
         if cached_summary:
             summary = cached_summary
             logger.info("Summary loaded from cache", extra={"userID": user.id, "url": video_url})
@@ -290,7 +290,7 @@ class TelegramBrieflyBot:
                     transcript.transcript,
                     language,
                 )
-                await self.provider.set_summary(video_hash, summary, self.settings.cache_summary_ttl_seconds)
+                await self.provider.set_summary(video_hash, language, summary, self.settings.cache_summary_ttl_seconds)
             except Exception as exc:
                 logger.exception(
                     "Failed to summarize transcript",
