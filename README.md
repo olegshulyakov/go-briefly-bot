@@ -9,6 +9,7 @@ A Telegram bot written in Python that summarizes Video content using LLM.
 - `python-i18n[YAML]`
 - `openai`
 - `yt-dlp`
+- `valkey`
 
 ## Features
 
@@ -17,6 +18,7 @@ A Telegram bot written in Python that summarizes Video content using LLM.
 - 🤖 **AI Summarization** — creates transcript summaries via OpenAI-compatible API
 - 🌍 **Localization** — supports 13 languages (en, ru, de, es, fr, it, pt, ar, zh, cn, ja, ko, hi)
 - ⏱️ **Rate Limiting** — abuse protection with per-user cooldown
+- ⚡ **Caching & Scaling** — Valkey-backed state provider for transcripts, summaries, and rate limits, enabling horizontal scaling
 - 📊 **Message Chunking** — automatic splitting of long responses into parts
 
 ## Supported Platforms
@@ -28,6 +30,7 @@ A Telegram bot written in Python that summarizes Video content using LLM.
 
 - Python 3.11+
 - `ffmpeg` (recommended by yt-dlp)
+- `valkey` (optional, recommended for production scale and distributed rate-limiting)
 
 ## Quick Start
 
@@ -149,6 +152,9 @@ Press `F5` to start debugging. Available configurations:
 | `OPENAI_MODEL`              | Model for summarization (required) | —                            |
 | `OPENAI_BASE_URL`           | OpenAI-compatible API base URL     | `https://api.openai.com/v1/` |
 | `YT_DLP_ADDITIONAL_OPTIONS` | Additional yt-dlp options          | —                            |
+| `VALKEY_URL`                | Valkey connection URL (optional)   | —                            |
+| `CACHE_SUMMARY_TTL_SECONDS` | TTL for cached summaries           | `86400`                      |
+| `CACHE_TRANSCRIPT_TTL_SECONDS` | TTL for cached transcripts      | `86400`                      |
 | `LOG_LEVEL`                 | Logging level                      | `INFO`                       |
 
 ## Tests
