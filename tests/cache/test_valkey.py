@@ -1,15 +1,22 @@
 import asyncio
+import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from valkey.exceptions import ConnectionError as ValkeyConnectionError
 
 from src.cache import ValkeyProvider
+from src.utils import compress, CompressionMethod
 
 
 @pytest.fixture
 def provider():
-    return ValkeyProvider("valkey://localhost:6379")
+    return ValkeyProvider("valkey://localhost:6379", compression_method="none")
+
+
+@pytest.fixture
+def provider_with_compression():
+    return ValkeyProvider("valkey://localhost:6379", compression_method="gzip")
 
 
 @pytest.mark.asyncio
@@ -88,17 +95,37 @@ async def test_valkey_fail_soft_connection_error(provider):
 async def test_valkey_set_get_summary(provider):
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
-        mock_client.get.return_value = b"test summary"
+        # With compression_method="none", data is stored with \x00 prefix
+        expected_value = b"\x00test summary"
+        mock_client.get.return_value = expected_value
         mock_valkey.from_url.return_value = mock_client
 
         # Test set
         await provider.set_summary("hash123", "en", "test summary", 3600)
-        mock_client.setex.assert_called_with("summary:hash123:en", 3600, "test summary")
+        mock_client.setex.assert_called_with("summary:hash123:en:none", 3600, expected_value)
 
         # Test get
         summary = await provider.get_summary("hash123", "en")
         assert summary == "test summary"
-        mock_client.get.assert_called_with("summary:hash123:en")
+        mock_client.get.assert_called_with("summary:hash123:en:none")
+
+
+@pytest.mark.asyncio
+async def test_valkey_set_get_summary_with_compression(provider_with_compression):
+    """Test that summary is compressed when stored and decompressed when retrieved."""
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
+        mock_client = AsyncMock()
+
+        # Simulate compressed data
+        original_summary = "test summary with compression"
+        compressed_data = compress(original_summary.encode("utf-8"), CompressionMethod.GZIP)
+        mock_client.get.return_value = compressed_data
+        mock_valkey.from_url.return_value = mock_client
+
+        # Test get (data is already compressed in mock)
+        summary = await provider_with_compression.get_summary("hash123", "en")
+        assert summary == original_summary
+        mock_client.get.assert_called_with("summary:hash123:en:gzip")
 
 
 @pytest.mark.asyncio
@@ -108,10 +135,10 @@ async def test_valkey_set_get_summary_multiple_languages(provider):
 
         # We will mock the .get() method to return different results based on the key
         def mock_get(key):
-            if key == "summary:hash123:en":
-                return b"english summary"
-            elif key == "summary:hash123:ru":
-                return b"spanish summary"
+            if key == "summary:hash123:en:none":
+                return b"\x00english summary"
+            elif key == "summary:hash123:ru:none":
+                return b"\x00spanish summary"
             return None
 
         mock_client.get.side_effect = mock_get
@@ -119,11 +146,11 @@ async def test_valkey_set_get_summary_multiple_languages(provider):
 
         # Test set "en"
         await provider.set_summary("hash123", "en", "english summary", 3600)
-        mock_client.setex.assert_any_call("summary:hash123:en", 3600, "english summary")
+        mock_client.setex.assert_any_call("summary:hash123:en:none", 3600, b"\x00english summary")
 
         # Test set "ru"
         await provider.set_summary("hash123", "ru", "spanish summary", 3600)
-        mock_client.setex.assert_any_call("summary:hash123:ru", 3600, "spanish summary")
+        mock_client.setex.assert_any_call("summary:hash123:ru:none", 3600, b"\x00spanish summary")
 
         # Test get "en"
         summary_en = await provider.get_summary("hash123", "en")
@@ -138,14 +165,37 @@ async def test_valkey_set_get_summary_multiple_languages(provider):
 async def test_valkey_set_get_transcript(provider):
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
-        mock_client.get.return_value = b'{"text": "hello"}'
+        transcript_json = '{"text": "hello"}'
+        expected_value = b"\x00" + transcript_json.encode("utf-8")
+        mock_client.get.return_value = expected_value
         mock_valkey.from_url.return_value = mock_client
 
         # Test set
         await provider.set_transcript("hash123", {"text": "hello"}, 3600)
-        mock_client.setex.assert_called_with("transcript:hash123", 3600, '{"text": "hello"}')
+        mock_client.setex.assert_called_with("transcript:hash123:none", 3600, expected_value)
 
         # Test get
         transcript = await provider.get_transcript("hash123")
         assert transcript == {"text": "hello"}
-        mock_client.get.assert_called_with("transcript:hash123")
+        mock_client.get.assert_called_with("transcript:hash123:none")
+
+
+@pytest.mark.asyncio
+async def test_valkey_set_get_transcript_with_compression(provider_with_compression):
+    """Test that transcript is compressed when stored and decompressed when retrieved."""
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
+        mock_client = AsyncMock()
+
+        # Simulate compressed transcript data
+        original_transcript = {"text": "hello world", "duration": 120}
+        compressed_data = compress(
+            json.dumps(original_transcript).encode("utf-8"),
+            CompressionMethod.GZIP,
+        )
+        mock_client.get.return_value = compressed_data
+        mock_valkey.from_url.return_value = mock_client
+
+        # Test get
+        transcript = await provider_with_compression.get_transcript("hash123")
+        assert transcript == original_transcript
+        mock_client.get.assert_called_with("transcript:hash123:gzip")

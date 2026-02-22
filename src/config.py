@@ -32,6 +32,7 @@ class Settings:
         rate_limit_window_seconds: Cooldown between user requests.
         cache_summary_ttl_seconds: TTL for cached video summaries (in seconds). Defaults to 1 hour for local cache, 1 day for Valkey.
         cache_transcript_ttl_seconds: TTL for cached video transcripts (in seconds). Defaults to 1 hour for local cache, 1 day for Valkey.
+        cache_compression_method: Compression method for Valkey cache (none, gzip, zlib, lzma).
         max_telegram_message_length: Maximum message length before chunking.
         openai_timeout_seconds: Timeout for LLM API requests.
         openai_max_retries: Maximum retry attempts for LLM API.
@@ -45,6 +46,7 @@ class Settings:
     valkey_url: str | None = None
     cache_summary_ttl_seconds: int = 86400
     cache_transcript_ttl_seconds: int = 86400
+    cache_compression_method: str = "gzip"
     rate_limit_window_seconds: int = 10
     max_telegram_message_length: int = 3500
     openai_timeout_seconds: int = 300
@@ -86,6 +88,11 @@ class Settings:
         except ValueError:
             cache_transcript_ttl = default_transcript_ttl
 
+        cache_compression = os.getenv("CACHE_COMPRESSION_METHOD", "gzip").strip().lower()
+        valid_compression_methods = {"none", "gzip", "zlib", "lzma"}
+        if cache_compression not in valid_compression_methods:
+            cache_compression = "gzip"
+
         try:
             rate_limit_window = int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "10"))
         except ValueError:
@@ -112,6 +119,7 @@ class Settings:
             valkey_url=valkey_url,
             cache_summary_ttl_seconds=cache_summary_ttl,
             cache_transcript_ttl_seconds=cache_transcript_ttl,
+            cache_compression_method=cache_compression,
             rate_limit_window_seconds=rate_limit_window,
             yt_dlp_additional_options=yt_dlp_additional_options,
         )

@@ -80,7 +80,10 @@ class TelegramBrieflyBot:
 
         self.settings = settings
         if settings.valkey_url:
-            self.provider: CacheProvider = ValkeyProvider(settings.valkey_url)
+            self.provider: CacheProvider = ValkeyProvider(
+                settings.valkey_url,
+                compression_method=settings.cache_compression_method,
+            )
         else:
             self.provider: CacheProvider = LocalCacheProvider()
 

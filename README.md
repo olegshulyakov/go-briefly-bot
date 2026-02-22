@@ -155,6 +155,7 @@ Press `F5` to start debugging. Available configurations:
 | `VALKEY_URL`                   | Valkey connection URL (optional)   | —                                |
 | `CACHE_SUMMARY_TTL_SECONDS`    | TTL for cached summaries           | `3600` (local), `86400` (Valkey) |
 | `CACHE_TRANSCRIPT_TTL_SECONDS` | TTL for cached transcripts         | `3600` (local), `86400` (Valkey) |
+| `CACHE_COMPRESSION_METHOD`     | Compression for Valkey cache       | `gzip` (none, gzip, zlib, lzma)  |
 | `LOG_LEVEL`                    | Logging level                      | `INFO`                           |
 
 ## Tests
