@@ -27,8 +27,11 @@ class Settings:
         openai_base_url: Base URL for OpenAI-compatible API.
         openai_api_key: API key for LLM service.
         openai_model: Model name to use for summarization.
+        valkey_url: Optional connection string for Valkey (replaces in-memory state).
         yt_dlp_additional_options: Additional yt-dlp CLI options.
         rate_limit_window_seconds: Cooldown between user requests.
+        cache_summary_ttl_seconds: TTL for cached video summaries (in seconds). Defaults to 1 hour for local cache, 1 day for Valkey.
+        cache_transcript_ttl_seconds: TTL for cached video transcripts (in seconds). Defaults to 1 hour for local cache, 1 day for Valkey.
         max_telegram_message_length: Maximum message length before chunking.
         openai_timeout_seconds: Timeout for LLM API requests.
         openai_max_retries: Maximum retry attempts for LLM API.
@@ -39,6 +42,9 @@ class Settings:
     openai_api_key: str
     openai_model: str
     yt_dlp_additional_options: tuple[str, ...]
+    valkey_url: str | None = None
+    cache_summary_ttl_seconds: int = 86400
+    cache_transcript_ttl_seconds: int = 86400
     rate_limit_window_seconds: int = 10
     max_telegram_message_length: int = 3500
     openai_timeout_seconds: int = 300
@@ -64,6 +70,27 @@ class Settings:
         openai_base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1/").strip()
         openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
         openai_model = os.getenv("OPENAI_MODEL", "").strip()
+        valkey_url = os.getenv("VALKEY_URL", "").strip() or None
+
+        # Default TTL values depend on cache type: 1 hour for local, 1 day for Valkey
+        default_summary_ttl = 3600 if valkey_url is None else 86400
+        default_transcript_ttl = 3600 if valkey_url is None else 86400
+
+        try:
+            cache_summary_ttl = int(os.getenv("CACHE_SUMMARY_TTL_SECONDS", str(default_summary_ttl)))
+        except ValueError:
+            cache_summary_ttl = default_summary_ttl
+
+        try:
+            cache_transcript_ttl = int(os.getenv("CACHE_TRANSCRIPT_TTL_SECONDS", str(default_transcript_ttl)))
+        except ValueError:
+            cache_transcript_ttl = default_transcript_ttl
+
+        try:
+            rate_limit_window = int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "10"))
+        except ValueError:
+            rate_limit_window = 10
+
         yt_dlp_additional_options = tuple(shlex.split(os.getenv("YT_DLP_ADDITIONAL_OPTIONS", "")))
 
         missing = []
@@ -82,5 +109,9 @@ class Settings:
             openai_base_url=openai_base_url,
             openai_api_key=openai_api_key,
             openai_model=openai_model,
+            valkey_url=valkey_url,
+            cache_summary_ttl_seconds=cache_summary_ttl,
+            cache_transcript_ttl_seconds=cache_transcript_ttl,
+            rate_limit_window_seconds=rate_limit_window,
             yt_dlp_additional_options=yt_dlp_additional_options,
         )
