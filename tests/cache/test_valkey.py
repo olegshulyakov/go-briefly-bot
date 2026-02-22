@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from valkey.exceptions import ConnectionError as ValkeyConnectionError
 
-from src.storage import ValkeyProvider
+from src.cache import ValkeyProvider
 
 
 @pytest.fixture
@@ -13,8 +13,8 @@ def provider():
 
 
 @pytest.mark.asyncio
-async def test_valkey_provider_rate_limit_success(provider):
-    with patch("src.storage.valkey_provider.Valkey") as mock_valkey:
+async def test_valkey_rate_limit_success(provider):
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_pipeline = MagicMock()
         mock_pipeline.execute = AsyncMock(return_value=[1])  # INCR result
@@ -30,8 +30,8 @@ async def test_valkey_provider_rate_limit_success(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_provider_rate_limit_exceeded(provider):
-    with patch("src.storage.valkey_provider.Valkey") as mock_valkey:
+async def test_valkey_rate_limit_exceeded(provider):
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_pipeline = MagicMock()
         mock_pipeline.execute = AsyncMock(return_value=[2])  # INCR result > 1
@@ -44,11 +44,11 @@ async def test_valkey_provider_rate_limit_exceeded(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_provider_fail_soft_timeout(provider):
+async def test_valkey_fail_soft_timeout(provider):
     # Reduce timeout for faster test
     provider._timeout = 0.01
 
-    with patch("src.storage.valkey_provider.Valkey") as mock_valkey:
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
 
         async def slow_execute():
@@ -69,8 +69,8 @@ async def test_valkey_provider_fail_soft_timeout(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_provider_fail_soft_connection_error(provider):
-    with patch("src.storage.valkey_provider.Valkey") as mock_valkey:
+async def test_valkey_fail_soft_connection_error(provider):
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_pipeline = MagicMock()
         mock_pipeline.execute = AsyncMock(side_effect=ValkeyConnectionError("Connection refused"))
@@ -85,8 +85,8 @@ async def test_valkey_provider_fail_soft_connection_error(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_provider_set_get_summary(provider):
-    with patch("src.storage.valkey_provider.Valkey") as mock_valkey:
+async def test_valkey_set_get_summary(provider):
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_client.get.return_value = b"test summary"
         mock_valkey.from_url.return_value = mock_client
@@ -102,8 +102,8 @@ async def test_valkey_provider_set_get_summary(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_provider_set_get_summary_multiple_languages(provider):
-    with patch("src.storage.valkey_provider.Valkey") as mock_valkey:
+async def test_valkey_set_get_summary_multiple_languages(provider):
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
 
         # We will mock the .get() method to return different results based on the key
@@ -135,8 +135,8 @@ async def test_valkey_provider_set_get_summary_multiple_languages(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_provider_set_get_transcript(provider):
-    with patch("src.storage.valkey_provider.Valkey") as mock_valkey:
+async def test_valkey_set_get_transcript(provider):
+    with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_client.get.return_value = b'{"text": "hello"}'
         mock_valkey.from_url.return_value = mock_client

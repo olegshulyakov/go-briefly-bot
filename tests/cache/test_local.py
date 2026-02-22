@@ -1,16 +1,16 @@
 import asyncio
 import pytest
 
-from src.storage import LocalProvider
+from src.cache import LocalCacheProvider
 
 
 @pytest.fixture
 def provider():
-    return LocalProvider()
+    return LocalCacheProvider()
 
 
 @pytest.mark.asyncio
-async def test_local_provider_rate_limit(provider):
+async def test_local_rate_limit(provider):
     # Not limited initially
     is_limited = await provider.is_rate_limited(123, 10)
     assert not is_limited
@@ -21,7 +21,7 @@ async def test_local_provider_rate_limit(provider):
 
 
 @pytest.mark.asyncio
-async def test_local_provider_summary_multiple_languages(provider):
+async def test_local_summary_multiple_languages(provider):
     # Set summary in English
     await provider.set_summary("hash123", "en", "english summary", 3600)
     # Set summary in Spanish
@@ -41,7 +41,7 @@ async def test_local_provider_summary_multiple_languages(provider):
 
 
 @pytest.mark.asyncio
-async def test_local_provider_summary_expiration(provider):
+async def test_local_summary_expiration(provider):
     # Set with short TTL
     await provider.set_summary("hash123", "en", "expiring summary", 0.1)
 
@@ -56,7 +56,7 @@ async def test_local_provider_summary_expiration(provider):
 
 
 @pytest.mark.asyncio
-async def test_local_provider_transcript(provider):
+async def test_local_transcript(provider):
     transcript_data = {"text": "hello"}
 
     await provider.set_transcript("hash123", transcript_data, 3600)
@@ -66,7 +66,7 @@ async def test_local_provider_transcript(provider):
 
 
 @pytest.mark.asyncio
-async def test_local_provider_transcript_expiration(provider):
+async def test_local_transcript_expiration(provider):
     transcript_data = {"text": "expiring"}
 
     await provider.set_transcript("hash123", transcript_data, 0.1)

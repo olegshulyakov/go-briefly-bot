@@ -1,5 +1,5 @@
 """
-Valkey storage provider with fail-soft fallback.
+Valkey cache provider with fail-soft fallback.
 """
 
 import asyncio
@@ -10,23 +10,23 @@ from typing import Any
 from valkey.asyncio import Valkey
 from valkey.exceptions import ConnectionError as ValkeyConnectionError
 
-from .base import StorageProvider
-from .local import LocalProvider
+from .base import CacheProvider
+from .local import LocalCacheProvider
 
 logger = logging.getLogger(__name__)
 
 
-class ValkeyProvider(StorageProvider):
+class ValkeyProvider(CacheProvider):
     """
-    Valkey-based storage provider, utilizing atomic operations and TTL.
-    Implements a strict fail-soft mechanism falling back to LocalProvider
+    Valkey-based cache provider, utilizing atomic operations and TTL.
+    Implements a strict fail-soft mechanism falling back to LocalCacheProvider
     on connection drop or timeout.
     """
 
     def __init__(self, valkey_url: str) -> None:
         self.valkey_url = valkey_url
         self._valkey: Valkey | None = None
-        self._local_fallback = LocalProvider()
+        self._local_fallback = LocalCacheProvider()
         self._timeout = 0.200  # Strict 200ms fail-soft timeout
 
     async def _get_client(self) -> Valkey:
@@ -39,13 +39,13 @@ class ValkeyProvider(StorageProvider):
         try:
             return await asyncio.wait_for(coro_fn(), timeout=self._timeout)
         except (TimeoutError, asyncio.TimeoutError):
-            logger.warning("Valkey timeout, falling back to LocalProvider")
+            logger.warning("Valkey timeout, falling back to LocalCacheProvider")
             return await fallback_coro_fn()
         except (ValkeyConnectionError, ConnectionError, OSError) as e:
-            logger.warning(f"Valkey connection error: {e}, falling back to LocalProvider")
+            logger.warning(f"Valkey connection error: {e}, falling back to LocalCacheProvider")
             return await fallback_coro_fn()
         except Exception as e:
-            logger.warning(f"Valkey operation failed: {e}, falling back to LocalProvider")
+            logger.warning(f"Valkey operation failed: {e}, falling back to LocalCacheProvider")
             return await fallback_coro_fn()
 
     async def is_rate_limited(self, user_id: int, window_seconds: int) -> bool:

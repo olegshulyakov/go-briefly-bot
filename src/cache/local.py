@@ -1,16 +1,16 @@
 """
-Local in-memory storage provider implementation.
+Local in-memory cache provider implementation.
 """
 
 import asyncio
 import time
 
-from .base import StorageProvider
+from .base import CacheProvider
 
 
-class LocalProvider(StorageProvider):
+class LocalCacheProvider(CacheProvider):
     """
-    In-memory storage provider using dictionaries.
+    In-memory cache provider using dictionaries.
     Used when Valkey is not configured or unavailable.
     """
 

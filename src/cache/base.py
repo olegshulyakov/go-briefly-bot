@@ -1,12 +1,12 @@
 """
-Base storage provider interface for Go Briefly Bot.
+Base cache provider interface for Go Briefly Bot.
 """
 
 from abc import ABC, abstractmethod
 
 
-class StorageProvider(ABC):
-    """Abstract base class for storage providers (cache and rate limiting)."""
+class CacheProvider(ABC):
+    """Abstract base class for cache providers (cache and rate limiting)."""
 
     @abstractmethod
     async def is_rate_limited(self, user_id: int, window_seconds: int) -> bool:

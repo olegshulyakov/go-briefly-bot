@@ -32,7 +32,7 @@ from .config import Settings
 from .load.video_loader import VideoDataLoader, VideoTranscript
 from .load.video_provider import extract_urls
 from .localization import translate
-from .storage import LocalProvider, StorageProvider, ValkeyProvider
+from .cache import CacheProvider, LocalCacheProvider, ValkeyProvider
 from .transform.summarization import OpenAISummarizer
 from .utils.text import to_lexical_chunks
 
@@ -42,12 +42,12 @@ logger = logging.getLogger(__name__)
 class UserRateLimiter:
     """Limits the rate of requests for individual users."""
 
-    def __init__(self, provider: StorageProvider, cooldown_seconds: int) -> None:
+    def __init__(self, provider: CacheProvider, cooldown_seconds: int) -> None:
         """
         Initializes the UserRateLimiter.
 
         Args:
-            provider: The storage provider for state management.
+            provider: The cache provider for state management.
             cooldown_seconds: The cooldown period in seconds for each user.
         """
 
@@ -80,9 +80,9 @@ class TelegramBrieflyBot:
 
         self.settings = settings
         if settings.valkey_url:
-            self.provider: StorageProvider = ValkeyProvider(settings.valkey_url)
+            self.provider: CacheProvider = ValkeyProvider(settings.valkey_url)
         else:
-            self.provider: StorageProvider = LocalProvider()
+            self.provider: CacheProvider = LocalCacheProvider()
 
         self.rate_limiter = UserRateLimiter(self.provider, settings.rate_limit_window_seconds)
         self.summarizer = OpenAISummarizer(settings)
