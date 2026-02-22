@@ -30,8 +30,8 @@ class Settings:
         valkey_url: Optional connection string for Valkey (replaces in-memory state).
         yt_dlp_additional_options: Additional yt-dlp CLI options.
         rate_limit_window_seconds: Cooldown between user requests.
-        cache_summary_ttl_seconds: TTL for cached video summaries (in seconds).
-        cache_transcript_ttl_seconds: TTL for cached video transcripts (in seconds).
+        cache_summary_ttl_seconds: TTL for cached video summaries (in seconds). Defaults to 1 hour for local cache, 1 day for Valkey.
+        cache_transcript_ttl_seconds: TTL for cached video transcripts (in seconds). Defaults to 1 hour for local cache, 1 day for Valkey.
         max_telegram_message_length: Maximum message length before chunking.
         openai_timeout_seconds: Timeout for LLM API requests.
         openai_max_retries: Maximum retry attempts for LLM API.
@@ -72,15 +72,19 @@ class Settings:
         openai_model = os.getenv("OPENAI_MODEL", "").strip()
         valkey_url = os.getenv("VALKEY_URL", "").strip() or None
 
-        try:
-            cache_summary_ttl = int(os.getenv("CACHE_SUMMARY_TTL_SECONDS", "86400"))
-        except ValueError:
-            cache_summary_ttl = 86400
+        # Default TTL values depend on cache type: 1 hour for local, 1 day for Valkey
+        default_summary_ttl = 3600 if valkey_url is None else 86400
+        default_transcript_ttl = 3600 if valkey_url is None else 86400
 
         try:
-            cache_transcript_ttl = int(os.getenv("CACHE_TRANSCRIPT_TTL_SECONDS", "86400"))
+            cache_summary_ttl = int(os.getenv("CACHE_SUMMARY_TTL_SECONDS", str(default_summary_ttl)))
         except ValueError:
-            cache_transcript_ttl = 86400
+            cache_summary_ttl = default_summary_ttl
+
+        try:
+            cache_transcript_ttl = int(os.getenv("CACHE_TRANSCRIPT_TTL_SECONDS", str(default_transcript_ttl)))
+        except ValueError:
+            cache_transcript_ttl = default_transcript_ttl
 
         try:
             rate_limit_window = int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "10"))

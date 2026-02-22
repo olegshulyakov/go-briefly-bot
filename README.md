@@ -113,27 +113,27 @@ code --install-extension tamasfe.even-better-toml
 
 Open the Command Palette (`Cmd+Shift+P` or `Ctrl+Shift+P`) → **Tasks: Run Task**:
 
-| Task | Description |
-|------|-------------|
-| `📦 Install Dependencies` | Install from pyproject.toml |
-| `▶️ Run Bot` | Run the bot application |
-| `🧪 Run All Tests` | Run pytest suite |
+| Task                         | Description                    |
+| ---------------------------- | ------------------------------ |
+| `📦 Install Dependencies`    | Install from pyproject.toml    |
+| `▶️ Run Bot`                 | Run the bot application        |
+| `🧪 Run All Tests`           | Run pytest suite               |
 | `🧪 Run Tests with Coverage` | Run tests with coverage report |
-| `🔍 Lint (Ruff Check)` | Run linter |
-| `✨ Format (Ruff Format)` | Format code |
-| `🔧 Lint & Fix (Ruff)` | Auto-fix lint issues |
-| `🧹 Clean Python Cache` | Remove __pycache__ |
-| `🔒 Install Git Hooks` | Setup git hooks |
+| `🔍 Lint (Ruff Check)`       | Run linter                     |
+| `✨ Format (Ruff Format)`    | Format code                    |
+| `🔧 Lint & Fix (Ruff)`       | Auto-fix lint issues           |
+| `🧹 Clean Python Cache`      | Remove **pycache**             |
+| `🔒 Install Git Hooks`       | Setup git hooks                |
 
 ### Debug Configurations
 
 Press `F5` to start debugging. Available configurations:
 
-| Configuration | Description |
-|---------------|-------------|
-| `🐍 Run Bot` | Debug the bot |
-| `🧪 Test All` | Debug all tests |
-| `🧪 Test Current File` | Debug current test file |
+| Configuration           | Description             |
+| ----------------------- | ----------------------- |
+| `🐍 Run Bot`            | Debug the bot           |
+| `🧪 Test All`           | Debug all tests         |
+| `🧪 Test Current File`  | Debug current test file |
 | `🧪 Test with Coverage` | Run tests with coverage |
 
 ### Keyboard Shortcuts
@@ -145,17 +145,17 @@ Press `F5` to start debugging. Available configurations:
 
 ## Environment Variables
 
-| Variable                    | Description                        | Default                      |
-| --------------------------- | ---------------------------------- | ---------------------------- |
-| `TELEGRAM_BOT_TOKEN`        | Telegram bot token (required)      | —                            |
-| `OPENAI_API_KEY`            | LLM API key (required)             | —                            |
-| `OPENAI_MODEL`              | Model for summarization (required) | —                            |
-| `OPENAI_BASE_URL`           | OpenAI-compatible API base URL     | `https://api.openai.com/v1/` |
-| `YT_DLP_ADDITIONAL_OPTIONS` | Additional yt-dlp options          | —                            |
-| `VALKEY_URL`                | Valkey connection URL (optional)   | —                            |
-| `CACHE_SUMMARY_TTL_SECONDS` | TTL for cached summaries           | `86400`                      |
-| `CACHE_TRANSCRIPT_TTL_SECONDS` | TTL for cached transcripts      | `86400`                      |
-| `LOG_LEVEL`                 | Logging level                      | `INFO`                       |
+| Variable                       | Description                        | Default                          |
+| ------------------------------ | ---------------------------------- | -------------------------------- |
+| `TELEGRAM_BOT_TOKEN`           | Telegram bot token (required)      | —                                |
+| `OPENAI_API_KEY`               | LLM API key (required)             | —                                |
+| `OPENAI_MODEL`                 | Model for summarization (required) | —                                |
+| `OPENAI_BASE_URL`              | OpenAI-compatible API base URL     | `https://api.openai.com/v1/`     |
+| `YT_DLP_ADDITIONAL_OPTIONS`    | Additional yt-dlp options          | —                                |
+| `VALKEY_URL`                   | Valkey connection URL (optional)   | —                                |
+| `CACHE_SUMMARY_TTL_SECONDS`    | TTL for cached summaries           | `3600` (local), `86400` (Valkey) |
+| `CACHE_TRANSCRIPT_TTL_SECONDS` | TTL for cached transcripts         | `3600` (local), `86400` (Valkey) |
+| `LOG_LEVEL`                    | Logging level                      | `INFO`                           |
 
 ## Tests
 
