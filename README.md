@@ -175,13 +175,21 @@ python3 -m pytest tests/test_bot.py -v
 ### Build Image
 
 ```bash
-./.devops/Telegram-build.sh
+docker build -f .devops/Telegram.Dockerfile -t ghcr.io/olegshulyakov/go-briefly-bot .
 ```
 
 ### Run Container
 
 ```bash
-./.devops/Telegram-run.sh
+# Using docker run
+docker run -d \
+  --name go-briefly-bot \
+  -e TELEGRAM_BOT_TOKEN=your_token \
+  -e OPENAI_BASE_URL=https://api.openai.com/v1/ \
+  -e OPENAI_API_KEY=your_key \
+  -e OPENAI_MODEL=gpt3.5-turbo \
+  -e VALKEY_URL=valkey://valkey:6379 \
+  ghcr.io/olegshulyakov/go-briefly-bot
 ```
 
 ### Docker Compose
