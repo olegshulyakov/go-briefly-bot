@@ -17,7 +17,7 @@ services:
       - valkey
 
   valkey:
-    image: valkey/valkey:8.0
+    image: valkey/valkey:8
     container_name: briefly-valkey
     ports:
       - "6379:6379"
