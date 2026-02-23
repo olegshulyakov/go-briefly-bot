@@ -1,6 +1,6 @@
 version: "3.4"
 services:
-  go-briefly-bot:
+  briefly-bot:
     image: ghcr.io/olegshulyakov/go-briefly-bot:latest
     container_name: go-briefly-bot
     mem_limit: 512m
@@ -14,11 +14,15 @@ services:
       - LOG_LEVEL=INFO
     restart: unless-stopped
     depends_on:
-      - valkey
+      - briefly-valkey
 
-  valkey:
+  briefly-valkey:
     image: valkey/valkey:8
     container_name: briefly-valkey
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: valkey-cli ping || exit 1
     ports:
       - "6379:6379"
     restart: unless-stopped
