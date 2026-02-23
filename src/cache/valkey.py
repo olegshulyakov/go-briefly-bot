@@ -35,6 +35,7 @@ class ValkeyProvider(CacheProvider):
         self._local_fallback = LocalCacheProvider()
         self._timeout = 0.200  # Strict 200ms fail-soft timeout
         self._compression_method = self._parse_compression_method(compression_method)
+        self._init_lock = asyncio.Lock()
 
     def _parse_compression_method(self, method: str) -> CompressionMethod:
         """Parse compression method string to enum."""
@@ -47,9 +48,11 @@ class ValkeyProvider(CacheProvider):
         return method_map.get(method.lower(), CompressionMethod.GZIP)
 
     async def _get_client(self) -> Valkey:
-        """Lazy initialization of the Valkey client."""
+        """Lazy initialization of the Valkey client with double-checked locking."""
         if self._valkey is None:
-            self._valkey = Valkey.from_url(self.valkey_url)
+            async with self._init_lock:
+                if self._valkey is None:
+                    self._valkey = Valkey.from_url(self.valkey_url)
         return self._valkey
 
     async def _safe_execute(self, coro_fn: Any, fallback_coro_fn: Any) -> Any:
