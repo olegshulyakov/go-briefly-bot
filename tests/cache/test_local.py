@@ -23,56 +23,56 @@ async def test_local_rate_limit(provider):
 @pytest.mark.asyncio
 async def test_local_summary_multiple_languages(provider):
     # Set summary in English
-    await provider.set_summary("hash123", "en", "english summary", 3600)
+    await provider.put("summary:hash123:en", "english summary", 3600)
     # Set summary in Spanish
-    await provider.set_summary("hash123", "ru", "spanish summary", 3600)
+    await provider.put("summary:hash123:es", "spanish summary", 3600)
 
     # Get English summary
-    summary_en = await provider.get_summary("hash123", "en")
-    assert summary_en == "english summary"
+    text_en = await provider.get("summary:hash123:en")
+    assert text_en == "english summary"
 
     # Get Spanish summary
-    summary_ru = await provider.get_summary("hash123", "ru")
-    assert summary_ru == "spanish summary"
+    text_es = await provider.get("summary:hash123:es")
+    assert text_es == "spanish summary"
 
     # Missing language
-    summary_fr = await provider.get_summary("hash123", "fr")
-    assert summary_fr is None
+    text_fr = await provider.get("summary:hash123:fr")
+    assert text_fr is None
 
 
 @pytest.mark.asyncio
 async def test_local_summary_expiration(provider):
     # Set with short TTL
-    await provider.set_summary("hash123", "en", "expiring summary", 0.1)
+    await provider.put("summary:hash123:en", "expiring summary", 0.1)
 
     # Should exist initially
-    assert await provider.get_summary("hash123", "en") == "expiring summary"
+    assert await provider.get("summary:hash123:en") == "expiring summary"
 
     # Wait for expiration
     await asyncio.sleep(0.2)
 
     # Should be gone
-    assert await provider.get_summary("hash123", "en") is None
+    assert await provider.get("summary:hash123:en") is None
 
 
 @pytest.mark.asyncio
 async def test_local_transcript(provider):
-    transcript_data = {"text": "hello"}
+    data = {"text": "hello"}
 
-    await provider.set_transcript("hash123", transcript_data, 3600)
+    await provider.put_dict("transcript:hash123", data, 3600)
 
-    result = await provider.get_transcript("hash123")
-    assert result == transcript_data
+    result = await provider.get_dict("transcript:hash123")
+    assert result == data
 
 
 @pytest.mark.asyncio
 async def test_local_transcript_expiration(provider):
-    transcript_data = {"text": "expiring"}
+    data = {"text": "expiring"}
 
-    await provider.set_transcript("hash123", transcript_data, 0.1)
+    await provider.put_dict("transcript:hash123", data, 0.1)
 
-    assert await provider.get_transcript("hash123") == transcript_data
+    assert await provider.get_dict("transcript:hash123") == data
 
     await asyncio.sleep(0.2)
 
-    assert await provider.get_transcript("hash123") is None
+    assert await provider.get_dict("transcript:hash123") is None

@@ -44,7 +44,7 @@ class OpenAISummarizer:
             settings: Application settings with API credentials.
         """
         self.settings = settings
-        self.provider: CacheProvider = get_cache_provider(settings)
+        self.cache_provider: CacheProvider = get_cache_provider(settings)
         self.client = OpenAI(
             base_url=settings.openai_base_url,
             api_key=settings.openai_api_key,
@@ -68,15 +68,15 @@ class OpenAISummarizer:
             raise ValueError("text must be a non-empty string")
 
         video_hash = self._text_hash(text)
-        cached_summary = await self.provider.get_summary(video_hash, locale)
+        cache_key = f"summary:{video_hash}:{locale}"
+        cached_summary = await self.cache_provider.get(cache_key)
         if cached_summary:
-            logger.info("Summary loaded from cache", extra={"locale": locale})
+            logger.debug("Summary loaded from cache", extra={"locale": locale})
             return cached_summary
 
         summary = await asyncio.to_thread(self._summarize, text, locale)
-        await self.provider.set_summary(
-            video_hash,
-            locale,
+        await self.cache_provider.put(
+            cache_key,
             summary,
             self.settings.cache_summary_ttl_seconds,
         )

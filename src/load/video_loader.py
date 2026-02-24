@@ -108,7 +108,7 @@ class VideoDataLoader:
         """
         self.url, self.video_id = build_video_source(url)
         self.settings = settings
-        self.provider: CacheProvider = get_cache_provider(settings)
+        self.cache_provider: CacheProvider = get_cache_provider(settings)
         self.yt_dlp_additional_options = settings.yt_dlp_additional_options
         self.info: VideoInfo | None = None
         self.transcript: VideoTranscript | None = None
@@ -120,17 +120,17 @@ class VideoDataLoader:
         Returns:
             VideoTranscript if available, otherwise None.
         """
-        video_hash = self._video_hash
-        cached_transcript = await self.provider.get_transcript(video_hash)
+        cache_key = f"transcript:{self._video_hash}"
+        cached_transcript = await self.cache_provider.get_dict(cache_key)
         if cached_transcript:
             self.transcript = VideoTranscript(**cached_transcript)
-            logger.info("Transcript loaded from cache", extra={"url": self.url})
+            logger.debug("Transcript loaded from cache", extra={"url": self.url})
             return self.transcript
 
         await asyncio.to_thread(self._load)
         if self.transcript:
-            await self.provider.set_transcript(
-                video_hash,
+            await self.cache_provider.put_dict(
+                cache_key,
                 asdict(self.transcript),
                 self.settings.cache_transcript_ttl_seconds,
             )

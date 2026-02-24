@@ -19,8 +19,8 @@ class LocalCacheProvider(CacheProvider):
         self._rate_limit_lock = asyncio.Lock()
 
         # Caches
-        self._summaries: dict[str, tuple[str, float]] = {}
-        self._transcripts: dict[str, tuple[dict, float]] = {}
+        self._cache: dict[str, tuple[str, float]] = {}
+        self._cache_dict: dict[str, tuple[dict, float]] = {}
         self._cache_lock = asyncio.Lock()
 
     async def is_rate_limited(self, user_id: int, window_seconds: int) -> bool:
@@ -33,38 +33,36 @@ class LocalCacheProvider(CacheProvider):
             self._rate_limits[user_id] = now
             return False
 
-    async def get_summary(self, video_hash: str, language_code: str | None) -> str | None:
-        key = f"{video_hash}:{language_code}"
+    async def get(self, key: str) -> str | None:
         async with self._cache_lock:
-            cached = self._summaries.get(key)
+            cached = self._cache.get(key)
             if cached is None:
                 return None
 
-            summary, expires_at = cached
+            text, expires_at = cached
             if time.monotonic() > expires_at:
-                del self._summaries[key]
+                del self._cache[key]
                 return None
 
-            return summary
+            return text
 
-    async def set_summary(self, video_hash: str, language_code: str | None, summary: str, ttl_seconds: int) -> None:
-        key = f"{video_hash}:{language_code}"
+    async def put(self, key: str, text: str, ttl_seconds: int) -> None:
         async with self._cache_lock:
-            self._summaries[key] = (summary, time.monotonic() + ttl_seconds)
+            self._cache[key] = (text, time.monotonic() + ttl_seconds)
 
-    async def get_transcript(self, video_hash: str) -> dict | None:
+    async def get_dict(self, key: str) -> dict | None:
         async with self._cache_lock:
-            cached = self._transcripts.get(video_hash)
+            cached = self._cache_dict.get(key)
             if cached is None:
                 return None
 
-            transcript, expires_at = cached
+            data, expires_at = cached
             if time.monotonic() > expires_at:
-                del self._transcripts[video_hash]
+                del self._cache_dict[key]
                 return None
 
-            return transcript
+            return data
 
-    async def set_transcript(self, video_hash: str, transcript_data: dict, ttl_seconds: int) -> None:
+    async def put_dict(self, key: str, data: dict, ttl_seconds: int) -> None:
         async with self._cache_lock:
-            self._transcripts[video_hash] = (transcript_data, time.monotonic() + ttl_seconds)
+            self._cache_dict[key] = (data, time.monotonic() + ttl_seconds)

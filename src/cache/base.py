@@ -4,9 +4,21 @@ Base cache provider interface for Go Briefly Bot.
 
 from abc import ABC, abstractmethod
 
+from src.utils.compression import CompressionMethod
+
 
 class CacheProvider(ABC):
     """Abstract base class for cache providers (cache and rate limiting)."""
+
+    def _parse_compression_method(self, method: str) -> CompressionMethod:
+        """Parse compression method string to enum."""
+        method_map = {
+            "none": CompressionMethod.NONE,
+            "gzip": CompressionMethod.GZIP,
+            "zlib": CompressionMethod.ZLIB,
+            "lzma": CompressionMethod.LZMA,
+        }
+        return method_map.get(method.lower(), CompressionMethod.GZIP)
 
     @abstractmethod
     async def is_rate_limited(self, user_id: int, window_seconds: int) -> bool:
@@ -23,21 +35,21 @@ class CacheProvider(ABC):
         pass
 
     @abstractmethod
-    async def get_summary(self, video_hash: str, language_code: str | None) -> str | None:
-        """Retrieves a cached summary for a video."""
+    async def put(self, key: str, text: str, ttl_seconds: int) -> None:
+        """Caches a text."""
         pass
 
     @abstractmethod
-    async def set_summary(self, video_hash: str, language_code: str | None, summary: str, ttl_seconds: int) -> None:
-        """Caches a summary for a video."""
+    async def get(self, key: str) -> str | None:
+        """Retrieves a cached text."""
         pass
 
     @abstractmethod
-    async def get_transcript(self, video_hash: str) -> dict | None:
-        """Retrieves a cached transcript dict for a video."""
+    async def get_dict(self, key: str) -> dict | None:
+        """Retrieves a cached dict."""
         pass
 
     @abstractmethod
-    async def set_transcript(self, video_hash: str, transcript_data: dict, ttl_seconds: int) -> None:
-        """Caches a transcript dict for a video."""
+    async def put_dict(self, key: str, data: dict, ttl_seconds: int) -> None:
+        """Caches a dict."""
         pass
