@@ -11,9 +11,7 @@ Handles:
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import logging
-from dataclasses import asdict
 
 from telegram import LinkPreviewOptions, Update, User
 from telegram.constants import ParseMode
@@ -28,43 +26,16 @@ from telegram.ext import (
 
 from src.utils.markdown import markdown_to_telegram_html
 
+from .cache import CacheProvider, get_cache_provider
 from .config import Settings
-from .load.video_loader import VideoDataLoader, VideoTranscript
+from .load.video_loader import VideoDataLoader
 from .load.video_provider import extract_urls
-from .localization import translate
-from .cache import CacheProvider, LocalCacheProvider, ValkeyProvider
+from .localization import normalize_locale, translate
+from .rate_limiter import UserRateLimiter
 from .transform.summarization import OpenAISummarizer
 from .utils.text import to_lexical_chunks
 
 logger = logging.getLogger(__name__)
-
-
-class UserRateLimiter:
-    """Limits the rate of requests for individual users."""
-
-    def __init__(self, provider: CacheProvider, cooldown_seconds: int) -> None:
-        """
-        Initializes the UserRateLimiter.
-
-        Args:
-            provider: The cache provider for state management.
-            cooldown_seconds: The cooldown period in seconds for each user.
-        """
-
-        self.provider = provider
-        self.cooldown_seconds = cooldown_seconds
-
-    async def is_limited(self, user_id: int) -> bool:
-        """
-        Checks if a user is rate-limited. If not, records the current request time.
-
-        Args:
-            user_id: The ID of the user to check.
-
-        Returns:
-            True if the user is rate-limited, False otherwise.
-        """
-        return await self.provider.is_rate_limited(user_id, self.cooldown_seconds)
 
 
 class TelegramBrieflyBot:
@@ -79,13 +50,7 @@ class TelegramBrieflyBot:
         """
 
         self.settings = settings
-        if settings.valkey_url:
-            self.provider: CacheProvider = ValkeyProvider(
-                settings.valkey_url,
-                compression_method=settings.cache_compression_method,
-            )
-        else:
-            self.provider: CacheProvider = LocalCacheProvider()
+        self.provider: CacheProvider = get_cache_provider(settings)
 
         self.rate_limiter = UserRateLimiter(self.provider, settings.rate_limit_window_seconds)
         self.summarizer = OpenAISummarizer(settings)
@@ -224,39 +189,24 @@ class TelegramBrieflyBot:
 
         await processing_message.edit_text(translate("telegram.progress.fetching_info", locale=language))
 
-        video_hash = hashlib.sha256(video_url.encode("utf-8")).hexdigest()
         transcript = None
 
-        cached_transcript_data = await self.provider.get_transcript(video_hash)
-        if cached_transcript_data:
-            transcript = VideoTranscript(**cached_transcript_data)
-            logger.info("Transcript loaded from cache", extra={"userID": user.id, "url": video_url})
-        else:
-            try:
-                loader = VideoDataLoader(
-                    video_url,
-                    yt_dlp_additional_options=self.settings.yt_dlp_additional_options,
-                )
-                await asyncio.to_thread(loader.load)
-                transcript = loader.transcript
-
-                if transcript:
-                    await self.provider.set_transcript(
-                        video_hash, asdict(transcript), self.settings.cache_transcript_ttl_seconds
-                    )
-            except Exception as exc:
-                logger.exception(
-                    "Failed to load transcript",
-                    extra={
-                        "userID": user.id,
-                        "username": user.username,
-                        "message_id": message.message_id,
-                        "url": video_url,
-                        "error": str(exc),
-                    },
-                )
-                await processing_message.edit_text(translate("telegram.error.transcript_failed", locale=language))
-                return
+        try:
+            loader = VideoDataLoader(video_url, self.settings)
+            transcript = await loader.load()
+        except Exception as exc:
+            logger.exception(
+                "Failed to load transcript",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "url": video_url,
+                    "error": str(exc),
+                },
+            )
+            await processing_message.edit_text(translate("telegram.error.transcript_failed", locale=language))
+            return
 
         if transcript is None:
             logger.warning(
@@ -280,32 +230,22 @@ class TelegramBrieflyBot:
             },
         )
 
-        cached_summary = await self.provider.get_summary(video_hash, language)
-        if cached_summary:
-            summary = cached_summary
-            logger.info("Summary loaded from cache", extra={"userID": user.id, "url": video_url})
-        else:
-            await processing_message.edit_text(translate("telegram.progress.summarizing", locale=language))
+        await processing_message.edit_text(translate("telegram.progress.summarizing", locale=language))
 
-            try:
-                summary = await asyncio.to_thread(
-                    self.summarizer.summarize_text,
-                    transcript.transcript,
-                    language,
-                )
-                await self.provider.set_summary(video_hash, language, summary, self.settings.cache_summary_ttl_seconds)
-            except Exception as exc:
-                logger.exception(
-                    "Failed to summarize transcript",
-                    extra={
-                        "userID": user.id,
-                        "username": user.username,
-                        "message_id": message.message_id,
-                        "error": str(exc),
-                    },
-                )
-                await processing_message.edit_text(translate("telegram.error.summary_failed", locale=language))
-                return
+        try:
+            summary = await self.summarizer.summarize(transcript.transcript, language)
+        except Exception as exc:
+            logger.exception(
+                "Failed to summarize transcript",
+                extra={
+                    "userID": user.id,
+                    "username": user.username,
+                    "message_id": message.message_id,
+                    "error": str(exc),
+                },
+            )
+            await processing_message.edit_text(translate("telegram.error.summary_failed", locale=language))
+            return
 
         logger.info(
             "Summary generated",
@@ -395,7 +335,7 @@ class TelegramBrieflyBot:
             )
 
     @staticmethod
-    def _language(user: User | None) -> str | None:
+    def _language(user: User | None) -> str:
         """Retrieves the language code for a given user, if available."""
 
-        return user.language_code if user else None
+        return normalize_locale(user.language_code if user else None)

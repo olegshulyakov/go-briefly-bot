@@ -1,6 +1,18 @@
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 from src.load.video_loader import VideoDataLoader, VideoInfo, VideoTranscript
+from src.config import Settings
+
+
+def build_settings(**overrides: object) -> Settings:
+    settings = MagicMock(spec=Settings)
+    settings.yt_dlp_additional_options = ()
+    settings.cache_transcript_ttl_seconds = 3600
+    settings.valkey_url = None
+    settings.cache_compression_method = "gzip"
+    for key, value in overrides.items():
+        setattr(settings, key, value)
+    return settings
 
 
 def test_video_info_creation() -> None:
@@ -43,7 +55,7 @@ def test_video_data_loader_initialization() -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
-        loader = VideoDataLoader("https://youtu.be/test")
+        loader = VideoDataLoader("https://youtu.be/test", build_settings())
 
         mock_build.assert_called_once_with("https://youtu.be/test")
         assert loader.url == "https://www.youtube.com/watch?v=test"
@@ -56,7 +68,10 @@ def test_video_data_loader_initialization_with_options() -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
-        loader = VideoDataLoader("https://youtu.be/test", yt_dlp_additional_options=("--format", "mp4"))
+        loader = VideoDataLoader(
+            "https://youtu.be/test",
+            build_settings(yt_dlp_additional_options=("--format", "mp4")),
+        )
 
         assert loader.yt_dlp_additional_options == ("--format", "mp4")
 
@@ -67,7 +82,7 @@ def test_video_data_loader_subtitle_template_path() -> None:
         with patch("tempfile.gettempdir") as mock_temp:
             mock_temp.return_value = "/tmp"
 
-            loader = VideoDataLoader("https://youtu.be/test")
+            loader = VideoDataLoader("https://youtu.be/test", build_settings())
             expected_path = "/tmp/subtitles_test.%(ext)s"
 
             assert loader._subtitle_template_path == expected_path
@@ -79,7 +94,7 @@ def test_video_data_loader_subtitle_prefix() -> None:
         with patch("tempfile.gettempdir") as mock_temp:
             mock_temp.return_value = "/tmp"
 
-            loader = VideoDataLoader("https://youtu.be/test")
+            loader = VideoDataLoader("https://youtu.be/test", build_settings())
             expected_prefix = Path("/tmp/subtitles_test")
 
             assert loader._subtitle_prefix == expected_prefix
@@ -89,7 +104,7 @@ def test_detect_language_with_video_info_language() -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
-        loader = VideoDataLoader("https://youtu.be/test")
+        loader = VideoDataLoader("https://youtu.be/test", build_settings())
 
         info = VideoInfo(
             id="test_id",
@@ -108,7 +123,7 @@ def test_detect_language_with_subtitles_en_priority() -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
-        loader = VideoDataLoader("https://youtu.be/test")
+        loader = VideoDataLoader("https://youtu.be/test", build_settings())
 
         info = VideoInfo(
             id="test_id",
@@ -127,7 +142,7 @@ def test_detect_language_with_subtitles_first_available() -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
-        loader = VideoDataLoader("https://youtu.be/test")
+        loader = VideoDataLoader("https://youtu.be/test", build_settings())
 
         info = VideoInfo(
             id="test_id",
@@ -146,7 +161,7 @@ def test_detect_language_no_subtitles_or_language() -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
-        loader = VideoDataLoader("https://youtu.be/test")
+        loader = VideoDataLoader("https://youtu.be/test", build_settings())
 
         info = VideoInfo(
             id="test_id",
@@ -171,7 +186,7 @@ def test_find_subtitle_file_exact_match() -> None:
         with patch("tempfile.gettempdir") as mock_temp:
             mock_temp.return_value = "/tmp"
 
-            loader = VideoDataLoader("https://youtu.be/test")
+            loader = VideoDataLoader("https://youtu.be/test", build_settings())
 
             with patch("tempfile.gettempdir", return_value="/tmp"):
                 with patch.object(Path, "exists", return_value=True):
@@ -184,7 +199,7 @@ def test_build_ydl_opts_base_options() -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
-        loader = VideoDataLoader("https://youtu.be/test")
+        loader = VideoDataLoader("https://youtu.be/test", build_settings())
         opts = loader._build_ydl_opts()
 
         assert opts["quiet"] is True
@@ -196,7 +211,7 @@ def test_build_ydl_opts_with_extra_options() -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
-        loader = VideoDataLoader("https://youtu.be/test")
+        loader = VideoDataLoader("https://youtu.be/test", build_settings())
         opts = loader._build_ydl_opts({"dumpjson": True, "skip_download": True})
 
         assert opts["dumpjson"] is True
@@ -208,7 +223,8 @@ def test_build_ydl_opts_with_user_options() -> None:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
         loader = VideoDataLoader(
-            "https://youtu.be/test", yt_dlp_additional_options=("--format", "mp4", "--cookies", "cookies.txt")
+            "https://youtu.be/test",
+            build_settings(yt_dlp_additional_options=("--format", "mp4", "--cookies", "cookies.txt")),
         )
         opts = loader._build_ydl_opts()
 
@@ -248,8 +264,8 @@ def test_load_success(mock_youtube_dl_class) -> None:
 
         with patch.object(VideoDataLoader, "_find_subtitle_file", return_value=mock_subtitle_file):
             with patch("src.load.video_loader.clean_srt", return_value="Test subtitle"):
-                loader = VideoDataLoader("https://youtu.be/test")
-                loader.load()
+                loader = VideoDataLoader("https://youtu.be/test", build_settings())
+                loader._load()
 
                 assert loader.info is not None
                 assert loader.info.id == "test_id"
@@ -290,8 +306,8 @@ def test_load_retry_on_info_failure(mock_youtube_dl_class) -> None:
 
         with patch.object(VideoDataLoader, "_find_subtitle_file", return_value=mock_subtitle_file):
             with patch("src.load.video_loader.clean_srt", return_value="Test subtitle"):
-                loader = VideoDataLoader("https://youtu.be/test")
-                loader.load()
+                loader = VideoDataLoader("https://youtu.be/test", build_settings())
+                loader._load()
 
                 # Should have been called 4 times (2 info failures + 1 info success + 1 subtitle download)
                 assert mock_ydl.extract_info.call_count == 4
@@ -311,9 +327,9 @@ def test_load_failure_all_attempts(mock_youtube_dl_class) -> None:
         # Always fail
         mock_ydl.extract_info.side_effect = Exception("Network error")
 
-        loader = VideoDataLoader("https://youtu.be/test")
+        loader = VideoDataLoader("https://youtu.be/test", build_settings())
         try:
-            loader.load()
+            loader._load()
             assert False, "Expected RuntimeError"
         except RuntimeError as e:
             assert "Failed to load video info after 3 attempts" in str(e)
@@ -344,9 +360,9 @@ def test_load_no_subtitles_found(mock_youtube_dl_class) -> None:
         ]
 
         with patch.object(VideoDataLoader, "_find_subtitle_file", return_value=None):
-            loader = VideoDataLoader("https://youtu.be/test")
+            loader = VideoDataLoader("https://youtu.be/test", build_settings())
             try:
-                loader.load()
+                loader._load()
                 assert False, "Expected FileNotFoundError"
             except FileNotFoundError as e:
                 assert "no subtitles found" in str(e)

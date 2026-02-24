@@ -42,7 +42,7 @@ def _setup_i18n() -> None:
     _initialized = True
 
 
-def _normalize_locale(locale: str | None) -> str:
+def normalize_locale(locale: str | None) -> str:
     """
     Normalize a locale code to base language.
 
@@ -85,7 +85,7 @@ def translate(key: str, locale: str | None = None, **kwargs: object) -> str:
     """
     _setup_i18n()
 
-    lang = _normalize_locale(locale)
+    lang = normalize_locale(locale)
     for candidate in (lang, DEFAULT_LOCALE):
         try:
             value = i18n.t(key, locale=candidate, **kwargs)

@@ -1,9 +1,12 @@
-import pytest
-from unittest.mock import MagicMock, patch
 import asyncio
-from src.bot import UserRateLimiter, TelegramBrieflyBot
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from src.bot import TelegramBrieflyBot
 from src.config import Settings
 from src.cache import LocalCacheProvider
+from src.rate_limiter import UserRateLimiter
 
 
 @pytest.mark.asyncio
@@ -58,6 +61,8 @@ def test_telegram_briefly_bot_initialization() -> None:
     mock_settings.openai_base_url = "https://api.openai.com/v1/"
     mock_settings.openai_api_key = "test_key"
     mock_settings.openai_model = "gpt-3.5-turbo"
+    mock_settings.valkey_url = None
+    mock_settings.cache_compression_method = "gzip"
 
     with patch("src.bot.OpenAISummarizer") as mock_summarizer_class:
         mock_summarizer_instance = MagicMock()

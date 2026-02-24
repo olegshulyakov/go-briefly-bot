@@ -3,11 +3,23 @@ from src.transform.summarization import OpenAISummarizer
 from src.config import Settings
 
 
+def build_settings(**overrides: object) -> Settings:
+    settings = MagicMock(spec=Settings)
+    settings.openai_base_url = "https://api.openai.com/v1/"
+    settings.openai_api_key = "test-key"
+    settings.openai_model = "gpt-3.5-turbo"
+    settings.openai_timeout_seconds = 300
+    settings.openai_max_retries = 3
+    settings.cache_summary_ttl_seconds = 3600
+    settings.valkey_url = None
+    settings.cache_compression_method = "gzip"
+    for key, value in overrides.items():
+        setattr(settings, key, value)
+    return settings
+
+
 def test_openai_summarizer_initialization() -> None:
-    mock_settings = MagicMock(spec=Settings)
-    mock_settings.openai_base_url = "https://api.openai.com/v1/"
-    mock_settings.openai_api_key = "test-key"
-    mock_settings.openai_max_retries = 3
+    mock_settings = build_settings()
 
     with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
@@ -25,12 +37,7 @@ def test_openai_summarizer_initialization() -> None:
 
 
 def test_summarizer_summarize_text_success() -> None:
-    mock_settings = MagicMock(spec=Settings)
-    mock_settings.openai_base_url = "https://api.openai.com/v1/"
-    mock_settings.openai_api_key = "test-key"
-    mock_settings.openai_model = "gpt-3.5-turbo"
-    mock_settings.openai_timeout_seconds = 300
-    mock_settings.openai_max_retries = 3
+    mock_settings = build_settings()
 
     with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
@@ -48,7 +55,7 @@ def test_summarizer_summarize_text_success() -> None:
             mock_translate.return_value = "Input text to summarize"
 
             summarizer = OpenAISummarizer(mock_settings)
-            result = summarizer.summarize_text("Input text to summarize", "en")
+            result = summarizer._summarize("Input text to summarize", "en")
 
             # Verify the API was called correctly
             mock_client_instance.chat.completions.create.assert_called_once_with(
@@ -63,12 +70,7 @@ def test_summarizer_summarize_text_success() -> None:
 
 
 def test_summarizer_summarize_text_empty_response() -> None:
-    mock_settings = MagicMock(spec=Settings)
-    mock_settings.openai_base_url = "https://api.openai.com/v1/"
-    mock_settings.openai_api_key = "test-key"
-    mock_settings.openai_model = "gpt-3.5-turbo"
-    mock_settings.openai_timeout_seconds = 300
-    mock_settings.openai_max_retries = 3
+    mock_settings = build_settings()
 
     with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
@@ -94,19 +96,14 @@ def test_summarizer_summarize_text_empty_response() -> None:
             summarizer = OpenAISummarizer(mock_settings)
 
             try:
-                summarizer.summarize_text("Input text to summarize", "en")
+                summarizer._summarize("Input text to summarize", "en")
                 assert False, "Expected RuntimeError for empty response"
             except RuntimeError as e:
                 assert "empty OpenAI response" in str(e)
 
 
 def test_summarizer_summarize_text_with_retry_success() -> None:
-    mock_settings = MagicMock(spec=Settings)
-    mock_settings.openai_base_url = "https://api.openai.com/v1/"
-    mock_settings.openai_api_key = "test-key"
-    mock_settings.openai_model = "gpt-3.5-turbo"
-    mock_settings.openai_timeout_seconds = 300
-    mock_settings.openai_max_retries = 3
+    mock_settings = build_settings()
 
     with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
@@ -129,7 +126,7 @@ def test_summarizer_summarize_text_with_retry_success() -> None:
             mock_translate.return_value = "You are a helpful assistant."
 
             summarizer = OpenAISummarizer(mock_settings)
-            result = summarizer.summarize_text("Input text to summarize", "en")
+            result = summarizer._summarize("Input text to summarize", "en")
 
             # Should have been called twice (first failed, second succeeded)
             assert mock_client_instance.chat.completions.create.call_count == 2
@@ -137,12 +134,7 @@ def test_summarizer_summarize_text_with_retry_success() -> None:
 
 
 def test_summarizer_summarize_text_with_retry_failure() -> None:
-    mock_settings = MagicMock(spec=Settings)
-    mock_settings.openai_base_url = "https://api.openai.com/v1/"
-    mock_settings.openai_api_key = "test-key"
-    mock_settings.openai_model = "gpt-3.5-turbo"
-    mock_settings.openai_timeout_seconds = 300
-    mock_settings.openai_max_retries = 2  # Limit retries to 2
+    mock_settings = build_settings(openai_max_retries=2)
 
     with patch("src.transform.summarization.OpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
@@ -162,7 +154,7 @@ def test_summarizer_summarize_text_with_retry_failure() -> None:
             summarizer = OpenAISummarizer(mock_settings)
 
             try:
-                summarizer.summarize_text("Input text to summarize", "en")
+                summarizer._summarize("Input text to summarize", "en")
                 assert False, "Expected RuntimeError after retries exhausted"
             except RuntimeError as e:
                 assert "failed to summarize text:" in str(e)

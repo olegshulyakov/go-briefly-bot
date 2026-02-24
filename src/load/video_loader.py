@@ -9,13 +9,17 @@ This module provides functionality to:
 
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import logging
 import tempfile
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import yt_dlp
 
+from ..cache import CacheProvider, get_cache_provider
+from ..config import Settings
 from .transcripts import clean_srt
 from .video_provider import build_video_source
 
@@ -94,20 +98,45 @@ class VideoDataLoader:
     temporary file management, and subtitle cleaning.
     """
 
-    def __init__(self, url: str, yt_dlp_additional_options: tuple[str, ...] = ()) -> None:
+    def __init__(self, url: str, settings: Settings) -> None:
         """
         Initialize the video loader.
 
         Args:
             url: Video URL to process.
-            yt_dlp_additional_options: Additional yt-dlp CLI options.
+            settings: Application settings with cache and yt-dlp configuration.
         """
         self.url, self.video_id = build_video_source(url)
-        self.yt_dlp_additional_options = yt_dlp_additional_options
+        self.settings = settings
+        self.provider: CacheProvider = get_cache_provider(settings)
+        self.yt_dlp_additional_options = settings.yt_dlp_additional_options
         self.info: VideoInfo | None = None
         self.transcript: VideoTranscript | None = None
 
-    def load(self) -> None:
+    async def load(self) -> VideoTranscript | None:
+        """
+        Load transcript.
+
+        Returns:
+            VideoTranscript if available, otherwise None.
+        """
+        video_hash = self._video_hash
+        cached_transcript = await self.provider.get_transcript(video_hash)
+        if cached_transcript:
+            self.transcript = VideoTranscript(**cached_transcript)
+            logger.info("Transcript loaded from cache", extra={"url": self.url})
+            return self.transcript
+
+        await asyncio.to_thread(self._load)
+        if self.transcript:
+            await self.provider.set_transcript(
+                video_hash,
+                asdict(self.transcript),
+                self.settings.cache_transcript_ttl_seconds,
+            )
+        return self.transcript
+
+    def _load(self) -> None:
         """
         Load video info and download transcript.
 
@@ -255,6 +284,11 @@ class VideoDataLoader:
                     opts[key] = True
             i += 1
         return opts
+
+    @property
+    def _video_hash(self) -> str:
+        """Return the cache key for this video URL."""
+        return hashlib.sha256(self.url.encode("utf-8")).hexdigest()
 
     @property
     def _subtitle_template_path(self) -> str:

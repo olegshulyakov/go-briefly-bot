@@ -1,41 +1,41 @@
 from unittest.mock import patch
-from src.localization import translate, _normalize_locale, _setup_i18n, DEFAULT_LOCALE
+from src.localization import translate, normalize_locale, _setup_i18n, DEFAULT_LOCALE
 
 
-def test_normalize_locale_none() -> None:
-    assert _normalize_locale(None) == DEFAULT_LOCALE
+def testnormalize_locale_none() -> None:
+    assert normalize_locale(None) == DEFAULT_LOCALE
 
 
-def test_normalize_locale_empty() -> None:
-    assert _normalize_locale("") == DEFAULT_LOCALE
+def testnormalize_locale_empty() -> None:
+    assert normalize_locale("") == DEFAULT_LOCALE
 
 
-def test_normalize_locale_basic() -> None:
-    assert _normalize_locale("en") == "en"
-    assert _normalize_locale("fr") == "fr"
+def testnormalize_locale_basic() -> None:
+    assert normalize_locale("en") == "en"
+    assert normalize_locale("fr") == "fr"
 
 
-def test_normalize_locale_with_underscores() -> None:
-    assert _normalize_locale("en_US") == "en"
-    assert _normalize_locale("fr_FR") == "fr"
-    assert _normalize_locale("de_DE") == "de"
+def testnormalize_locale_with_underscores() -> None:
+    assert normalize_locale("en_US") == "en"
+    assert normalize_locale("fr_FR") == "fr"
+    assert normalize_locale("de_DE") == "de"
 
 
-def test_normalize_locale_with_hyphens() -> None:
-    assert _normalize_locale("en-US") == "en"
-    assert _normalize_locale("fr-FR") == "fr"
-    assert _normalize_locale("pt-BR") == "pt"
+def testnormalize_locale_with_hyphens() -> None:
+    assert normalize_locale("en-US") == "en"
+    assert normalize_locale("fr-FR") == "fr"
+    assert normalize_locale("pt-BR") == "pt"
 
 
-def test_normalize_locale_case_insensitive() -> None:
-    assert _normalize_locale("EN") == "en"
-    assert _normalize_locale("Fr") == "fr"
-    assert _normalize_locale("ZH-CN") == "zh"
+def testnormalize_locale_case_insensitive() -> None:
+    assert normalize_locale("EN") == "en"
+    assert normalize_locale("Fr") == "fr"
+    assert normalize_locale("ZH-CN") == "zh"
 
 
-def test_normalize_locale_with_extra_spaces() -> None:
-    assert _normalize_locale(" en ") == "en"
-    assert _normalize_locale(" fr-FR ") == "fr"
+def testnormalize_locale_with_extra_spaces() -> None:
+    assert normalize_locale(" en ") == "en"
+    assert normalize_locale(" fr-FR ") == "fr"
 
 
 def test_setup_i18n_called_once() -> None:
