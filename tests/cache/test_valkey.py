@@ -1,9 +1,7 @@
-import asyncio
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from valkey.exceptions import ConnectionError as ValkeyConnectionError
 
 from src.cache import ValkeyProvider
 from src.utils import compress, CompressionMethod
