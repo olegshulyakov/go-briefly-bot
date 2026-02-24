@@ -51,47 +51,6 @@ async def test_valkey_rate_limit_exceeded(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_fail_soft_timeout(provider):
-    # Reduce timeout for faster test
-    provider._timeout = 0.01
-
-    with patch("src.cache.valkey.Valkey") as mock_valkey:
-        mock_client = AsyncMock()
-
-        async def slow_execute():
-            await asyncio.sleep(0.05)
-            return [1]
-
-        mock_pipeline = MagicMock()
-        mock_pipeline.execute = slow_execute
-        mock_client.pipeline = MagicMock(return_value=mock_pipeline)
-        mock_valkey.from_url.return_value = mock_client
-
-        # Should fall back to local provider and return False (not limited)
-        is_limited = await provider.is_rate_limited(123, 10)
-
-        assert not is_limited
-        # Verify it fallback logic works by checking if it cached in local
-        assert 123 in provider._local_fallback._rate_limits
-
-
-@pytest.mark.asyncio
-async def test_valkey_fail_soft_connection_error(provider):
-    with patch("src.cache.valkey.Valkey") as mock_valkey:
-        mock_client = AsyncMock()
-        mock_pipeline = MagicMock()
-        mock_pipeline.execute = AsyncMock(side_effect=ValkeyConnectionError("Connection refused"))
-        mock_client.pipeline = MagicMock(return_value=mock_pipeline)
-        mock_valkey.from_url.return_value = mock_client
-
-        # Should fall back to local provider without raising an error
-        is_limited = await provider.is_rate_limited(456, 10)
-
-        assert not is_limited
-        assert 456 in provider._local_fallback._rate_limits
-
-
-@pytest.mark.asyncio
 async def test_valkey_set_get_summary(provider):
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()

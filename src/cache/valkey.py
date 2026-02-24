@@ -1,5 +1,5 @@
 """
-Valkey cache provider with fail-soft fallback.
+Valkey cache provider.
 
 Supports multiple compression methods with automatic detection.
 """
@@ -15,7 +15,6 @@ from valkey.exceptions import ConnectionError as ValkeyConnectionError
 from ..utils import compress, decompress
 
 from .base import CacheProvider
-from .local import LocalCacheProvider
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +22,7 @@ logger = logging.getLogger(__name__)
 class ValkeyProvider(CacheProvider):
     """
     Valkey-based cache provider, utilizing atomic operations and TTL.
-    Implements a strict fail-soft mechanism falling back to LocalCacheProvider
-    on connection drop or timeout.
+    Logs warnings on connection errors without throwing exceptions.
 
     Supports multiple compression methods with automatic detection via prefix.
     """
@@ -32,8 +30,7 @@ class ValkeyProvider(CacheProvider):
     def __init__(self, valkey_url: str, compression_method: str = "gzip") -> None:
         self.valkey_url = valkey_url
         self._valkey: Valkey | None = None
-        self._local_fallback = LocalCacheProvider()
-        self._timeout = 0.200  # Strict 200ms fail-soft timeout
+        self._timeout = 0.200  # 200ms timeout
         self._compression_method = self._parse_compression_method(compression_method)
 
     async def _get_client(self) -> Valkey:
@@ -42,18 +39,18 @@ class ValkeyProvider(CacheProvider):
             self._valkey = Valkey.from_url(self.valkey_url)
         return self._valkey
 
-    async def _safe_execute(self, coro_fn: Any, fallback_coro_fn: Any) -> Any:
+    async def _safe_execute(self, coro_fn: Any) -> Any:
         try:
             return await asyncio.wait_for(coro_fn(), timeout=self._timeout)
         except (TimeoutError, asyncio.TimeoutError):
-            logger.warning("Valkey timeout, falling back to LocalCacheProvider")
-            return await fallback_coro_fn()
+            logger.warning("Valkey timeout")
+            return None
         except (ValkeyConnectionError, ConnectionError, OSError) as e:
-            logger.warning(f"Valkey connection error: {e}, falling back to LocalCacheProvider")
-            return await fallback_coro_fn()
+            logger.warning(f"Valkey connection error: {e}")
+            return None
         except Exception as e:
-            logger.warning(f"Valkey operation failed: {e}, falling back to LocalCacheProvider")
-            return await fallback_coro_fn()
+            logger.warning(f"Valkey operation failed: {e}")
+            return None
 
     async def is_rate_limited(self, user_id: int, window_seconds: int) -> bool:
         """Atomic rate limiter using INCR and EXPIRE."""
@@ -73,10 +70,7 @@ class ValkeyProvider(CacheProvider):
                 return True
             return False
 
-        return await self._safe_execute(
-            _valkey_rate_limit,
-            lambda: self._local_fallback.is_rate_limited(user_id, window_seconds),
-        )
+        return await self._safe_execute(_valkey_rate_limit) or False
 
     async def get(self, key: str) -> str | None:
         async def _valkey_get() -> str | None:
@@ -91,10 +85,7 @@ class ValkeyProvider(CacheProvider):
                     logger.warning(f"Failed to decompress/decode cached string: {e}")
             return None
 
-        return await self._safe_execute(
-            _valkey_get,
-            lambda: self._local_fallback.get(key),
-        )
+        return await self._safe_execute(_valkey_get)
 
     async def put(self, key: str, text: str, ttl_seconds: int) -> None:
         async def _valkey_set() -> None:
@@ -103,10 +94,7 @@ class ValkeyProvider(CacheProvider):
             compressed = compress(text.encode("utf-8"), self._compression_method)
             await client.setex(cache_key, ttl_seconds, compressed)
 
-        await self._safe_execute(
-            _valkey_set,
-            lambda: self._local_fallback.put(key, text, ttl_seconds),
-        )
+        await self._safe_execute(_valkey_set)
 
     async def get_dict(self, key: str) -> dict | None:
         async def _valkey_get() -> dict | None:
@@ -121,10 +109,7 @@ class ValkeyProvider(CacheProvider):
                     logger.warning(f"Failed to decompress/decode cached dict: {e}")
             return None
 
-        return await self._safe_execute(
-            _valkey_get,
-            lambda: self._local_fallback.get_dict(key),
-        )
+        return await self._safe_execute(_valkey_get)
 
     async def put_dict(self, key: str, data: dict, ttl_seconds: int) -> None:
         async def _valkey_set() -> None:
@@ -133,7 +118,4 @@ class ValkeyProvider(CacheProvider):
             compressed = compress(json.dumps(data).encode("utf-8"), self._compression_method)
             await client.setex(cache_key, ttl_seconds, compressed)
 
-        await self._safe_execute(
-            _valkey_set,
-            lambda: self._local_fallback.put_dict(key, data, ttl_seconds),
-        )
+        await self._safe_execute(_valkey_set)
