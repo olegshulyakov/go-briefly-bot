@@ -31,11 +31,14 @@ class ValkeyProvider(CacheProvider):
         self._valkey: Valkey | None = None
         self._timeout = 0.200  # 200ms timeout
         self._compression_method = self._parse_compression_method(compression_method)
+        self._init_lock = asyncio.Lock()
 
     async def _get_client(self) -> Valkey:
-        """Lazy initialization of the Valkey client."""
+        """Lazy initialization of the Valkey client with double-checked locking."""
         if self._valkey is None:
-            self._valkey = Valkey.from_url(self.valkey_url)
+            async with self._init_lock:
+                if self._valkey is None:
+                    self._valkey = Valkey.from_url(self.valkey_url)
         return self._valkey
 
     async def _safe_execute(self, coro_fn: Any) -> Any:
