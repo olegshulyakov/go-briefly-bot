@@ -1,6 +1,7 @@
-from unittest.mock import patch, MagicMock
-import os
 import logging
+import os
+from unittest.mock import MagicMock, patch
+
 from src.main import configure_logging, main
 
 

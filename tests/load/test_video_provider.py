@@ -1,10 +1,10 @@
 from src.load.video_provider import (
-    build_video_source,
-    extract_urls,
+    PROVIDERS,
+    VKVIDEO,
     YOUTUBE,
     YOUTUBE_SHORT,
-    VKVIDEO,
-    PROVIDERS,
+    build_video_source,
+    extract_urls,
 )
 
 

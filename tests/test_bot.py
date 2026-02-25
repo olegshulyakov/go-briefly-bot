@@ -2,10 +2,9 @@ import asyncio
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.bot import TelegramBrieflyBot
-from src.config import Settings
 from src.cache import LocalCacheProvider
+from src.config import Settings
 from src.rate_limiter import UserRateLimiter
 
 

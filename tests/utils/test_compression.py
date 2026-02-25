@@ -3,14 +3,13 @@ Tests for cache compression utilities.
 """
 
 import pytest
-
 from src.utils.compression import (
-    CompressionMethod,
+    COMPRESSION_PREFIXES,
     CompressionError,
+    CompressionMethod,
     compress,
     decompress,
     get_compression_stats,
-    COMPRESSION_PREFIXES,
 )
 
 
@@ -80,7 +79,7 @@ class TestCompressionMethods:
 
     def test_unicode_text(self):
         """Test compression of Unicode text."""
-        original_data = "Привет мир! Hello world! 你好世界!".encode("utf-8")
+        original_data = "Привет мир! Hello world! 你好世界!".encode()
         compressed = compress(original_data, CompressionMethod.GZIP)
         decompressed = decompress(compressed)
         assert decompressed == original_data

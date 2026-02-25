@@ -1,6 +1,7 @@
-from unittest.mock import patch, MagicMock
-from src.transform.summarization import OpenAISummarizer
+from unittest.mock import MagicMock, patch
+
 from src.config import Settings
+from src.transform.summarization import OpenAISummarizer
 
 
 def build_settings(**overrides: object) -> Settings:

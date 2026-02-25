@@ -1,5 +1,6 @@
 from unittest.mock import patch
-from src.localization import translate, normalize_locale, _setup_i18n, DEFAULT_LOCALE
+
+from src.localization import DEFAULT_LOCALE, _setup_i18n, normalize_locale, translate
 
 
 def testnormalize_locale_none() -> None:

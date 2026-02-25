@@ -53,7 +53,7 @@ class Settings:
     openai_max_retries: int = 3
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         """
         Load settings from environment variables.
 

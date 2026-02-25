@@ -1,7 +1,8 @@
-from unittest.mock import patch, MagicMock
 from pathlib import Path
-from src.load.video_loader import VideoDataLoader, VideoInfo, VideoTranscript
+from unittest.mock import MagicMock, patch
+
 from src.config import Settings
+from src.load.video_loader import VideoDataLoader, VideoInfo, VideoTranscript
 
 
 def build_settings(**overrides: object) -> Settings:

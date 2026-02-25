@@ -31,11 +31,10 @@
     {
       "label": "python: lint",
       "type": "shell",
-      "command": "${workspaceFolder}/.venv/bin/python",
-      "args": ["-m", "ruff", "check", "--fix"],
+      "command": "${workspaceFolder}/.venv/bin/python -m ruff check --fix && ${workspaceFolder}/.venv/bin/python -m mypy src/ tests/",
       "group": "build",
       "problemMatcher": [],
-      "detail": "Run ruff linter for Python code."
+      "detail": "Run ruff linter and mypy type checker for Python code."
     },
     {
       "label": "python: format",

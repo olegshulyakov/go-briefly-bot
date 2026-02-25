@@ -13,7 +13,6 @@ from valkey.asyncio import Valkey
 from valkey.exceptions import ConnectionError as ValkeyConnectionError
 
 from ..utils import compress, decompress
-
 from .base import CacheProvider
 
 logger = logging.getLogger(__name__)
@@ -42,7 +41,7 @@ class ValkeyProvider(CacheProvider):
     async def _safe_execute(self, coro_fn: Any) -> Any:
         try:
             return await asyncio.wait_for(coro_fn(), timeout=self._timeout)
-        except (TimeoutError, asyncio.TimeoutError):
+        except TimeoutError:
             logger.warning("Valkey timeout")
             return None
         except (ValkeyConnectionError, ConnectionError, OSError) as e:
