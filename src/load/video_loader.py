@@ -267,9 +267,7 @@ class VideoDataLoader:
             if opt.startswith("--"):
                 key = opt[2:].replace("-", "_")
                 # Check if next option is a value (not another flag)
-                if i + 1 < len(self.yt_dlp_additional_options) and not self.yt_dlp_additional_options[i + 1].startswith(
-                    "--"
-                ):
+                if i + 1 < len(self.yt_dlp_additional_options) and not self.yt_dlp_additional_options[i + 1].startswith("--"):
                     value = self.yt_dlp_additional_options[i + 1]
                     # Validate value to prevent injection attacks
                     if not _is_safe_option_value(value):

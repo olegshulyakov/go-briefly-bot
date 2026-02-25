@@ -135,9 +135,7 @@ async def test_bot_start(bot: TelegramBrieflyBot, mock_update: MagicMock, mock_c
 
 
 @pytest.mark.asyncio
-async def test_bot_handle_message_no_text(
-    bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock
-) -> None:
+async def test_bot_handle_message_no_text(bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock) -> None:
     mock_update.effective_message.text = None
     with (
         patch.object(bot.rate_limiter, "is_limited", return_value=False),
@@ -149,23 +147,17 @@ async def test_bot_handle_message_no_text(
 
 
 @pytest.mark.asyncio
-async def test_bot_handle_message_rate_limited(
-    bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock
-) -> None:
+async def test_bot_handle_message_rate_limited(bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock) -> None:
     with (
         patch.object(bot.rate_limiter, "is_limited", return_value=True),
         patch("src.bot.translate", return_value="Rate Limited"),
     ):
         await bot._handle_message(mock_update, mock_context)
-    mock_update.effective_message.reply_text.assert_called_once_with(
-        "Rate Limited", message_thread_id=None, reply_to_message_id=1
-    )
+    mock_update.effective_message.reply_text.assert_called_once_with("Rate Limited", message_thread_id=None, reply_to_message_id=1)
 
 
 @pytest.mark.asyncio
-async def test_bot_handle_message_multiple_urls(
-    bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock
-) -> None:
+async def test_bot_handle_message_multiple_urls(bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock) -> None:
     mock_update.effective_message.text = "url1.com url2.com"
     with (
         patch.object(bot.rate_limiter, "is_limited", return_value=False),
@@ -179,12 +171,8 @@ async def test_bot_handle_message_multiple_urls(
 
 
 @pytest.mark.asyncio
-async def test_bot_handle_message_success(
-    bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock
-) -> None:
-    transcript = VideoTranscript(
-        id="123", language="en", uploader="test", title="Test Video", thumbnail="", transcript="Test transcript"
-    )
+async def test_bot_handle_message_success(bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock) -> None:
+    transcript = VideoTranscript(id="123", language="en", uploader="test", title="Test Video", thumbnail="", transcript="Test transcript")
 
     processing_msg_mock = AsyncMock()
     mock_update.effective_message.reply_text.return_value = processing_msg_mock
@@ -213,9 +201,7 @@ async def test_bot_handle_message_success(
 
 
 @pytest.mark.asyncio
-async def test_bot_handle_message_loader_fails(
-    bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock
-) -> None:
+async def test_bot_handle_message_loader_fails(bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock) -> None:
     processing_msg_mock = AsyncMock()
     mock_update.effective_message.reply_text.return_value = processing_msg_mock
 
@@ -234,12 +220,8 @@ async def test_bot_handle_message_loader_fails(
 
 
 @pytest.mark.asyncio
-async def test_bot_handle_message_summarizer_fails(
-    bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock
-) -> None:
-    transcript = VideoTranscript(
-        id="123", language="en", uploader="test", title="Test Video", thumbnail="", transcript="Test transcript"
-    )
+async def test_bot_handle_message_summarizer_fails(bot: TelegramBrieflyBot, mock_update: MagicMock, mock_context: MagicMock) -> None:
+    transcript = VideoTranscript(id="123", language="en", uploader="test", title="Test Video", thumbnail="", transcript="Test transcript")
     processing_msg_mock = AsyncMock()
     mock_update.effective_message.reply_text.return_value = processing_msg_mock
 
@@ -263,6 +245,4 @@ async def test_bot_on_error(bot: TelegramBrieflyBot, mock_update: MagicMock, moc
     mock_context.error = Exception("General error")
     with patch("src.bot.translate", return_value="Error handled"):
         await bot._on_error(mock_update, mock_context)
-    mock_update.effective_message.reply_text.assert_called_once_with(
-        "Error handled", message_thread_id=None, reply_to_message_id=1
-    )
+    mock_update.effective_message.reply_text.assert_called_once_with("Error handled", message_thread_id=None, reply_to_message_id=1)
