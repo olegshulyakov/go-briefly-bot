@@ -105,6 +105,9 @@ class OpenAISummarizer:
         )
         prompt = translate("openai.prompt", locale=locale, text=text)
 
+        if self.settings.openai_max_retries <= 0:
+            raise ValueError("openai_max_retries must be greater than 0")
+
         last_error: Exception | None = None
         for attempt in range(self.settings.openai_max_retries):
             try:

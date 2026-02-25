@@ -4,6 +4,7 @@ Local in-memory cache provider implementation.
 
 import asyncio
 import time
+from typing import Any
 
 from .base import CacheProvider
 
@@ -20,7 +21,7 @@ class LocalCacheProvider(CacheProvider):
 
         # Caches
         self._cache: dict[str, tuple[str, float]] = {}
-        self._cache_dict: dict[str, tuple[dict, float]] = {}
+        self._cache_dict: dict[str, tuple[dict[str, Any], float]] = {}
         self._cache_lock = asyncio.Lock()
 
     async def is_rate_limited(self, user_id: int, window_seconds: int) -> bool:
@@ -41,16 +42,17 @@ class LocalCacheProvider(CacheProvider):
 
             text, expires_at = cached
             if time.monotonic() > expires_at:
-                del self._cache[key]
+                self._cache.pop(key, None)
                 return None
 
             return text
+        return None
 
     async def put(self, key: str, text: str, ttl_seconds: int) -> None:
         async with self._cache_lock:
             self._cache[key] = (text, time.monotonic() + ttl_seconds)
 
-    async def get_dict(self, key: str) -> dict | None:
+    async def get_dict(self, key: str) -> dict[str, Any] | None:
         async with self._cache_lock:
             cached = self._cache_dict.get(key)
             if cached is None:
@@ -58,11 +60,11 @@ class LocalCacheProvider(CacheProvider):
 
             data, expires_at = cached
             if time.monotonic() > expires_at:
-                del self._cache_dict[key]
+                self._cache_dict.pop(key, None)
                 return None
 
             return data
 
-    async def put_dict(self, key: str, data: dict, ttl_seconds: int) -> None:
+    async def put_dict(self, key: str, data: dict[str, Any], ttl_seconds: int) -> None:
         async with self._cache_lock:
             self._cache_dict[key] = (data, time.monotonic() + ttl_seconds)

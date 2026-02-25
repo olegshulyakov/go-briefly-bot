@@ -3,6 +3,7 @@ Base cache provider interface for Go Briefly Bot.
 """
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 from src.utils.compression import CompressionMethod
 
@@ -45,11 +46,11 @@ class CacheProvider(ABC):
         pass
 
     @abstractmethod
-    async def get_dict(self, key: str) -> dict | None:
+    async def get_dict(self, key: str) -> dict[str, Any] | None:
         """Retrieves a cached dict."""
         pass
 
     @abstractmethod
-    async def put_dict(self, key: str, data: dict, ttl_seconds: int) -> None:
+    async def put_dict(self, key: str, data: dict[str, Any], ttl_seconds: int) -> None:
         """Caches a dict."""
         pass

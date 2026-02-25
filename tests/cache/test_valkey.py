@@ -7,17 +7,17 @@ from src.utils import CompressionMethod, compress
 
 
 @pytest.fixture
-def provider():
+def provider() -> ValkeyProvider:
     return ValkeyProvider("valkey://localhost:6379", compression_method="none")
 
 
 @pytest.fixture
-def provider_with_compression():
+def provider_with_compression() -> ValkeyProvider:
     return ValkeyProvider("valkey://localhost:6379", compression_method="gzip")
 
 
 @pytest.mark.asyncio
-async def test_valkey_rate_limit_success(provider):
+async def test_valkey_rate_limit_success(provider: ValkeyProvider) -> None:
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_pipeline = MagicMock()
@@ -34,7 +34,7 @@ async def test_valkey_rate_limit_success(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_rate_limit_exceeded(provider):
+async def test_valkey_rate_limit_exceeded(provider: ValkeyProvider) -> None:
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_pipeline = MagicMock()
@@ -48,7 +48,7 @@ async def test_valkey_rate_limit_exceeded(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_set_get_summary(provider):
+async def test_valkey_set_get_summary(provider: ValkeyProvider) -> None:
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         # With compression_method="none", data is stored with \x00 prefix
@@ -67,7 +67,7 @@ async def test_valkey_set_get_summary(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_set_get_summary_with_compression(provider_with_compression):
+async def test_valkey_set_get_summary_with_compression(provider_with_compression: ValkeyProvider) -> None:
     """Test that summary is compressed when stored and decompressed when retrieved."""
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
@@ -85,12 +85,12 @@ async def test_valkey_set_get_summary_with_compression(provider_with_compression
 
 
 @pytest.mark.asyncio
-async def test_valkey_set_get_summary_multiple_languages(provider):
+async def test_valkey_set_get_summary_multiple_languages(provider: ValkeyProvider) -> None:
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
 
         # We will mock the .get() method to return different results based on the key
-        def mock_get(key):
+        def mock_get(key: str) -> bytes | None:
             if key == "summary:hash123:en:none":
                 return b"\x00english summary"
             elif key == "summary:hash123:es:none":
@@ -118,7 +118,7 @@ async def test_valkey_set_get_summary_multiple_languages(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_set_get_transcript(provider):
+async def test_valkey_set_get_transcript(provider: ValkeyProvider) -> None:
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         transcript_json = '{"text": "hello"}'
@@ -137,7 +137,7 @@ async def test_valkey_set_get_transcript(provider):
 
 
 @pytest.mark.asyncio
-async def test_valkey_set_get_transcript_with_compression(provider_with_compression):
+async def test_valkey_set_get_transcript_with_compression(provider_with_compression: ValkeyProvider) -> None:
     """Test that transcript is compressed when stored and decompressed when retrieved."""
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()

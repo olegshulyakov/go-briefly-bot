@@ -1,3 +1,4 @@
+import pytest
 from src.load.video_provider import (
     PROVIDERS,
     VKVIDEO,
@@ -101,11 +102,8 @@ def test_build_video_source_vkvideo() -> None:
 
 
 def test_build_video_source_invalid_url() -> None:
-    try:
+    with pytest.raises(ValueError, match="no valid URL found"):
         build_video_source("https://invalid.com/video")
-        assert False, "Expected ValueError for invalid URL"
-    except ValueError as e:
-        assert "no valid URL found" in str(e)
 
 
 def test_youtube_provider_is_valid_url() -> None:
@@ -141,7 +139,8 @@ def test_vkvideo_provider_get_id() -> None:
 
 
 def test_all_providers_defined() -> None:
-    assert len(PROVIDERS) == 3
+    expected_provider_count = 3
+    assert len(PROVIDERS) == expected_provider_count
     assert YOUTUBE in PROVIDERS
     assert YOUTUBE_SHORT in PROVIDERS
     assert VKVIDEO in PROVIDERS

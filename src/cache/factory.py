@@ -14,7 +14,13 @@ from .local import LocalCacheProvider
 from .valkey import ValkeyProvider
 
 _provider_lock = Lock()
-_provider: CacheProvider | None = None
+
+
+class ProviderState:
+    current: CacheProvider | None = None
+
+
+_state = ProviderState()
 
 
 def get_cache_provider(settings: Settings) -> CacheProvider:
@@ -27,23 +33,24 @@ def get_cache_provider(settings: Settings) -> CacheProvider:
     Returns:
         Cache provider instance.
     """
-    global _provider
-    if _provider is not None:
-        return _provider
+    if _state.current is not None:
+        return _state.current
 
     with _provider_lock:
-        if _provider is not None:
-            return _provider
+        if _state.current is not None:
+            return _state.current
 
         if settings.valkey_url:
-            _provider = ValkeyProvider(
+            _state.current = ValkeyProvider(
                 settings.valkey_url,
                 compression_method=settings.cache_compression_method,
             )
         else:
-            _provider = LocalCacheProvider()
+            _state.current = LocalCacheProvider()
 
-    return _provider
+    if _state.current is None:
+        raise RuntimeError("Cache provider not initialized")
+    return _state.current
 
 
 def reset_cache_provider() -> None:
@@ -52,5 +59,4 @@ def reset_cache_provider() -> None:
 
     Intended for tests to avoid cross-test state sharing.
     """
-    global _provider
-    _provider = None
+    _state.current = None

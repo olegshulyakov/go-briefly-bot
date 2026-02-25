@@ -5,12 +5,12 @@ from src.cache import LocalCacheProvider
 
 
 @pytest.fixture
-def provider():
+def provider() -> LocalCacheProvider:
     return LocalCacheProvider()
 
 
 @pytest.mark.asyncio
-async def test_local_rate_limit(provider):
+async def test_local_rate_limit(provider: LocalCacheProvider) -> None:
     # Not limited initially
     is_limited = await provider.is_rate_limited(123, 10)
     assert not is_limited
@@ -21,7 +21,7 @@ async def test_local_rate_limit(provider):
 
 
 @pytest.mark.asyncio
-async def test_local_summary_multiple_languages(provider):
+async def test_local_summary_multiple_languages(provider: LocalCacheProvider) -> None:
     # Set summary in English
     await provider.put("summary:hash123:en", "english summary", 3600)
     # Set summary in Spanish
@@ -41,22 +41,22 @@ async def test_local_summary_multiple_languages(provider):
 
 
 @pytest.mark.asyncio
-async def test_local_summary_expiration(provider):
+async def test_local_summary_expiration(provider: LocalCacheProvider) -> None:
     # Set with short TTL
-    await provider.put("summary:hash123:en", "expiring summary", 0.1)
+    await provider.put("summary:hash123:en", "expiring summary", 1)
 
     # Should exist initially
     assert await provider.get("summary:hash123:en") == "expiring summary"
 
     # Wait for expiration
-    await asyncio.sleep(0.2)
+    await asyncio.sleep(1.1)
 
     # Should be gone
     assert await provider.get("summary:hash123:en") is None
 
 
 @pytest.mark.asyncio
-async def test_local_transcript(provider):
+async def test_local_transcript(provider: LocalCacheProvider) -> None:
     data = {"text": "hello"}
 
     await provider.put_dict("transcript:hash123", data, 3600)
@@ -66,13 +66,13 @@ async def test_local_transcript(provider):
 
 
 @pytest.mark.asyncio
-async def test_local_transcript_expiration(provider):
+async def test_local_transcript_expiration(provider: LocalCacheProvider) -> None:
     data = {"text": "expiring"}
 
-    await provider.put_dict("transcript:hash123", data, 0.1)
+    await provider.put_dict("transcript:hash123", data, 1)
 
     assert await provider.get_dict("transcript:hash123") == data
 
-    await asyncio.sleep(0.2)
+    await asyncio.sleep(1.1)
 
     assert await provider.get_dict("transcript:hash123") is None

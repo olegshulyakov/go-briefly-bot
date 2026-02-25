@@ -87,7 +87,8 @@ class ValkeyProvider(CacheProvider):
                     logger.warning(f"Failed to decompress/decode cached string: {e}")
             return None
 
-        return await self._safe_execute(_valkey_get)
+        res: str | None = await self._safe_execute(_valkey_get)
+        return res
 
     async def put(self, key: str, text: str, ttl_seconds: int) -> None:
         async def _valkey_set() -> None:
@@ -98,22 +99,24 @@ class ValkeyProvider(CacheProvider):
 
         await self._safe_execute(_valkey_set)
 
-    async def get_dict(self, key: str) -> dict | None:
-        async def _valkey_get() -> dict | None:
+    async def get_dict(self, key: str) -> dict[str, Any] | None:
+        async def _valkey_get() -> dict[str, Any] | None:
             client = await self._get_client()
             cache_key = f"{key}:{self._compression_method.value}"
             val = await client.get(cache_key)
             if val is not None:
                 try:
                     decompressed = decompress(val)
-                    return json.loads(decompressed.decode("utf-8"))
+                    res_dict: dict[str, Any] = json.loads(decompressed.decode("utf-8"))
+                    return res_dict
                 except Exception as e:
                     logger.warning(f"Failed to decompress/decode cached dict: {e}")
             return None
 
-        return await self._safe_execute(_valkey_get)
+        res: dict[str, Any] | None = await self._safe_execute(_valkey_get)
+        return res
 
-    async def put_dict(self, key: str, data: dict, ttl_seconds: int) -> None:
+    async def put_dict(self, key: str, data: dict[str, Any], ttl_seconds: int) -> None:
         async def _valkey_set() -> None:
             client = await self._get_client()
             cache_key = f"{key}:{self._compression_method.value}"

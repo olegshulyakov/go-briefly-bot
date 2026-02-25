@@ -15,6 +15,7 @@ import logging
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
 import yt_dlp
 
@@ -238,7 +239,7 @@ class VideoDataLoader:
 
         self._cleanup_subtitle_files()
 
-    def _build_ydl_opts(self, extra_options: dict | None = None) -> dict:
+    def _build_ydl_opts(self, extra_options: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Build yt-dlp options with additional user options.
 
@@ -252,7 +253,7 @@ class VideoDataLoader:
             User-provided options are filtered to prevent injection attacks.
             Only safe options (starting with --) are allowed.
         """
-        opts = {
+        opts: dict[str, Any] = {
             "quiet": True,
             "no_warnings": True,
             "extract_flat": False,

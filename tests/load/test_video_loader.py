@@ -1,8 +1,9 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
 from src.config import Settings
-from src.load.video_loader import VideoDataLoader, VideoInfo, VideoTranscript
+from src.load.video_loader import VideoDataLoader, VideoInfo, VideoTranscript, _is_safe_option_value
 
 
 def build_settings(**overrides: object) -> Settings:
@@ -174,11 +175,8 @@ def test_detect_language_no_subtitles_or_language() -> None:
         )
 
         # Should raise RuntimeError when no subtitles available
-        try:
+        with pytest.raises(RuntimeError, match="no subtitles available"):
             loader._detect_language(info)
-            assert False, "Expected RuntimeError"
-        except RuntimeError as e:
-            assert "no subtitles available" in str(e)
 
 
 def test_find_subtitle_file_exact_match() -> None:
@@ -234,7 +232,7 @@ def test_build_ydl_opts_with_user_options() -> None:
 
 
 @patch("yt_dlp.YoutubeDL")
-def test_load_success(mock_youtube_dl_class) -> None:
+def test_load_success(mock_youtube_dl_class: MagicMock) -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
@@ -275,7 +273,7 @@ def test_load_success(mock_youtube_dl_class) -> None:
 
 
 @patch("yt_dlp.YoutubeDL")
-def test_load_retry_on_info_failure(mock_youtube_dl_class) -> None:
+def test_load_retry_on_info_failure(mock_youtube_dl_class: MagicMock) -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
@@ -311,11 +309,12 @@ def test_load_retry_on_info_failure(mock_youtube_dl_class) -> None:
                 loader._load()
 
                 # Should have been called 4 times (2 info failures + 1 info success + 1 subtitle download)
-                assert mock_ydl.extract_info.call_count == 4
+                expected_calls = 4
+                assert mock_ydl.extract_info.call_count == expected_calls
 
 
 @patch("yt_dlp.YoutubeDL")
-def test_load_failure_all_attempts(mock_youtube_dl_class) -> None:
+def test_load_failure_all_attempts(mock_youtube_dl_class: MagicMock) -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
@@ -329,15 +328,12 @@ def test_load_failure_all_attempts(mock_youtube_dl_class) -> None:
         mock_ydl.extract_info.side_effect = Exception("Network error")
 
         loader = VideoDataLoader("https://youtu.be/test", build_settings())
-        try:
+        with pytest.raises(RuntimeError, match="Failed to load video info after 3 attempts"):
             loader._load()
-            assert False, "Expected RuntimeError"
-        except RuntimeError as e:
-            assert "Failed to load video info after 3 attempts" in str(e)
 
 
 @patch("yt_dlp.YoutubeDL")
-def test_load_no_subtitles_found(mock_youtube_dl_class) -> None:
+def test_load_no_subtitles_found(mock_youtube_dl_class: MagicMock) -> None:
     with patch("src.load.video_loader.build_video_source") as mock_build:
         mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
 
@@ -362,8 +358,37 @@ def test_load_no_subtitles_found(mock_youtube_dl_class) -> None:
 
         with patch.object(VideoDataLoader, "_find_subtitle_file", return_value=None):
             loader = VideoDataLoader("https://youtu.be/test", build_settings())
-            try:
+            with pytest.raises(FileNotFoundError, match="no subtitles found"):
                 loader._load()
-                assert False, "Expected FileNotFoundError"
-            except FileNotFoundError as e:
-                assert "no subtitles found" in str(e)
+
+
+def test_is_safe_option_value() -> None:
+    assert _is_safe_option_value("safe_value") is True
+    assert _is_safe_option_value("--option") is True
+    assert _is_safe_option_value("https://example.com") is True
+
+    # Path traversal
+    assert _is_safe_option_value("../unsafe") is False
+    assert _is_safe_option_value("/etc/passwd") is False
+
+    # Shell injection
+    assert _is_safe_option_value("val; rm -rf /") is False
+    assert _is_safe_option_value("val|ls") is False
+    assert _is_safe_option_value("val&ls") is False
+    assert _is_safe_option_value("$(rm -rf /)") is False
+    assert _is_safe_option_value("`rm -rf /`") is False
+    assert _is_safe_option_value("val>out.txt") is False
+
+
+def test_ydl_opts_filters_unsafe_values() -> None:
+    with patch("src.load.video_loader.build_video_source") as mock_build:
+        mock_build.return_value = ("https://www.youtube.com/watch?v=test", "test")
+
+        # Include an unsafe option value
+        unsafe_settings = build_settings(yt_dlp_additional_options=("--format", "mp4", "--outtmpl", "/etc/passwd"))
+        loader = VideoDataLoader("https://youtu.be/test", unsafe_settings)
+        opts = loader._build_ydl_opts()
+
+        # The safe format should be included, but the unsafe outtmpl should be omitted
+        assert opts.get("format") == "mp4"
+        assert "outtmpl" not in opts

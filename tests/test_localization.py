@@ -48,7 +48,8 @@ def test_setup_i18n_called_once() -> None:
 
         # Check that the setup methods were called only once
         assert mock_i18n.load_path.append.called
-        assert mock_i18n.set.call_count == 6  # Exactly 6 set calls
+        expected_set_calls = 6
+        assert mock_i18n.set.call_count == expected_set_calls  # Exactly 6 set calls
 
 
 def test_translate_basic() -> None:
@@ -83,7 +84,8 @@ def test_translate_fallback_to_default_locale() -> None:
 
         # Should try the requested locale first, then fall back to default
         assert result == "Fallback translation"
-        assert mock_i18n.t.call_count == 2
+        expected_t_calls = 2
+        assert mock_i18n.t.call_count == expected_t_calls
 
 
 def test_translate_returns_key_if_not_found() -> None:

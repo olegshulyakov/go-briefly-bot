@@ -16,7 +16,6 @@ import logging
 from telegram import LinkPreviewOptions, Update, User
 from telegram.constants import ParseMode
 from telegram.ext import (
-    Application,
     ApplicationBuilder,
     CommandHandler,
     ContextTypes,
@@ -55,7 +54,7 @@ class TelegramBrieflyBot:
         self.rate_limiter = UserRateLimiter(self.provider, settings.rate_limit_window_seconds)
         self.summarizer = OpenAISummarizer(settings)
 
-        self.application: Application = ApplicationBuilder().token(self.settings.telegram_bot_token).build()
+        self.application = ApplicationBuilder().token(self.settings.telegram_bot_token).build()
         self.application.add_handler(CommandHandler("start", self._start))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message))
         self.application.add_error_handler(self._on_error)
@@ -89,7 +88,7 @@ class TelegramBrieflyBot:
         )
         await message.reply_text(translate("telegram.welcome.message", locale=language))
 
-    async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: C901, PLR0911
         """Handles incoming text messages, extracts URLs, loads video transcripts, summarizes them, and sends the summary back to the user."""
 
         del context

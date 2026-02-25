@@ -2,7 +2,8 @@ import logging
 import os
 from unittest.mock import MagicMock, patch
 
-from src.main import configure_logging, main
+from src.logger import configure_logging
+from src.main import main
 
 
 def test_configure_logging_default() -> None:
@@ -18,7 +19,7 @@ def test_configure_logging_default() -> None:
         mock_handler = MagicMock()
 
         # Return different loggers based on name
-        def get_logger_side_effect(name=None):
+        def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
             return mock_root_logger
@@ -54,7 +55,7 @@ def test_configure_logging_custom_level() -> None:
         mock_handler = MagicMock()
 
         # Return different loggers based on name
-        def get_logger_side_effect(name=None):
+        def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
             return mock_root_logger
@@ -86,7 +87,7 @@ def test_configure_logging_invalid_level() -> None:
         mock_handler = MagicMock()
 
         # Return different loggers based on name
-        def get_logger_side_effect(name=None):
+        def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
             return mock_root_logger
@@ -115,7 +116,7 @@ def test_configure_logging_removes_existing_handlers() -> None:
         mock_existing_handler = MagicMock()
         mock_handler = MagicMock()
 
-        def get_logger_side_effect(name=None):
+        def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
             return mock_root_logger
@@ -145,7 +146,7 @@ def test_configure_logging_uses_custom_formatter() -> None:
         mock_handler = MagicMock()
         mock_formatter = MagicMock()
 
-        def get_logger_side_effect(name=None):
+        def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
             return mock_root_logger
@@ -173,7 +174,7 @@ def test_configure_logging_httpx_warning() -> None:
         mock_httpx_logger = MagicMock()
         mock_handler = MagicMock()
 
-        def get_logger_side_effect(name=None):
+        def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
             return mock_root_logger

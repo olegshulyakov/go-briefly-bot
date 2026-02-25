@@ -1,5 +1,6 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from src.config import Settings
 from src.transform.summarization import OpenAISummarizer
 
@@ -96,11 +97,8 @@ def test_summarizer_summarize_text_empty_response() -> None:
 
             summarizer = OpenAISummarizer(mock_settings)
 
-            try:
+            with pytest.raises(RuntimeError, match="empty OpenAI response"):
                 summarizer._summarize("Input text to summarize", "en")
-                assert False, "Expected RuntimeError for empty response"
-            except RuntimeError as e:
-                assert "empty OpenAI response" in str(e)
 
 
 def test_summarizer_summarize_text_with_retry_success() -> None:
@@ -130,7 +128,8 @@ def test_summarizer_summarize_text_with_retry_success() -> None:
             result = summarizer._summarize("Input text to summarize", "en")
 
             # Should have been called twice (first failed, second succeeded)
-            assert mock_client_instance.chat.completions.create.call_count == 2
+            expected_calls = 2
+            assert mock_client_instance.chat.completions.create.call_count == expected_calls
             assert result == "This is the summary"
 
 
@@ -154,10 +153,66 @@ def test_summarizer_summarize_text_with_retry_failure() -> None:
 
             summarizer = OpenAISummarizer(mock_settings)
 
-            try:
+            with pytest.raises(RuntimeError, match="failed to summarize text:"):
                 summarizer._summarize("Input text to summarize", "en")
-                assert False, "Expected RuntimeError after retries exhausted"
-            except RuntimeError as e:
-                assert "failed to summarize text:" in str(e)
-                # Should have been called max_retries times
-                assert mock_client_instance.chat.completions.create.call_count == 2
+
+            # Should have been called max_retries times
+            expected_calls = 2
+            assert mock_client_instance.chat.completions.create.call_count == expected_calls
+
+
+def test_summarizer_max_retries_zero_or_less() -> None:
+    mock_settings = build_settings(openai_max_retries=0)
+    summarizer = OpenAISummarizer(mock_settings)
+
+    with pytest.raises(ValueError, match="openai_max_retries must be greater than 0"):
+        summarizer._summarize("Input text to summarize", "en")
+
+
+@pytest.mark.asyncio
+async def test_summarizer_invalid_args() -> None:
+    mock_settings = build_settings()
+    summarizer = OpenAISummarizer(mock_settings)
+
+    with pytest.raises(ValueError, match="locale must be a non-empty string"):
+        await summarizer.summarize("test", "")
+
+    with pytest.raises(ValueError, match="text must be a non-empty string"):
+        await summarizer.summarize("", "en")
+
+
+@pytest.mark.asyncio
+async def test_summarize_cached() -> None:
+    mock_settings = build_settings()
+    summarizer = OpenAISummarizer(mock_settings)
+
+    mock_provider = AsyncMock()
+    mock_provider.get.return_value = "Cached summary"
+    summarizer.cache_provider = mock_provider
+
+    result = await summarizer.summarize("Input text", "en")
+
+    assert result == "Cached summary"
+    mock_provider.get.assert_called_once()
+    mock_provider.put.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_summarize_uncached() -> None:
+    mock_settings = build_settings()
+    summarizer = OpenAISummarizer(mock_settings)
+
+    mock_provider = AsyncMock()
+    mock_provider.get.return_value = None
+    summarizer.cache_provider = mock_provider
+
+    with patch.object(summarizer, "_summarize", return_value="New summary"):
+        result = await summarizer.summarize("Input text", "en")
+
+        assert result == "New summary"
+        mock_provider.get.assert_called_once()
+        mock_provider.put.assert_called_once_with(
+            "summary:75b697462588792e2fc85fa00b5dc51992b25be2d780349f0827fea9311aea8b:en",
+            "New summary",
+            mock_settings.cache_summary_ttl_seconds,
+        )
