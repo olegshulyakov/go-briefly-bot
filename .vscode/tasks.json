@@ -24,9 +24,13 @@
       "type": "shell",
       "command": "${workspaceFolder}/.venv/bin/python",
       "args": ["-m", "pytest", "tests/", "-v"],
-      "group": "test",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
       "problemMatcher": [],
-      "detail": "Run all Python tests using pytest."
+      "detail": "Run all Python tests using pytest.",
+      "dependsOn": ["python: lint"]
     },
     {
       "label": "python: lint",
@@ -34,13 +38,14 @@
       "command": "${workspaceFolder}/.venv/bin/python -m ruff check --fix && ${workspaceFolder}/.venv/bin/python -m mypy src/ tests/",
       "group": "build",
       "problemMatcher": [],
-      "detail": "Run ruff linter and mypy type checker for Python code."
+      "detail": "Run ruff linter and mypy type checker for Python code.",
+      "dependsOn": ["python: format"]
     },
     {
       "label": "python: format",
       "type": "shell",
       "command": "${workspaceFolder}/.venv/bin/python",
-      "args": ["-m", "ruff", "format"],
+      "args": ["-m", "ruff", "format", "--target-version=py311"],
       "group": "none",
       "problemMatcher": [],
       "detail": "Format Python code using ruff."

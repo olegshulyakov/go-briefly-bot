@@ -1,5 +1,6 @@
 """Module for capturing yt-dlp log output."""
 
+
 class YtDlpCaptureLogger:
     """Captures yt-dlp log output for debugging."""
 
