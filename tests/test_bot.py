@@ -65,6 +65,7 @@ def test_telegram_briefly_bot_initialization() -> None:
     mock_settings.openai_model = "gpt-3.5-turbo"
     mock_settings.valkey_url = None
     mock_settings.cache_compression_method = "gzip"
+    mock_settings.yt_dlp_additional_options = ()
 
     with patch("src.bot.OpenAISummarizer") as mock_summarizer_class:
         mock_summarizer_instance = MagicMock()
@@ -90,6 +91,7 @@ def mock_settings() -> Settings:
     settings.openai_model = "gpt-3.5-turbo"
     settings.valkey_url = None
     settings.cache_compression_method = "gzip"
+    settings.yt_dlp_additional_options = ()
     settings.max_telegram_message_length = 4000
     return settings
 
@@ -180,18 +182,13 @@ async def test_bot_handle_message_success(bot: TelegramBrieflyBot, mock_update: 
     with (
         patch.object(bot.rate_limiter, "is_limited", return_value=False),
         patch("src.bot.extract_urls", return_value=["https://youtube.com/watch?v=123"]),
-        patch("src.bot.VideoDataLoader") as mock_loader_class,
+        patch.object(bot.loader, "load", return_value=transcript) as mock_load,
         patch.object(bot.summarizer, "summarize", return_value="Test summary") as mock_summarize,
         patch("src.bot.translate", side_effect=lambda key, **kw: key),
     ):
-        mock_loader_instance = AsyncMock()
-        mock_loader_instance.load.return_value = transcript
-        mock_loader_class.return_value = mock_loader_instance
-
         await bot._handle_message(mock_update, mock_context)
 
-        mock_loader_class.assert_called_once()
-        mock_loader_instance.load.assert_called_once()
+        mock_load.assert_called_once_with("https://youtube.com/watch?v=123")
         mock_summarize.assert_called_once_with("Test transcript", "en")
 
         # Original message reply for processing, and second reply for final result
@@ -208,13 +205,9 @@ async def test_bot_handle_message_loader_fails(bot: TelegramBrieflyBot, mock_upd
     with (
         patch.object(bot.rate_limiter, "is_limited", return_value=False),
         patch("src.bot.extract_urls", return_value=["https://youtube.com/watch?v=123"]),
-        patch("src.bot.VideoDataLoader") as mock_loader_class,
+        patch.object(bot.loader, "load", side_effect=Exception("Load error")),
         patch("src.bot.translate", return_value="Fail"),
     ):
-        mock_loader_instance = AsyncMock()
-        mock_loader_instance.load.side_effect = Exception("Load error")
-        mock_loader_class.return_value = mock_loader_instance
-
         await bot._handle_message(mock_update, mock_context)
         processing_msg_mock.edit_text.assert_called_with("Fail")
 
@@ -228,14 +221,10 @@ async def test_bot_handle_message_summarizer_fails(bot: TelegramBrieflyBot, mock
     with (
         patch.object(bot.rate_limiter, "is_limited", return_value=False),
         patch("src.bot.extract_urls", return_value=["https://youtube.com/watch?v=123"]),
-        patch("src.bot.VideoDataLoader") as mock_loader_class,
+        patch.object(bot.loader, "load", return_value=transcript),
         patch.object(bot.summarizer, "summarize", side_effect=Exception("Summarize error")),
         patch("src.bot.translate", return_value="Fail"),
     ):
-        mock_loader_instance = AsyncMock()
-        mock_loader_instance.load.return_value = transcript
-        mock_loader_class.return_value = mock_loader_instance
-
         await bot._handle_message(mock_update, mock_context)
         processing_msg_mock.edit_text.assert_called_with("Fail")
 

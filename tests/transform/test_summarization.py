@@ -212,7 +212,7 @@ async def test_summarize_uncached() -> None:
         assert result == "New summary"
         mock_provider.get.assert_called_once()
         mock_provider.put.assert_called_once_with(
-            "summary:75b697462588792e2fc85fa00b5dc51992b25be2d780349f0827fea9311aea8b:en",
+            "summary::75b697462588792e2fc85fa00b5dc51992b25be2d780349f0827fea9311aea8b:en",
             "New summary",
             mock_settings.cache_summary_ttl_seconds,
         )

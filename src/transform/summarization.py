@@ -7,7 +7,6 @@ timeout handling, and localization support.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import logging
 import time
@@ -19,6 +18,7 @@ from ..config import Settings
 from ..localization import translate
 
 logger = logging.getLogger(__name__)
+cache_prefix = "summary:"
 
 
 class OpenAISummarizer:
@@ -68,13 +68,13 @@ class OpenAISummarizer:
             raise ValueError("text must be a non-empty string")
 
         video_hash = self._text_hash(text)
-        cache_key = f"summary:{video_hash}:{locale}"
+        cache_key = f"{cache_prefix}:{video_hash}:{locale}"
         cached_summary = await self.cache_provider.get(cache_key)
         if cached_summary:
             logger.debug("Summary loaded from cache", extra={"locale": locale})
             return cached_summary
 
-        summary = await asyncio.to_thread(self._summarize, text, locale)
+        summary = self._summarize(text, locale)
         await self.cache_provider.put(
             cache_key,
             summary,

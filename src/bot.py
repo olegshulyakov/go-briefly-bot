@@ -52,6 +52,7 @@ class TelegramBrieflyBot:
         self.provider: CacheProvider = get_cache_provider(settings)
 
         self.rate_limiter = UserRateLimiter(self.provider, settings.rate_limit_window_seconds)
+        self.loader = VideoDataLoader(self.settings)
         self.summarizer = OpenAISummarizer(settings)
 
         self.application = ApplicationBuilder().token(self.settings.telegram_bot_token).build()
@@ -191,8 +192,7 @@ class TelegramBrieflyBot:
         transcript = None
 
         try:
-            loader = VideoDataLoader(video_url, self.settings)
-            transcript = await loader.load()
+            transcript = await self.loader.load(video_url)
         except Exception as exc:
             logger.exception(
                 "Failed to load transcript",
@@ -202,19 +202,6 @@ class TelegramBrieflyBot:
                     "message_id": message.message_id,
                     "url": video_url,
                     "error": str(exc),
-                },
-            )
-            await processing_message.edit_text(translate("telegram.error.transcript_failed", locale=language))
-            return
-
-        if transcript is None:
-            logger.warning(
-                "Transcript is None",
-                extra={
-                    "userID": user.id,
-                    "username": user.username,
-                    "message_id": message.message_id,
-                    "url": video_url,
                 },
             )
             await processing_message.edit_text(translate("telegram.error.transcript_failed", locale=language))

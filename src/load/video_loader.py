@@ -9,7 +9,6 @@ This module provides functionality to:
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import logging
 import tempfile
@@ -26,6 +25,7 @@ from .video_provider import build_video_source
 
 logger = logging.getLogger(__name__)
 max_attempts = 3
+cache_prefix = "transcript:"
 
 
 def _is_safe_option_value(value: str) -> bool:
@@ -99,45 +99,52 @@ class VideoDataLoader:
     temporary file management, and subtitle cleaning.
     """
 
-    def __init__(self, url: str, settings: Settings) -> None:
+    def __init__(self, settings: Settings) -> None:
         """
         Initialize the video loader.
 
         Args:
-            url: Video URL to process.
             settings: Application settings with cache and yt-dlp configuration.
         """
-        self.url, self.video_id = build_video_source(url)
         self.settings = settings
         self.cache_provider: CacheProvider = get_cache_provider(settings)
         self.yt_dlp_additional_options = settings.yt_dlp_additional_options
-        self.info: VideoInfo | None = None
-        self.transcript: VideoTranscript | None = None
 
-    async def load(self) -> VideoTranscript | None:
+    async def load(self, url: str) -> VideoTranscript:
         """
         Load transcript.
 
+        Args:
+            url: Video URL to process.
+
         Returns:
-            VideoTranscript if available, otherwise None.
+            VideoTranscript if available, otherwise raise exception.
+
+        Throws:
+            - `RuntimeError` - video info/subtitles failed
+            - `FileNotFoundError` - no subtitles
+            - `ValueError` - URL is not valid
+            - `OSError` - failed to clean up temporary files
         """
-        cache_key = f"transcript:{self._video_hash}"
+        url, video_id = build_video_source(url)
+        cache_key = f"{cache_prefix}:{self._get_video_hash(url)}"
         cached_transcript = await self.cache_provider.get_dict(cache_key)
         if cached_transcript:
-            self.transcript = VideoTranscript(**cached_transcript)
-            logger.debug("Transcript loaded from cache", extra={"url": self.url})
-            return self.transcript
+            transcript = VideoTranscript(**cached_transcript)
+            logger.debug("Transcript loaded from cache", extra={"url": url})
+            return transcript
 
-        await asyncio.to_thread(self._load)
-        if self.transcript:
-            await self.cache_provider.put_dict(
-                cache_key,
-                asdict(self.transcript),
-                self.settings.cache_transcript_ttl_seconds,
-            )
-        return self.transcript
+        transcript = self._load(url, video_id)
 
-    def _load(self) -> None:
+        await self.cache_provider.put_dict(
+            cache_key,
+            asdict(transcript),
+            self.settings.cache_transcript_ttl_seconds,
+        )
+
+        return transcript
+
+    def _load(self, url: str, video_id: str) -> VideoTranscript:
         """
         Load video info and download transcript.
 
@@ -155,8 +162,8 @@ class VideoDataLoader:
         logger.info(
             "Loading video info",
             extra={
-                "url": self.url,
-                "video_id": self.video_id,
+                "url": url,
+                "video_id": video_id,
             },
         )
 
@@ -170,8 +177,8 @@ class VideoDataLoader:
                     }
                 )
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    raw_info = ydl.extract_info(self.url, download=False)
-                    self.info = VideoInfo(
+                    raw_info = ydl.extract_info(url, download=False)
+                    info = VideoInfo(
                         id=str(raw_info.get("id", "")),
                         language=str(raw_info.get("language", "") or ""),
                         uploader=str(raw_info.get("uploader", "") or ""),
@@ -184,13 +191,13 @@ class VideoDataLoader:
                 last_error = exc
                 logger.warning(
                     "Failed to load video info",
-                    extra={"attempt": attempt + 1, "url": self.url, "error": str(exc)},
+                    extra={"attempt": attempt + 1, "url": url, "error": str(exc)},
                 )
         else:
             raise RuntimeError(f"Failed to load video info after {max_attempts} attempts: {last_error}")
 
-        language = self._detect_language(self.info)
-        logger.debug("Detected transcript language", extra={"url": self.url, "language": language})
+        language = self._detect_language(info)
+        logger.debug("Detected transcript language", extra={"url": url, "language": language})
 
         # Download subtitles with retries
         for attempt in range(max_attempts):
@@ -203,41 +210,43 @@ class VideoDataLoader:
                         "writeautomaticsub": True,
                         "subtitleslangs": [language, f"{language}_auto", "-live_chat"],
                         "subtitlesformat": "srt",
-                        "outtmpl": self._subtitle_template_path,
+                        "outtmpl": self._get_subtitle_template_path(video_id),
                     }
                 )
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.extract_info(self.url, download=True)
+                    ydl.extract_info(url, download=True)
                 break
             except Exception as exc:
                 last_error = exc
                 logger.warning(
                     "Failed to download subtitles",
-                    extra={"attempt": attempt + 1, "url": self.url, "error": str(exc)},
+                    extra={"attempt": attempt + 1, "url": url, "error": str(exc)},
                 )
         else:
             raise RuntimeError(f"Failed to download subtitles after {max_attempts} attempts: {last_error}")
 
-        subtitle_file = self._find_subtitle_file(language)
+        subtitle_file = self._find_subtitle_file(video_id, language)
         if subtitle_file is None:
-            logger.warning("No subtitles found", extra={"url": self.url, "language": language})
+            logger.warning("No subtitles found", extra={"url": url, "language": language})
             raise FileNotFoundError("no subtitles found")
 
         raw_transcript = subtitle_file.read_text(encoding="utf-8", errors="ignore")
         transcript_text = clean_srt(raw_transcript)
 
-        self.transcript = VideoTranscript(
-            id=self.info.id,
+        transcript = VideoTranscript(
+            id=info.id,
             language=language,
-            uploader=self.info.uploader,
-            title=self.info.title,
-            thumbnail=self.info.thumbnail,
+            uploader=info.uploader,
+            title=info.title,
+            thumbnail=info.thumbnail,
             transcript=transcript_text,
         )
 
-        logger.info("Transcript loaded successfully", extra={"url": self.url, "length": len(transcript_text)})
+        logger.info("Transcript loaded successfully", extra={"url": url, "length": len(transcript_text)})
 
-        self._cleanup_subtitle_files()
+        self._cleanup_subtitle_files(video_id)
+
+        return transcript
 
     def _build_ydl_opts(self, extra_options: dict[str, Any] | None = None) -> dict[str, Any]:
         """
@@ -284,21 +293,18 @@ class VideoDataLoader:
             i += 1
         return opts
 
-    @property
-    def _video_hash(self) -> str:
+    def _get_video_hash(self, url: str) -> str:
         """Return the cache key for this video URL."""
-        return hashlib.sha256(self.url.encode("utf-8")).hexdigest()
+        return hashlib.sha256(url.encode("utf-8")).hexdigest()
 
-    @property
-    def _subtitle_template_path(self) -> str:
+    def _get_subtitle_template_path(self, video_id: str) -> str:
         """Generate template path for subtitle files in temp directory."""
         temp_dir = Path(tempfile.gettempdir())
-        return str(temp_dir / f"subtitles_{self.video_id}.%(ext)s")
+        return str(temp_dir / f"subtitles_{video_id}.%(ext)s")
 
-    @property
-    def _subtitle_prefix(self) -> Path:
+    def _get_subtitle_prefix(self, video_id: str) -> Path:
         """Get prefix for subtitle file names in temp directory."""
-        return Path(tempfile.gettempdir()) / f"subtitles_{self.video_id}"
+        return Path(tempfile.gettempdir()) / f"subtitles_{video_id}"
 
     def _detect_language(self, info: VideoInfo) -> str:
         """
@@ -331,7 +337,7 @@ class VideoDataLoader:
         # Get first available language from subtitles
         return next(iter(info.subtitles.keys())).split("-", maxsplit=1)[0]
 
-    def _find_subtitle_file(self, language: str) -> Path | None:
+    def _find_subtitle_file(self, video_id: str, language: str) -> Path | None:
         """
         Find downloaded subtitle file for the given language.
 
@@ -346,20 +352,20 @@ class VideoDataLoader:
         Returns:
             Path to subtitle file or None if not found.
         """
-        exact = self._subtitle_prefix.with_suffix(f".{language}.srt")
+        exact = self._get_subtitle_prefix(video_id).with_suffix(f".{language}.srt")
         if exact.exists():
             return exact
 
-        auto = self._subtitle_prefix.with_suffix(f".{language}_auto.srt")
+        auto = self._get_subtitle_prefix(video_id).with_suffix(f".{language}_auto.srt")
         if auto.exists():
             return auto
 
-        candidates = sorted(Path(tempfile.gettempdir()).glob(f"subtitles_{self.video_id}*.srt"))
+        candidates = sorted(Path(tempfile.gettempdir()).glob(f"subtitles_{video_id}*.srt"))
         return candidates[0] if candidates else None
 
-    def _cleanup_subtitle_files(self) -> None:
+    def _cleanup_subtitle_files(self, video_id: str) -> None:
         """Remove temporary subtitle files for this video."""
-        for path in Path(tempfile.gettempdir()).glob(f"subtitles_{self.video_id}*"):
+        for path in Path(tempfile.gettempdir()).glob(f"subtitles_{video_id}*"):
             try:
                 path.unlink(missing_ok=True)
             except OSError:
