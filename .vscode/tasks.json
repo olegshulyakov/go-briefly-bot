@@ -14,7 +14,7 @@
       "label": "python: run",
       "type": "shell",
       "command": "${workspaceFolder}/.venv/bin/python",
-      "args": ["-m", "src.main"],
+      "args": ["-m", "src.client.telegram.main"],
       "group": "none",
       "problemMatcher": [],
       "detail": "Run the Python bot application."

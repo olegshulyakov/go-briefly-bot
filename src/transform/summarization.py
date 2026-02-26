@@ -7,11 +7,12 @@ timeout handling, and localization support.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import time
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from ..cache import CacheProvider, get_cache_provider
 from ..config import Settings
@@ -45,7 +46,7 @@ class OpenAISummarizer:
         """
         self.settings = settings
         self.cache_provider: CacheProvider = get_cache_provider(settings)
-        self.client = OpenAI(
+        self.client = AsyncOpenAI(
             base_url=settings.openai_base_url,
             api_key=settings.openai_api_key,
             max_retries=settings.openai_max_retries,
@@ -74,7 +75,7 @@ class OpenAISummarizer:
             logger.debug("Summary loaded from cache", extra={"locale": locale})
             return cached_summary
 
-        summary = self._summarize(text, locale)
+        summary = await self._summarize(text, locale)
         await self.cache_provider.put(
             cache_key,
             summary,
@@ -82,7 +83,7 @@ class OpenAISummarizer:
         )
         return summary
 
-    def _summarize(self, text: str, locale: str) -> str:
+    async def _summarize(self, text: str, locale: str) -> str:
         """
         Summarize text using the configured LLM model.
 
@@ -112,7 +113,7 @@ class OpenAISummarizer:
         for attempt in range(self.settings.openai_max_retries):
             try:
                 start_time = time.monotonic()
-                response = self.client.chat.completions.create(
+                response = await self.client.chat.completions.create(
                     model=self.settings.openai_model,
                     messages=[
                         {"role": "user", "content": prompt},
@@ -156,7 +157,7 @@ class OpenAISummarizer:
                     "OpenAI summarization attempt failed",
                     extra={"attempt": attempt + 1, "error": str(exc)},
                 )
-                time.sleep(1)
+                await asyncio.sleep(1)
 
         raise RuntimeError(f"failed to summarize text: {last_error}")
 

@@ -20,10 +20,11 @@ def build_settings(**overrides: object) -> Settings:
     return settings
 
 
-def test_openai_summarizer_initialization() -> None:
+@pytest.mark.asyncio
+async def test_openai_summarizer_initialization() -> None:
     mock_settings = build_settings()
 
-    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_openai_class.return_value = mock_client_instance
 
@@ -38,17 +39,18 @@ def test_openai_summarizer_initialization() -> None:
         assert summarizer.settings == mock_settings
 
 
-def test_summarizer_summarize_text_success() -> None:
+@pytest.mark.asyncio
+async def test_summarizer_summarize_text_success() -> None:
     mock_settings = build_settings()
 
-    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_response = MagicMock()
         mock_choice = MagicMock()
 
         mock_choice.message.content = "This is the summary"
         mock_response.choices = [mock_choice]
-        mock_client_instance.chat.completions.create.return_value = mock_response
+        mock_client_instance.chat.completions.create = AsyncMock(return_value=mock_response)
 
         mock_openai_class.return_value = mock_client_instance
 
@@ -57,7 +59,7 @@ def test_summarizer_summarize_text_success() -> None:
             mock_translate.return_value = "Input text to summarize"
 
             summarizer = OpenAISummarizer(mock_settings)
-            result = summarizer._summarize("Input text to summarize", "en")
+            result = await summarizer._summarize("Input text to summarize", "en")
 
             # Verify the API was called correctly
             mock_client_instance.chat.completions.create.assert_called_once_with(
@@ -71,10 +73,11 @@ def test_summarizer_summarize_text_success() -> None:
             assert result == "This is the summary"
 
 
-def test_summarizer_summarize_text_empty_response() -> None:
+@pytest.mark.asyncio
+async def test_summarizer_summarize_text_empty_response() -> None:
     mock_settings = build_settings()
 
-    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_response = MagicMock()
         mock_choice = MagicMock()
@@ -87,7 +90,7 @@ def test_summarizer_summarize_text_empty_response() -> None:
         mock_response.id = "test_response_id"
         mock_response.model = "gpt-3.5-turbo"
         mock_response.message = None  # Explicitly set to None to avoid mock creation
-        mock_client_instance.chat.completions.create.return_value = mock_response
+        mock_client_instance.chat.completions.create = AsyncMock(return_value=mock_response)
 
         mock_openai_class.return_value = mock_client_instance
 
@@ -98,13 +101,14 @@ def test_summarizer_summarize_text_empty_response() -> None:
             summarizer = OpenAISummarizer(mock_settings)
 
             with pytest.raises(RuntimeError, match="empty OpenAI response"):
-                summarizer._summarize("Input text to summarize", "en")
+                await summarizer._summarize("Input text to summarize", "en")
 
 
-def test_summarizer_summarize_text_with_retry_success() -> None:
+@pytest.mark.asyncio
+async def test_summarizer_summarize_text_with_retry_success() -> None:
     mock_settings = build_settings()
 
-    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_response = MagicMock()
         mock_choice = MagicMock()
@@ -113,10 +117,12 @@ def test_summarizer_summarize_text_with_retry_success() -> None:
         mock_response.choices = [mock_choice]
 
         # First call raises an exception, second succeeds
-        mock_client_instance.chat.completions.create.side_effect = [
-            Exception("Network error"),
-            mock_response,
-        ]
+        mock_client_instance.chat.completions.create = AsyncMock(
+            side_effect=[
+                Exception("Network error"),
+                mock_response,
+            ]
+        )
 
         mock_openai_class.return_value = mock_client_instance
 
@@ -125,7 +131,7 @@ def test_summarizer_summarize_text_with_retry_success() -> None:
             mock_translate.return_value = "You are a helpful assistant."
 
             summarizer = OpenAISummarizer(mock_settings)
-            result = summarizer._summarize("Input text to summarize", "en")
+            result = await summarizer._summarize("Input text to summarize", "en")
 
             # Should have been called twice (first failed, second succeeded)
             expected_calls = 2
@@ -133,17 +139,20 @@ def test_summarizer_summarize_text_with_retry_success() -> None:
             assert result == "This is the summary"
 
 
-def test_summarizer_summarize_text_with_retry_failure() -> None:
+@pytest.mark.asyncio
+async def test_summarizer_summarize_text_with_retry_failure() -> None:
     mock_settings = build_settings(openai_max_retries=2)
 
-    with patch("src.transform.summarization.OpenAI") as mock_openai_class:
+    with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
 
         # All calls raise exceptions
-        mock_client_instance.chat.completions.create.side_effect = [
-            Exception("Network error 1"),
-            Exception("Network error 2"),
-        ]
+        mock_client_instance.chat.completions.create = AsyncMock(
+            side_effect=[
+                Exception("Network error 1"),
+                Exception("Network error 2"),
+            ]
+        )
 
         mock_openai_class.return_value = mock_client_instance
 
@@ -154,19 +163,20 @@ def test_summarizer_summarize_text_with_retry_failure() -> None:
             summarizer = OpenAISummarizer(mock_settings)
 
             with pytest.raises(RuntimeError, match="failed to summarize text:"):
-                summarizer._summarize("Input text to summarize", "en")
+                await summarizer._summarize("Input text to summarize", "en")
 
             # Should have been called max_retries times
             expected_calls = 2
             assert mock_client_instance.chat.completions.create.call_count == expected_calls
 
 
-def test_summarizer_max_retries_zero_or_less() -> None:
+@pytest.mark.asyncio
+async def test_summarizer_max_retries_zero_or_less() -> None:
     mock_settings = build_settings(openai_max_retries=0)
     summarizer = OpenAISummarizer(mock_settings)
 
     with pytest.raises(ValueError, match="openai_max_retries must be greater than 0"):
-        summarizer._summarize("Input text to summarize", "en")
+        await summarizer._summarize("Input text to summarize", "en")
 
 
 @pytest.mark.asyncio

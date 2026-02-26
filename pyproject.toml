@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "python-telegram-bot>=21.0,<22.0",
+    "aiogram>=3.3.0,<4.0.0",
     "python-dotenv>=1.0.0,<2.0.0",
     "python-i18n[YAML]>=0.3.9",
     "openai>=1.0.0,<2.0.0",
