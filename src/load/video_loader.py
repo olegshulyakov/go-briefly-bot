@@ -22,6 +22,7 @@ from ..cache import CacheProvider, get_cache_provider
 from ..config import Settings
 from .transcripts import clean_srt
 from .video_provider import build_video_source
+from .yt_dlp_logger import YtDlpCaptureLogger
 
 logger = logging.getLogger(__name__)
 max_attempts = 3
@@ -200,8 +201,10 @@ class VideoDataLoader:
         logger.debug("Detected transcript language", extra={"url": url, "language": language})
 
         # Download subtitles with retries
+        ydl_logger = YtDlpCaptureLogger()
         for attempt in range(max_attempts):
             try:
+                ydl_logger.messages.clear()
                 ydl_opts = self._build_ydl_opts(
                     {
                         "no_progress": True,
@@ -211,6 +214,9 @@ class VideoDataLoader:
                         "subtitleslangs": [language, f"{language}_auto", "-live_chat"],
                         "subtitlesformat": "srt",
                         "outtmpl": self._get_subtitle_template_path(video_id),
+                        "logger": ydl_logger,
+                        "quiet": False,
+                        "no_warnings": False,
                     }
                 )
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -220,14 +226,26 @@ class VideoDataLoader:
                 last_error = exc
                 logger.warning(
                     "Failed to download subtitles",
-                    extra={"attempt": attempt + 1, "url": url, "error": str(exc)},
+                    extra={
+                        "attempt": attempt + 1,
+                        "url": url,
+                        "error": str(exc),
+                        "yt_dlp_output": "\n".join(ydl_logger.messages),
+                    },
                 )
         else:
             raise RuntimeError(f"Failed to download subtitles after {max_attempts} attempts: {last_error}")
 
         subtitle_file = self._find_subtitle_file(video_id, language)
         if subtitle_file is None:
-            logger.warning("No subtitles found", extra={"url": url, "language": language})
+            logger.warning(
+                "No subtitles found",
+                extra={
+                    "url": url,
+                    "language": language,
+                    "yt_dlp_output": "\n".join(ydl_logger.messages),
+                },
+            )
             raise FileNotFoundError("no subtitles found")
 
         raw_transcript = subtitle_file.read_text(encoding="utf-8", errors="ignore")
