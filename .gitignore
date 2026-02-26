@@ -358,6 +358,16 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,macos,dotenv,python,windows,intellij+all,visualstudiocode
 
+### AI Agents ###
+.gemini/
+.claude/
+.codex/
+.qwen/
+.opencode/
+.cursor/
+.windsurf/
+.aider/
+
 # Temp files
 *.srt
 *.vtt
