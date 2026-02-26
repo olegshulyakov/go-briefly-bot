@@ -44,6 +44,10 @@ jobs:
         run: |
           ruff check --output-format=github --target-version=py311
 
+      - name: Lint code with MyPy
+        run: |
+          mypy src/ tests/ --python-version 3.11
+
       - name: Check code formatting with Ruff
         run: |
           ruff format --diff --target-version=py311

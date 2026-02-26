@@ -53,11 +53,7 @@ class CustomFormatter(logging.Formatter):
             "asctime",
             "taskName",
         }
-        extra_fields = {
-            key: value
-            for key, value in record.__dict__.items()
-            if key not in standard_attrs and not key.startswith("_")
-        }
+        extra_fields = {key: value for key, value in record.__dict__.items() if key not in standard_attrs and not key.startswith("_")}
         if extra_fields:
             extra_str = " ".join(f'{k}="{v}"' for k, v in extra_fields.items())
             return f"{base_message}: {extra_str}"

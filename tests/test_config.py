@@ -1,5 +1,8 @@
-from unittest.mock import patch
+import dataclasses
 import os
+from unittest.mock import MagicMock, patch
+
+import pytest
 from src.config import Settings
 
 
@@ -29,18 +32,15 @@ def test_settings_from_env_success() -> None:
 
 
 @patch("src.config.load_dotenv")
-def test_settings_from_env_missing_required_variables(mock_load_dotenv) -> None:
+def test_settings_from_env_missing_required_variables(mock_load_dotenv: MagicMock) -> None:
     # Test with missing TELEGRAM_BOT_TOKEN
     with patch.dict(
         os.environ,
         {"OPENAI_API_KEY": "test_api_key", "OPENAI_MODEL": "gpt-3.5-turbo"},
         clear=True,
     ):
-        try:
+        with pytest.raises(RuntimeError, match="TELEGRAM_BOT_TOKEN"):
             Settings.from_env()
-            assert False, "Expected RuntimeError for missing env vars"
-        except RuntimeError as e:
-            assert "TELEGRAM_BOT_TOKEN" in str(e)
 
     # Test with missing OPENAI_API_KEY
     with patch.dict(
@@ -48,11 +48,8 @@ def test_settings_from_env_missing_required_variables(mock_load_dotenv) -> None:
         {"TELEGRAM_BOT_TOKEN": "test_token", "OPENAI_MODEL": "gpt-3.5-turbo"},
         clear=True,
     ):
-        try:
+        with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
             Settings.from_env()
-            assert False, "Expected RuntimeError for missing env vars"
-        except RuntimeError as e:
-            assert "OPENAI_API_KEY" in str(e)
 
     # Test with missing OPENAI_MODEL
     with patch.dict(
@@ -60,15 +57,12 @@ def test_settings_from_env_missing_required_variables(mock_load_dotenv) -> None:
         {"TELEGRAM_BOT_TOKEN": "test_token", "OPENAI_API_KEY": "test_api_key"},
         clear=True,
     ):
-        try:
+        with pytest.raises(RuntimeError, match="OPENAI_MODEL"):
             Settings.from_env()
-            assert False, "Expected RuntimeError for missing env vars"
-        except RuntimeError as e:
-            assert "OPENAI_MODEL" in str(e)
 
 
 @patch("src.config.load_dotenv")
-def test_settings_from_env_default_values(mock_load_dotenv) -> None:
+def test_settings_from_env_default_values(mock_load_dotenv: MagicMock) -> None:
     with patch.dict(
         os.environ,
         {
@@ -80,12 +74,16 @@ def test_settings_from_env_default_values(mock_load_dotenv) -> None:
     ):
         settings = Settings.from_env()
 
+        expected_rate_limit = 10
+        expected_msg_len = 3500
+        expected_timeout = 300
+        expected_retries = 3
         # Check default values
         assert settings.openai_base_url == "https://api.openai.com/v1/"  # Default from code
-        assert settings.rate_limit_window_seconds == 10
-        assert settings.max_telegram_message_length == 3500
-        assert settings.openai_timeout_seconds == 300
-        assert settings.openai_max_retries == 3
+        assert settings.rate_limit_window_seconds == expected_rate_limit
+        assert settings.max_telegram_message_length == expected_msg_len
+        assert settings.openai_timeout_seconds == expected_timeout
+        assert settings.openai_max_retries == expected_retries
         assert settings.yt_dlp_additional_options == ()
 
 
@@ -128,9 +126,5 @@ def test_settings_immutability() -> None:
         settings = Settings.from_env()
 
         # Attempt to modify should raise an exception since it's a frozen dataclass
-        try:
-            settings.telegram_bot_token = "new_token"
-            assert False, "Expected dataclass.FrozenInstanceError"
-        except Exception:
-            # Expected behavior - frozen dataclass can't be modified
-            pass
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            settings.telegram_bot_token = "new_token"  # type: ignore[misc]

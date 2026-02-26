@@ -43,6 +43,8 @@ dev = [
     "pytest>=8.0.0,<9.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.0.0",
+    "pytest-mock>=3.12.0",
+    "mypy>=1.8.0",
 ]
 
 test = [
@@ -57,14 +59,25 @@ Repository = "https://github.com/olegshulyakov/go-briefly-bot.git"
 Issues = "https://github.com/olegshulyakov/go-briefly-bot/issues"
 License = "https://github.com/olegshulyakov/go-briefly-bot/blob/main/LICENSE"
 
-[project.scripts]
-go-briefly-bot = "src.main:main"
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
+[[tool.mypy.overrides]]
+module = "i18n.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "yt_dlp.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "markdown.*"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
@@ -74,7 +87,7 @@ addopts = "-v --tb=short"
 
 [tool.ruff]
 target-version = "py311"
-line-length = 120
+line-length = 150
 src = ["src", "tests"]
 exclude = [
     ".githooks/",
@@ -82,3 +95,24 @@ exclude = [
     ".venv/",
     "venv/",
 ]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "B",    # flake8-bugbear
+    "C90",  # mccabe complexity
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "PL",   # pylint
+]
+ignore = []
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-branches = 12
+max-statements = 150

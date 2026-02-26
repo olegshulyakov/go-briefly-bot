@@ -9,6 +9,7 @@ import gzip
 import lzma
 import zlib
 from enum import Enum
+from typing import Any
 
 
 class CompressionMethod(Enum):
@@ -67,7 +68,7 @@ def compress(data: bytes, method: CompressionMethod = CompressionMethod.GZIP) ->
 
         return COMPRESSION_PREFIXES[method] + compressed
     except Exception as e:
-        raise CompressionError(f"Compression failed with {method.value}: {e}")
+        raise CompressionError(f"Compression failed with {method.value}: {e}") from e
 
 
 def decompress(data: bytes) -> bytes:
@@ -106,10 +107,10 @@ def decompress(data: bytes) -> bytes:
         else:
             raise CompressionError(f"Unknown compression method: {method}")
     except Exception as e:
-        raise CompressionError(f"Decompression failed: {e}")
+        raise CompressionError(f"Decompression failed: {e}") from e
 
 
-def get_compression_stats(original: bytes, compressed: bytes) -> dict:
+def get_compression_stats(original: bytes, compressed: bytes) -> dict[str, Any]:
     """
     Calculate compression statistics.
 

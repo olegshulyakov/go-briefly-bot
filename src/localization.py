@@ -13,7 +13,12 @@ import i18n
 
 DEFAULT_LOCALE = "en"
 
-_initialized = False
+
+class I18nState:
+    is_initialized: bool = False
+
+
+_state = I18nState()
 
 
 def _setup_i18n() -> None:
@@ -26,8 +31,7 @@ def _setup_i18n() -> None:
     - Fallback locale
     - Memoization for performance
     """
-    global _initialized
-    if _initialized:
+    if _state.is_initialized:
         return
 
     locales_path = Path(__file__).resolve().parents[1] / "locales"
@@ -39,10 +43,10 @@ def _setup_i18n() -> None:
     i18n.set("locale", DEFAULT_LOCALE)
     i18n.set("enable_memoization", True)
 
-    _initialized = True
+    _state.is_initialized = True
 
 
-def _normalize_locale(locale: str | None) -> str:
+def normalize_locale(locale: str | None) -> str:
     """
     Normalize a locale code to base language.
 
@@ -85,7 +89,7 @@ def translate(key: str, locale: str | None = None, **kwargs: object) -> str:
     """
     _setup_i18n()
 
-    lang = _normalize_locale(locale)
+    lang = normalize_locale(locale)
     for candidate in (lang, DEFAULT_LOCALE):
         try:
             value = i18n.t(key, locale=candidate, **kwargs)

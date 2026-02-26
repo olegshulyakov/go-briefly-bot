@@ -39,9 +39,10 @@ def test_to_lexical_chunks_splits_on_sentences() -> None:
 
 def test_to_lexical_chunks_splits_on_words_when_no_sentence_breaks() -> None:
     text = "This is a sentence without sentence breaks but with multiple words"
-    result = to_lexical_chunks(text, 10)
+    expected_max = 10
+    result = to_lexical_chunks(text, expected_max)
     # Should split on word boundaries when no sentence breaks are available
-    assert all(len(chunk) <= 10 or " " not in chunk for chunk in result)
+    assert all(len(chunk) <= expected_max or " " not in chunk for chunk in result)
 
 
 def test_to_lexical_chunks_handles_leading_trailing_whitespace() -> None:

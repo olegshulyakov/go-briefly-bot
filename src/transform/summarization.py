@@ -7,15 +7,18 @@ timeout handling, and localization support.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import time
 
 from openai import OpenAI
 
+from ..cache import CacheProvider, get_cache_provider
 from ..config import Settings
 from ..localization import translate
 
 logger = logging.getLogger(__name__)
+cache_prefix = "summary:"
 
 
 class OpenAISummarizer:
@@ -41,13 +44,45 @@ class OpenAISummarizer:
             settings: Application settings with API credentials.
         """
         self.settings = settings
+        self.cache_provider: CacheProvider = get_cache_provider(settings)
         self.client = OpenAI(
             base_url=settings.openai_base_url,
             api_key=settings.openai_api_key,
             max_retries=settings.openai_max_retries,
         )
 
-    def summarize_text(self, text: str, locale: str | None) -> str:
+    async def summarize(self, text: str, locale: str) -> str:
+        """
+        Summarize text.
+
+        Args:
+            text: Input text to summarize.
+            locale: Target locale for system prompt localization.
+
+        Returns:
+            Generated summary text.
+        """
+        if not locale:
+            raise ValueError("locale must be a non-empty string")
+        if not text:
+            raise ValueError("text must be a non-empty string")
+
+        video_hash = self._text_hash(text)
+        cache_key = f"{cache_prefix}:{video_hash}:{locale}"
+        cached_summary = await self.cache_provider.get(cache_key)
+        if cached_summary:
+            logger.debug("Summary loaded from cache", extra={"locale": locale})
+            return cached_summary
+
+        summary = self._summarize(text, locale)
+        await self.cache_provider.put(
+            cache_key,
+            summary,
+            self.settings.cache_summary_ttl_seconds,
+        )
+        return summary
+
+    def _summarize(self, text: str, locale: str) -> str:
         """
         Summarize text using the configured LLM model.
 
@@ -61,11 +96,17 @@ class OpenAISummarizer:
         Raises:
             RuntimeError: If summarization fails after all retries.
         """
+        if not locale:
+            raise ValueError("locale must be a non-empty string")
+
         logger.info(
             "Summarizing text",
             extra={"locale": locale, "text_length": len(text), "model": self.settings.openai_model},
         )
         prompt = translate("openai.prompt", locale=locale, text=text)
+
+        if self.settings.openai_max_retries <= 0:
+            raise ValueError("openai_max_retries must be greater than 0")
 
         last_error: Exception | None = None
         for attempt in range(self.settings.openai_max_retries):
@@ -118,3 +159,8 @@ class OpenAISummarizer:
                 time.sleep(1)
 
         raise RuntimeError(f"failed to summarize text: {last_error}")
+
+    @staticmethod
+    def _text_hash(text: str) -> str:
+        """Return a deterministic cache key for the transcript text."""
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
