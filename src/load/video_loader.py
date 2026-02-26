@@ -9,6 +9,7 @@ This module provides functionality to:
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import tempfile
@@ -135,7 +136,7 @@ class VideoDataLoader:
             logger.debug("Transcript loaded from cache", extra={"url": url})
             return transcript
 
-        transcript = self._load(url, video_id)
+        transcript = await asyncio.to_thread(self._load, url, video_id)
 
         await self.cache_provider.put_dict(
             cache_key,

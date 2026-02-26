@@ -7,7 +7,7 @@
       "name": "🐍 Run Bot",
       "type": "debugpy",
       "request": "launch",
-      "module": "src.main",
+      "module": "src.client.telegram.main",
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",
       "justMyCode": false,

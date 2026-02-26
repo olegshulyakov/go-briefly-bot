@@ -1,9 +1,11 @@
+import inspect
 import logging
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+from src.client.telegram.main import main
 from src.logger import configure_logging
-from src.main import main
 
 
 def test_configure_logging_default() -> None:
@@ -189,33 +191,50 @@ def test_configure_logging_httpx_warning() -> None:
         mock_httpx_logger.setLevel.assert_called_with(logging.WARNING)
 
 
-def test_main_function_calls_configure_and_runs() -> None:
+@pytest.mark.asyncio
+async def test_main_function_initializes_and_runs() -> None:
     # Mock all dependencies to test the main flow
     with (
-        patch("src.main.configure_logging") as mock_configure_logging,
-        patch("src.main.Settings") as mock_settings,
-        patch("src.main.TelegramBrieflyBot") as mock_bot_class,
+        patch("src.client.telegram.main.Settings") as mock_settings,
+        patch("src.client.telegram.main.get_cache_provider") as mock_get_cache_provider,
+        patch("src.client.telegram.main.UserRateLimiter") as mock_rate_limiter,
+        patch("src.client.telegram.main.VideoDataLoader") as mock_loader,
+        patch("src.client.telegram.main.OpenAISummarizer") as mock_summarizer,
+        patch("src.client.telegram.main.Dispatcher") as mock_dispatcher_class,
+        patch("src.client.telegram.main.Bot") as mock_bot_class,
     ):
-        # Create mock objects
         mock_settings_obj = MagicMock()
-        mock_bot_obj = MagicMock()
-
         mock_settings.from_env.return_value = mock_settings_obj
+
+        mock_dp_obj = MagicMock()
+        mock_dp_obj.start_polling = AsyncMock()
+        mock_dispatcher_class.return_value = mock_dp_obj
+
+        mock_bot_obj = MagicMock()
         mock_bot_class.return_value = mock_bot_obj
 
         # Call main function
-        main()
+        await main()
 
         # Verify all steps were called in sequence
-        mock_configure_logging.assert_called_once()
         mock_settings.from_env.assert_called_once()
-        mock_bot_class.assert_called_once_with(mock_settings_obj)
-        mock_bot_obj.run.assert_called_once()
+        mock_get_cache_provider.assert_called_once_with(mock_settings_obj)
+        mock_dispatcher_class.assert_called_once()
+        mock_dp_obj.include_routers.assert_called_once()
+        mock_bot_class.assert_called_once()
+        mock_dp_obj.start_polling.assert_called_once_with(
+            mock_bot_obj,
+            settings=mock_settings_obj,
+            rate_limiter=mock_rate_limiter.return_value,
+            loader=mock_loader.return_value,
+            summarizer=mock_summarizer.return_value,
+        )
 
 
 def test_main_function_structure() -> None:
     # Just test that the main function exists and has the expected structure
     # by checking it has the expected attributes
     assert callable(main)
+    assert inspect.iscoroutinefunction(main)
     assert hasattr(main, "__name__")
     assert main.__name__ == "main"
