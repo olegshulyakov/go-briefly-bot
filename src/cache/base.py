@@ -2,14 +2,21 @@
 Base cache provider interface for Go Briefly Bot.
 """
 
+import json
+import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.utils.compression import CompressionMethod
+from ..utils import CompressionMethod, compress, decompress
+
+logger = logging.getLogger(__name__)
 
 
 class CacheProvider(ABC):
     """Abstract base class for cache providers (cache and rate limiting)."""
+
+    def __init__(self, compression_method: str = "gzip") -> None:
+        self._compression_method = self._parse_compression_method(compression_method)
 
     def _parse_compression_method(self, method: str) -> CompressionMethod:
         """Parse compression method string to enum."""
@@ -20,6 +27,27 @@ class CacheProvider(ABC):
             "lzma": CompressionMethod.LZMA,
         }
         return method_map.get(method.lower(), CompressionMethod.GZIP)
+
+    def _encode_text(self, text: str) -> bytes:
+        return compress(text.encode("utf-8"), self._compression_method)
+
+    def _decode_text(self, data: bytes) -> str | None:
+        try:
+            return decompress(data).decode("utf-8")
+        except Exception as e:
+            logger.warning("Failed to decompress/decode cached string: %s", e)
+            return None
+
+    def _encode_dict(self, data: dict[str, Any]) -> bytes:
+        return compress(json.dumps(data).encode("utf-8"), self._compression_method)
+
+    def _decode_dict(self, data: bytes) -> dict[str, Any] | None:
+        try:
+            res: dict[str, Any] = json.loads(decompress(data).decode("utf-8"))
+            return res
+        except Exception as e:
+            logger.warning("Failed to decompress/decode cached dict: %s", e)
+            return None
 
     @abstractmethod
     async def is_rate_limited(self, user_id: int, window_seconds: int) -> bool:

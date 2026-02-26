@@ -10,7 +10,7 @@ from threading import Lock
 
 from ..config import Settings
 from .base import CacheProvider
-from .local import LocalCacheProvider
+from .in_memory import InMemoryCacheProvider
 from .valkey import ValkeyProvider
 
 _provider_lock = Lock()
@@ -46,7 +46,9 @@ def get_cache_provider(settings: Settings) -> CacheProvider:
                 compression_method=settings.cache_compression_method,
             )
         else:
-            _state.current = LocalCacheProvider()
+            _state.current = InMemoryCacheProvider(
+                compression_method=settings.cache_compression_method,
+            )
 
     if _state.current is None:
         raise RuntimeError("Cache provider not initialized")

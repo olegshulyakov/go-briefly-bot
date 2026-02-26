@@ -1,13 +1,13 @@
 import asyncio
 
 import pytest
-from src.cache import LocalCacheProvider
+from src.cache import InMemoryCacheProvider
 from src.rate_limiter import UserRateLimiter
 
 
 @pytest.mark.asyncio
 async def test_user_rate_limiter_not_limited() -> None:
-    limiter = UserRateLimiter(provider=LocalCacheProvider(), cooldown_seconds=1)
+    limiter = UserRateLimiter(provider=InMemoryCacheProvider(), cooldown_seconds=1)
 
     # First request should not be limited
     is_limited = await limiter.is_limited(123)
@@ -20,7 +20,7 @@ async def test_user_rate_limiter_not_limited() -> None:
 
 @pytest.mark.asyncio
 async def test_user_rate_limiter_different_users() -> None:
-    limiter = UserRateLimiter(provider=LocalCacheProvider(), cooldown_seconds=1)
+    limiter = UserRateLimiter(provider=InMemoryCacheProvider(), cooldown_seconds=1)
 
     # Different users should not affect each other
     is_limited_user1 = await limiter.is_limited(123)
@@ -32,7 +32,7 @@ async def test_user_rate_limiter_different_users() -> None:
 
 @pytest.mark.asyncio
 async def test_user_rate_limiter_after_cooldown() -> None:
-    limiter = UserRateLimiter(provider=LocalCacheProvider(), cooldown_seconds=1)  # Short cooldown for testing
+    limiter = UserRateLimiter(provider=InMemoryCacheProvider(), cooldown_seconds=1)  # Short cooldown for testing
 
     # First request
     is_limited = await limiter.is_limited(123)

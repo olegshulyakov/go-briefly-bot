@@ -5,14 +5,12 @@ Supports multiple compression methods with automatic detection.
 """
 
 import asyncio
-import json
 import logging
 from typing import Any
 
 from valkey.asyncio import Valkey
 from valkey.exceptions import ConnectionError as ValkeyConnectionError
 
-from ..utils import compress, decompress
 from .base import CacheProvider
 
 logger = logging.getLogger(__name__)
@@ -27,10 +25,10 @@ class ValkeyProvider(CacheProvider):
     """
 
     def __init__(self, valkey_url: str, compression_method: str = "gzip") -> None:
+        super().__init__(compression_method)
         self.valkey_url = valkey_url
         self._valkey: Valkey | None = None
         self._timeout = 0.200  # 200ms timeout
-        self._compression_method = self._parse_compression_method(compression_method)
         self._init_lock = asyncio.Lock()
 
     async def _get_client(self) -> Valkey:
@@ -80,11 +78,7 @@ class ValkeyProvider(CacheProvider):
             cache_key = f"{key}:{self._compression_method.value}"
             val = await client.get(cache_key)
             if val is not None:
-                try:
-                    decompressed = decompress(val)
-                    return decompressed.decode("utf-8")
-                except Exception as e:
-                    logger.warning(f"Failed to decompress/decode cached string: {e}")
+                return self._decode_text(val)
             return None
 
         res: str | None = await self._safe_execute(_valkey_get)
@@ -94,7 +88,7 @@ class ValkeyProvider(CacheProvider):
         async def _valkey_set() -> None:
             client = await self._get_client()
             cache_key = f"{key}:{self._compression_method.value}"
-            compressed = compress(text.encode("utf-8"), self._compression_method)
+            compressed = self._encode_text(text)
             await client.setex(cache_key, ttl_seconds, compressed)
 
         await self._safe_execute(_valkey_set)
@@ -105,12 +99,7 @@ class ValkeyProvider(CacheProvider):
             cache_key = f"{key}:{self._compression_method.value}"
             val = await client.get(cache_key)
             if val is not None:
-                try:
-                    decompressed = decompress(val)
-                    res_dict: dict[str, Any] = json.loads(decompressed.decode("utf-8"))
-                    return res_dict
-                except Exception as e:
-                    logger.warning(f"Failed to decompress/decode cached dict: {e}")
+                return self._decode_dict(val)
             return None
 
         res: dict[str, Any] | None = await self._safe_execute(_valkey_get)
@@ -120,7 +109,7 @@ class ValkeyProvider(CacheProvider):
         async def _valkey_set() -> None:
             client = await self._get_client()
             cache_key = f"{key}:{self._compression_method.value}"
-            compressed = compress(json.dumps(data).encode("utf-8"), self._compression_method)
+            compressed = self._encode_dict(data)
             await client.setex(cache_key, ttl_seconds, compressed)
 
         await self._safe_execute(_valkey_set)
