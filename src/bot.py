@@ -89,8 +89,12 @@ class TelegramBrieflyBot:
         )
         await message.reply_text(translate("telegram.welcome.message", locale=language))
 
-    async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: C901, PLR0911
-        """Handles incoming text messages, extracts URLs, loads video transcripts, summarizes them, and sends the summary back to the user."""
+    async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handles incoming text messages asynchronously without blocking."""
+        asyncio.create_task(self._process_message(update, context))
+
+    async def _process_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: C901, PLR0911
+        """Extracts URLs, loads video transcripts, summarizes them, and sends the summary back to the user."""
 
         del context
 

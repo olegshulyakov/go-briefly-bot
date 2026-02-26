@@ -143,7 +143,7 @@ async def test_bot_handle_message_no_text(bot: TelegramBrieflyBot, mock_update: 
         patch.object(bot.rate_limiter, "is_limited", return_value=False),
         patch("src.bot.translate", return_value="No URL"),
     ):
-        await bot._handle_message(mock_update, mock_context)
+        await bot._process_message(mock_update, mock_context)
     mock_update.effective_message.reply_text.assert_called_once()
     assert mock_update.effective_message.reply_text.call_args[0][0] == "No URL"
 
@@ -154,7 +154,7 @@ async def test_bot_handle_message_rate_limited(bot: TelegramBrieflyBot, mock_upd
         patch.object(bot.rate_limiter, "is_limited", return_value=True),
         patch("src.bot.translate", return_value="Rate Limited"),
     ):
-        await bot._handle_message(mock_update, mock_context)
+        await bot._process_message(mock_update, mock_context)
     mock_update.effective_message.reply_text.assert_called_once_with("Rate Limited", message_thread_id=None, reply_to_message_id=1)
 
 
@@ -168,7 +168,7 @@ async def test_bot_handle_message_multiple_urls(bot: TelegramBrieflyBot, mock_up
     ):
         processing_msg_mock = AsyncMock()
         mock_update.effective_message.reply_text.return_value = processing_msg_mock
-        await bot._handle_message(mock_update, mock_context)
+        await bot._process_message(mock_update, mock_context)
         processing_msg_mock.edit_text.assert_called_once_with("Error")
 
 
@@ -186,7 +186,7 @@ async def test_bot_handle_message_success(bot: TelegramBrieflyBot, mock_update: 
         patch.object(bot.summarizer, "summarize", return_value="Test summary") as mock_summarize,
         patch("src.bot.translate", side_effect=lambda key, **kw: key),
     ):
-        await bot._handle_message(mock_update, mock_context)
+        await bot._process_message(mock_update, mock_context)
 
         mock_load.assert_called_once_with("https://youtube.com/watch?v=123")
         mock_summarize.assert_called_once_with("Test transcript", "en")
@@ -208,7 +208,7 @@ async def test_bot_handle_message_loader_fails(bot: TelegramBrieflyBot, mock_upd
         patch.object(bot.loader, "load", side_effect=Exception("Load error")),
         patch("src.bot.translate", return_value="Fail"),
     ):
-        await bot._handle_message(mock_update, mock_context)
+        await bot._process_message(mock_update, mock_context)
         processing_msg_mock.edit_text.assert_called_with("Fail")
 
 
@@ -225,7 +225,7 @@ async def test_bot_handle_message_summarizer_fails(bot: TelegramBrieflyBot, mock
         patch.object(bot.summarizer, "summarize", side_effect=Exception("Summarize error")),
         patch("src.bot.translate", return_value="Fail"),
     ):
-        await bot._handle_message(mock_update, mock_context)
+        await bot._process_message(mock_update, mock_context)
         processing_msg_mock.edit_text.assert_called_with("Fail")
 
 
