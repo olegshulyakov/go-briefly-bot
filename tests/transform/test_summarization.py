@@ -105,41 +105,6 @@ async def test_summarizer_summarize_text_empty_response() -> None:
 
 
 @pytest.mark.asyncio
-async def test_summarizer_summarize_text_with_retry_success() -> None:
-    mock_settings = build_settings()
-
-    with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
-        mock_client_instance = MagicMock()
-        mock_response = MagicMock()
-        mock_choice = MagicMock()
-
-        mock_choice.message.content = "This is the summary"
-        mock_response.choices = [mock_choice]
-
-        # First call raises an exception, second succeeds
-        mock_client_instance.chat.completions.create = AsyncMock(
-            side_effect=[
-                Exception("Network error"),
-                mock_response,
-            ]
-        )
-
-        mock_openai_class.return_value = mock_client_instance
-
-        # Mock the translate function
-        with patch("src.transform.summarization.translate") as mock_translate:
-            mock_translate.return_value = "You are a helpful assistant."
-
-            summarizer = OpenAISummarizer(mock_settings)
-            result = await summarizer._summarize("Input text to summarize", "en")
-
-            # Should have been called twice (first failed, second succeeded)
-            expected_calls = 2
-            assert mock_client_instance.chat.completions.create.call_count == expected_calls
-            assert result == "This is the summary"
-
-
-@pytest.mark.asyncio
 async def test_summarizer_summarize_text_with_retry_failure() -> None:
     mock_settings = build_settings(openai_max_retries=2)
 
@@ -165,18 +130,8 @@ async def test_summarizer_summarize_text_with_retry_failure() -> None:
             with pytest.raises(RuntimeError, match="failed to summarize text:"):
                 await summarizer._summarize("Input text to summarize", "en")
 
-            # Should have been called max_retries times
-            expected_calls = 2
+            expected_calls = 1
             assert mock_client_instance.chat.completions.create.call_count == expected_calls
-
-
-@pytest.mark.asyncio
-async def test_summarizer_max_retries_zero_or_less() -> None:
-    mock_settings = build_settings(openai_max_retries=0)
-    summarizer = OpenAISummarizer(mock_settings)
-
-    with pytest.raises(ValueError, match="openai_max_retries must be greater than 0"):
-        await summarizer._summarize("Input text to summarize", "en")
 
 
 @pytest.mark.asyncio

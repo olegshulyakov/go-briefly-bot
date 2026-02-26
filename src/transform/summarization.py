@@ -7,7 +7,6 @@ timeout handling, and localization support.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import logging
 import time
@@ -109,57 +108,52 @@ class OpenAISummarizer:
         if self.settings.openai_max_retries <= 0:
             raise ValueError("openai_max_retries must be greater than 0")
 
-        last_error: Exception | None = None
-        for attempt in range(self.settings.openai_max_retries):
-            try:
-                start_time = time.monotonic()
-                response = await self.client.chat.completions.create(
-                    model=self.settings.openai_model,
-                    messages=[
-                        {"role": "user", "content": prompt},
-                    ],
-                    timeout=self.settings.openai_timeout_seconds,
+        try:
+            start_time = time.monotonic()
+            response = await self.client.chat.completions.create(
+                model=self.settings.openai_model,
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+                timeout=self.settings.openai_timeout_seconds,
+            )
+            elapsed = time.monotonic() - start_time
+
+            if not response or not response.choices:
+                logger.warning(
+                    "OpenAI returned no response",
+                    extra={"response_id": getattr(response, "id", None), "model": getattr(response, "model", None)},
                 )
-                elapsed = time.monotonic() - start_time
+                raise RuntimeError("no OpenAI response")
 
-                if not response or not response.choices:
-                    logger.warning(
-                        "OpenAI returned no response",
-                        extra={"response_id": getattr(response, "id", None), "model": getattr(response, "model", None)},
-                    )
-                    raise RuntimeError("no OpenAI response")
-
-                content = response.choices[0].message.content
-                if not content:
-                    logger.warning(
-                        "OpenAI returned empty response",
-                        extra={
-                            "response_id": getattr(response, "id", None),
-                            "model": getattr(response, "model", None),
-                            "choices": getattr(response, "choices", None),
-                        },
-                    )
-                    raise RuntimeError("empty OpenAI response")
-
-                logger.info(
-                    "Summary received",
+            content = response.choices[0].message.content
+            if not content:
+                logger.warning(
+                    "OpenAI returned empty response",
                     extra={
-                        "locale": locale,
-                        "model": self.settings.openai_model,
-                        "elapsed_ms": int(elapsed * 1000),
-                        "content_length": len(content),
+                        "response_id": getattr(response, "id", None),
+                        "model": getattr(response, "model", None),
+                        "choices": getattr(response, "choices", None),
                     },
                 )
-                return content
-            except Exception as exc:  # pragma: no cover - upstream SDK/runtime errors
-                last_error = exc
-                logger.warning(
-                    "OpenAI summarization attempt failed",
-                    extra={"attempt": attempt + 1, "error": str(exc)},
-                )
-                await asyncio.sleep(1)
+                raise RuntimeError("empty OpenAI response")
 
-        raise RuntimeError(f"failed to summarize text: {last_error}")
+            logger.info(
+                "Summary received",
+                extra={
+                    "locale": locale,
+                    "model": self.settings.openai_model,
+                    "elapsed_ms": int(elapsed * 1000),
+                    "content_length": len(content),
+                },
+            )
+            return content
+        except Exception as exc:
+            logger.warning(
+                "OpenAI summarization attempt failed",
+                extra={"error": str(exc)},
+            )
+            raise RuntimeError(f"failed to summarize text: {exc}") from exc
 
     @staticmethod
     def _text_hash(text: str) -> str:
