@@ -27,4 +27,4 @@ RUN addgroup -g $UID appgroup && \
     chown -R appuser:appgroup /app
 USER appuser
 
-ENTRYPOINT ["python", "-m", "src.main"]
+ENTRYPOINT ["python", "-m", "src.client.telegram.main"]
