@@ -213,7 +213,7 @@ class VideoDataLoader:
                         "writesubtitles": True,
                         "writeautomaticsub": True,
                         "subtitleslangs": [language, f"{language}_auto", "-live_chat"],
-                        "subtitlesformat": "srt",
+                        "subtitlesformat": "srt/vtt/best",
                         "outtmpl": self._get_subtitle_template_path(video_id),
                         "logger": ydl_logger,
                         "quiet": False,
@@ -361,9 +361,9 @@ class VideoDataLoader:
         Find downloaded subtitle file for the given language.
 
         Searches in order:
-        1. Exact language match (.en.srt)
-        2. Auto-generated subtitles (.en_auto.srt)
-        3. Any matching file
+        1. Exact language match (.en.srt or .en.vtt)
+        2. Auto-generated subtitles (.en_auto.srt or .en_auto.vtt)
+        3. Any matching file (.srt or .vtt)
 
         Args:
             language: Language code to search for.
@@ -371,16 +371,23 @@ class VideoDataLoader:
         Returns:
             Path to subtitle file or None if not found.
         """
-        exact = self._get_subtitle_prefix(video_id).with_suffix(f".{language}.srt")
-        if exact.exists():
-            return exact
+        for ext in (".srt", ".vtt"):
+            exact = self._get_subtitle_prefix(video_id).with_suffix(f".{language}{ext}")
+            if exact.exists():
+                return exact
 
-        auto = self._get_subtitle_prefix(video_id).with_suffix(f".{language}_auto.srt")
-        if auto.exists():
-            return auto
+            auto = self._get_subtitle_prefix(video_id).with_suffix(f".{language}_auto{ext}")
+            if auto.exists():
+                return auto
 
-        candidates = sorted(Path(tempfile.gettempdir()).glob(f"subtitles_{video_id}*.srt"))
-        return candidates[0] if candidates else None
+        candidates: list[Path] = []
+        for ext in (".srt", ".vtt"):
+            candidates.extend(Path(tempfile.gettempdir()).glob(f"subtitles_{video_id}*{ext}"))
+
+        if candidates:
+            return sorted(candidates)[0]
+
+        return None
 
     def _cleanup_subtitle_files(self, video_id: str) -> None:
         """Remove temporary subtitle files for this video."""

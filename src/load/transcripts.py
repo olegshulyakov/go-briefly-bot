@@ -1,19 +1,20 @@
 """
-SRT subtitle cleaning utilities.
+SRT and WebVTT subtitle cleaning utilities.
 
-Provides functions to parse and clean SRT (SubRip Subtitle) format,
-removing timestamps, sequence numbers, and duplicate lines.
+Provides functions to parse and clean both SRT (SubRip Subtitle) and WebVTT
+formats, removing timestamps, sequence numbers, WebVTT headers, inline tags,
+and duplicate lines to produce clean transcript text.
 """
 
 from __future__ import annotations
 
 import re
 
-_TIMELINE_RE = re.compile(r"^\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}$")
+_TIMELINE_RE = re.compile(r"^(?:\d{2}:)?\d{2}:\d{2}[.,]\d{3} --> (?:\d{2}:)?\d{2}:\d{2}[.,]\d{3}.*$")
 """
-Regular expression to match SRT timestamp lines.
+Regular expression to match SRT and VTT timestamp lines.
 
-Matches format: HH:MM:SS,mmm --> HH:MM:SS,mmm
+Matches format: HH:MM:SS,mmm --> HH:MM:SS,mmm or HH:MM:SS.mmm --> HH:MM:SS.mmm
 Example: 00:01:23,456 --> 00:01:26,789
 """
 
@@ -32,19 +33,45 @@ Matches patterns like \\h\\h (hard line breaks) or \\n (newlines)
 that some subtitle files include for formatting.
 """
 
+_WEBVTT_HEADER_RE = re.compile(
+    r"^(?:"
+    r"WEBVTT"  # File header
+    r"|NOTE(?:\s|$)"  # Comment blocks
+    r"|STYLE(?:\s|$)"  # Style blocks
+    r"|REGION(?:\s|$)"  # Region blocks
+    r"|Kind:"  # Metadata: track kind
+    r"|Language:"  # Metadata: language
+    r"|(?:Align|Line|Position|Size|Snap-to-lines|Vertical|Scroll):"  # Known cue settings
+    r")"
+)
+"""
+Regular expression to match WebVTT structural lines that must be excluded from
+the transcript: the file header, comment/style/region blocks, metadata lines,
+and known cue-setting directives (Align:, Line:, Position:, Size:, etc.).
+"""
+
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+"""
+Regular expression to match HTML-like tags inside subtitles.
+
+Matches patterns like <b>, <i>, <c>, or VTT per-word timestamp tags like <00:00:00.000>.
+"""
+
 
 def clean_srt(text: str) -> str:
     """
-    Clean SRT subtitle text by removing formatting artifacts.
+    Clean SRT or WebVTT subtitle text by removing formatting artifacts.
 
-    Removes:
-    - Timestamp lines (00:00:00,000 --> 00:00:00,000)
+    Handles both SRT and WebVTT formats, removing:
+    - WebVTT file headers, metadata, comment/style/region blocks
+    - Timestamp lines (SRT: 00:00:00,000 --> / VTT: 00:00:00.000 --> with optional cue settings)
     - Sequence numbers
-    - Special control characters (\\h, \\n, etc.)
+    - Inline HTML-like tags (<b>, <i>, <c>, <00:00:00.000>)
+    - Special SRT control characters (\\h, \\n, etc.)
     - Duplicate lines
 
     Args:
-        text: Raw SRT subtitle content.
+        text: Raw SRT or WebVTT subtitle content.
 
     Returns:
         Cleaned transcript as continuous text with duplicates removed.
@@ -61,8 +88,12 @@ def clean_srt(text: str) -> str:
             continue
         if _NUMERIC_LINE_RE.match(line):
             continue
+        if _WEBVTT_HEADER_RE.match(line):
+            continue
 
-        line = _SPECIAL_END_RE.sub("", line).strip()
+        line = _SPECIAL_END_RE.sub("", line)
+        line = _HTML_TAG_RE.sub("", line).strip()
+
         if not line or line in seen:
             continue
 
