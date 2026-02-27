@@ -1,4 +1,4 @@
-name: Docker - Publish
+name: Release
 
 on:
   push:
@@ -9,11 +9,11 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  telegram-build-and-publish:
+  release:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       packages: write
       attestations: write
       id-token: write
@@ -21,6 +21,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Generate release notes using git-cliff (skips chore/ci/docs/refactor/style/build/test)
+      # https://github.com/orhun/git-cliff-action
+      - name: Generate release notes
+        id: git_cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --current --strip header
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -58,3 +69,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # Create GitHub Release (runs last — only if Docker push succeeded)
+      # https://github.com/softprops/action-gh-release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.git_cliff.outputs.content }}
+          token: ${{ secrets.GITHUB_TOKEN }}
