@@ -15,14 +15,17 @@ def test_settings_from_env_success() -> None:
             "OPENAI_MODEL": "gpt-3.5-turbo",
             "OPENAI_BASE_URL": "https://api.openai.com/v1/",
             "YT_DLP_ADDITIONAL_OPTIONS": "--format mp4 --proxy http://proxy.example.com",
+            "MAX_TELEGRAM_MESSAGE_LENGTH": "4000",
         },
     ):
         settings = Settings.from_env()
 
+        expected_msg_len = 4000
         assert settings.telegram_bot_token == "test_token"
         assert settings.openai_api_key == "test_api_key"
         assert settings.openai_model == "gpt-3.5-turbo"
         assert settings.openai_base_url == "https://api.openai.com/v1/"
+        assert settings.max_telegram_message_length == expected_msg_len
         assert settings.yt_dlp_additional_options == (
             "--format",
             "mp4",
@@ -97,16 +100,19 @@ def test_settings_from_env_custom_values() -> None:
             "OPENAI_MODEL": "gpt-4",
             "YT_DLP_ADDITIONAL_OPTIONS": "--format best --extract-audio",
             "RATE_LIMIT_WINDOW_SECONDS": "30",
+            "MAX_TELEGRAM_MESSAGE_LENGTH": "2000",
         },
     ):
-        # Note: RATE_LIMIT_WINDOW_SECONDS is not configurable via env in the current implementation
-        # So we'll test with the default value
         settings = Settings.from_env()
 
+        expected_rate_limit = 30
+        expected_msg_len = 2000
         assert settings.telegram_bot_token == "custom_token"
         assert settings.openai_base_url == "https://custom.openai.api/v1/"
         assert settings.openai_api_key == "custom_api_key"
         assert settings.openai_model == "gpt-4"
+        assert settings.rate_limit_window_seconds == expected_rate_limit
+        assert settings.max_telegram_message_length == expected_msg_len
         assert settings.yt_dlp_additional_options == (
             "--format",
             "best",
