@@ -172,15 +172,8 @@ async def handle_message(  # noqa: C901, PLR0911
         title=transcript.title,
         url=video_url,
     )
-
-    anchor = message
-    if transcript.thumbnail:
-        anchor = await message.reply_photo(
-            photo=transcript.thumbnail,
-            caption=markdown_to_telegram_html(title),
-        )
-
-    chunks = to_lexical_chunks(summary.strip(), settings.max_telegram_message_length)
+    response = f"{title}\n{summary}".strip()
+    chunks = to_lexical_chunks(response, settings.max_telegram_message_length)
     for i, chunk in enumerate(chunks):
         logger.debug(
             "Sending response chunk",
@@ -191,9 +184,9 @@ async def handle_message(  # noqa: C901, PLR0911
                 "chunk_index": i,
             },
         )
-        await anchor.reply(
+        await message.reply(
             text=markdown_to_telegram_html(chunk),
-            link_preview_options=LinkPreviewOptions(is_disabled=True),
+            link_preview_options=LinkPreviewOptions(is_disabled=False, url=video_url, show_above_text=True, prefer_small_media=True),
         )
 
     logger.info(
