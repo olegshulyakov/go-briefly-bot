@@ -156,6 +156,7 @@ Press `F5` to start debugging. Available configurations:
 | `CACHE_SUMMARY_TTL_SECONDS`    | TTL for cached summaries           | `3600` (local), `86400` (Valkey) |
 | `CACHE_TRANSCRIPT_TTL_SECONDS` | TTL for cached transcripts         | `3600` (local), `86400` (Valkey) |
 | `CACHE_COMPRESSION_METHOD`     | Compression for Valkey cache       | `gzip` (none, gzip, zlib, lzma)  |
+| `MAX_TELEGRAM_MESSAGE_LENGTH`  | Max length for Telegram messages   | `3500`                           |
 | `LOG_LEVEL`                    | Logging level                      | `INFO`                           |
 
 ## Tests

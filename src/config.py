@@ -100,6 +100,11 @@ class Settings:
 
         yt_dlp_additional_options = tuple(shlex.split(os.getenv("YT_DLP_ADDITIONAL_OPTIONS", "")))
 
+        try:
+            max_telegram_message_length = int(os.getenv("MAX_TELEGRAM_MESSAGE_LENGTH", "3500"))
+        except ValueError:
+            max_telegram_message_length = 3500
+
         missing = []
         if not telegram_bot_token:
             missing.append("TELEGRAM_BOT_TOKEN")
@@ -121,5 +126,6 @@ class Settings:
             cache_transcript_ttl_seconds=cache_transcript_ttl,
             cache_compression_method=cache_compression,
             rate_limit_window_seconds=rate_limit_window,
+            max_telegram_message_length=max_telegram_message_length,
             yt_dlp_additional_options=yt_dlp_additional_options,
         )
