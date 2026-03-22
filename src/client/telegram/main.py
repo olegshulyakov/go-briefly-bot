@@ -5,6 +5,7 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 
 from src.cache.base import CacheProvider
@@ -35,8 +36,13 @@ async def main() -> None:
     dp = Dispatcher()
     dp.include_routers(commands_router, messages_router, errors_router)
 
+    session: AiohttpSession | None = None
+    if settings.telegram_proxy_url:
+        session = AiohttpSession(proxy=settings.telegram_proxy_url)
+
     bot = Bot(
         token=settings.telegram_bot_token,
+        session=session,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
 
