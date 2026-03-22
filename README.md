@@ -148,15 +148,19 @@ Press `F5` to start debugging. Available configurations:
 | Variable                       | Description                        | Default                          |
 | ------------------------------ | ---------------------------------- | -------------------------------- |
 | `TELEGRAM_BOT_TOKEN`           | Telegram bot token (required)      | —                                |
+| `TELEGRAM_PROXY_URL`           | Proxy URL for Telegram API         | —                                |
 | `OPENAI_API_KEY`               | LLM API key (required)             | —                                |
 | `OPENAI_MODEL`                 | Model for summarization (required) | —                                |
 | `OPENAI_BASE_URL`              | OpenAI-compatible API base URL     | `https://api.openai.com/v1/`     |
+| `OPENAI_TIMEOUT_SECONDS`       | LLM request timeout                | `300`                            |
+| `OPENAI_MAX_RETRIES`           | LLM max retry attempts             | `3`                              |
 | `YT_DLP_ADDITIONAL_OPTIONS`    | Additional yt-dlp options          | —                                |
 | `VALKEY_URL`                   | Valkey connection URL (optional)   | —                                |
 | `CACHE_SUMMARY_TTL_SECONDS`    | TTL for cached summaries           | `3600` (local), `86400` (Valkey) |
 | `CACHE_TRANSCRIPT_TTL_SECONDS` | TTL for cached transcripts         | `3600` (local), `86400` (Valkey) |
 | `CACHE_COMPRESSION_METHOD`     | Compression for Valkey cache       | `gzip` (none, gzip, zlib, lzma)  |
 | `MAX_TELEGRAM_MESSAGE_LENGTH`  | Max length for Telegram messages   | `3500`                           |
+| `RATE_LIMIT_WINDOW_SECONDS`    | Cooldown between user requests     | `10`                             |
 | `LOG_LEVEL`                    | Logging level                      | `INFO`                           |
 
 ## Tests
